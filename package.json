@@ -1,0 +1,29 @@
+{
+  "name": "prismarine-chunk",
+  "version": "0.0.0",
+  "description": "A class to hold chunk data for prismarine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wtfaremyinitials/prismarine-chunk.git"
+  },
+  "keywords": [
+    "minecraft",
+    "voxel",
+    "chunk",
+    "world"
+  ],
+  "author": "Will Franzen <wtfranzen@gmail.com> (http://will.xyz/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wtfaremyinitials/prismarine-chunk/issues"
+  },
+  "homepage": "https://github.com/wtfaremyinitials/prismarine-chunk",
+  "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-babel": "^4.0.0"
+  }
+}
