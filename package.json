@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/wtfaremyinitials/prismarine-chunk.git"
+    "url": "https://github.com/PrismarineJS/prismarine-chunk.git"
   },
   "keywords": [
     "minecraft",
@@ -19,9 +19,9 @@
   "author": "Will Franzen <wtfranzen@gmail.com> (http://will.xyz/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wtfaremyinitials/prismarine-chunk/issues"
+    "url": "https://github.com/PrismarineJS/prismarine-chunk/issues"
   },
-  "homepage": "https://github.com/wtfaremyinitials/prismarine-chunk",
+  "homepage": "https://github.com/PrismarineJS/prismarine-chunk",
   "devDependencies": {
     "gulp": "^3.8.11",
     "gulp-babel": "^4.0.0",
