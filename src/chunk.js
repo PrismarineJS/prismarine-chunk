@@ -35,7 +35,7 @@ class Chunk {
     load(data) {
         if(!Buffer.isBuffer(data))
             throw(new Error('Data must be a buffer'));
-        if(data.size() != BUFFER_SIZE)
+        if(data.length != BUFFER_SIZE)
             throw(new Error('Data buffer not correct size (was $`data.size()`, expected $`BUFFER_SIZE`)'));
         this.data = data;
     }
