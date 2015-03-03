@@ -11,6 +11,7 @@ class Chunk {
 
     constructor() {
         this.data = new Buffer(BUFFER_SIZE);
+        this.data.fill(0);
     }
 
     getBlock(x, y, z) {
