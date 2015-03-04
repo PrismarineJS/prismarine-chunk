@@ -1,0 +1,12 @@
+machine:
+  node:
+    version: 0.10.22
+dependencies:
+  override:
+    - npm install -g gulp
+    - npm install -g mocha
+    - npm install
+test:
+  override:
+    - gulp
+    - mocha --reporter=dot
