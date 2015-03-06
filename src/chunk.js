@@ -4,7 +4,7 @@ const CHUNK_HEIGHT = 256;
 const BUFFER_SIZE = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT * 3;
 
 var getCursor = function(x, y, z) {
-    return (x) + (z * CHUNK_SIZE) + (y * CHUNK_HEIGHT);
+    return ((x) + (z * CHUNK_SIZE) + (y * CHUNK_HEIGHT)) * 3;
 };
 
 class Chunk {
