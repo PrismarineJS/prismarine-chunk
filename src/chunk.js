@@ -28,7 +28,7 @@ class Chunk {
         this.data.writeInt8(block.data, cursor + 2);
     }
 
-    save() {
+    dump() {
         return this.data;
     }
 
