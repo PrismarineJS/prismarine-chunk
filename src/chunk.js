@@ -1,10 +1,23 @@
-const CHUNK_SIZE   = 16;
-const CHUNK_HEIGHT = 256;
+const BUFFER_SIZE = ((16 * 16 * 16) * 16 * 3) + 256;
 
-const BUFFER_SIZE = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT * 3;
+var exists = require('is-js').existy;
 
-var getCursor = function(x, y, z) {
-    return ((x) + (z * CHUNK_SIZE) + (y * CHUNK_HEIGHT)) * 3;
+var getBlockCursor = function(x, y, z) {
+    var n = y >> 4;
+        y = y % 16;
+    return ((n * 4096) + (y * 256) + (z * 16) + (x)) * 2;
+};
+
+var getBlockLightCursor = function(x, y, z) {
+
+};
+
+var getSkyLightCursor = function(x, y, z) {
+
+};
+
+var getBiomeCursor = function(x, y, z) {
+
 };
 
 class Chunk {
@@ -17,15 +30,79 @@ class Chunk {
     getBlock(x, y, z) {
         var cursor = getCursor(x, y, z);
         return {
-            id:   this.data.readInt16BE(cursor),
-            data: this.data.readInt8(cursor + 2)
+            id:         getBlockType(x, y, z),
+            data:       getBlockData(x, y, z),
+            light: {
+                sky:    getSkyLight(x, y, z),
+                block:  getBlockLight(x, y, z)
+            },
+            biome:      getBiome(x, y, z)
         };
     }
 
+    getBlockType(x, y, z) {
+        var cursor = getBlockCursor(x, y, z);
+
+    }
+
+    getBlockData(x, y, z) {
+        var cursor = getBlockCursor(x, y, z);
+
+    }
+
+    getBlockLight(x, y, z) {
+        var cursor = getBlockLightCursor(x, y, z);
+
+    }
+
+    getSkyLight(x, y, z) {
+        var cursor = getSkyLightCursor(x, y, z);
+
+    }
+
+    getBiome(x, y, z) {
+        var cursor = getBiomeCursor(x, y, z);
+
+    }
+
     setBlock(x, y, z, block) {
-        var cursor = getCursor(x, y, z);
-        this.data.writeInt16BE(block.id, cursor);
-        this.data.writeInt8(block.data, cursor + 2);
+        if(exists(block.id))
+            setBlockType(x, y, z, block.id);
+        if(exists(block.data))
+            setBlockData(x, y, z, block.data);
+        if(exists(block.biome))
+            setBiome(x, y, z, block.biome);
+        if(!exists(block.light))
+            return;
+        if(exists(block.light.sky))
+            setSkyLight(x, y, z, block.light.sky);
+        if(exists(block.light.block))
+            setBlockLight(x, y, z, block.light.block);
+    }
+
+    setBlockType(x, y, z, id) {
+        var cursor = getBlockCursor(x, y, z);
+
+    }
+
+    setBlockData(x, y, z, data) {
+        var cursor = getBlockCursor(x, y, z);
+
+    }
+
+    setBlockLight(x, y, z, light) {
+        var cursor  = getBlockLightCursor(x, y, z);
+
+    }
+
+    setSkyLight(x, y, z, light) {
+        var cursor =  getSkyLightCursor(x, y, z);
+
+    }
+
+    setBiome(x, y, z, biome) {
+        var cursor = getBiomeCursor(x, y, z);
+
     }
 
     dump() {
