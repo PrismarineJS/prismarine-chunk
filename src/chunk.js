@@ -62,7 +62,7 @@ class Chunk {
 
     getBiome(x, y, z) {
         var cursor = getBiomeCursor(x, y, z);
-
+        return this.data.readUInt8(cursor);
     }
 
     setBlock(x, y, z, block) {
@@ -102,7 +102,7 @@ class Chunk {
 
     setBiome(x, y, z, biome) {
         var cursor = getBiomeCursor(x, y, z);
-
+        this.data.writeUInt8(biome, cursor);
     }
 
     dump() {
