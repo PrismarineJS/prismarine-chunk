@@ -42,12 +42,12 @@ class Chunk {
 
     getBlockType(x, y, z) {
         var cursor = getBlockCursor(x, y, z);
-
+        return this.data.readUInt16LE(cursor) >> 4;
     }
 
     getBlockData(x, y, z) {
         var cursor = getBlockCursor(x, y, z);
-
+        return this.data.readUInt16LE(cursor) & 15;
     }
 
     getBlockLight(x, y, z) {
@@ -82,12 +82,14 @@ class Chunk {
 
     setBlockType(x, y, z, id) {
         var cursor = getBlockCursor(x, y, z);
-
+        var data   = getBlockData(x, y, z);
+        this.data.writeUInt16LE(cursor, (id << 4) | data);
     }
 
     setBlockData(x, y, z, data) {
         var cursor = getBlockCursor(x, y, z);
-
+        var type = getBlockType(x, y, z);
+        this.data.writeUInt16LE(cursor, (id << 4) | data);
     }
 
     setBlockLight(x, y, z, light) {
