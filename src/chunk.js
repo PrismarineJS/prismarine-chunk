@@ -19,7 +19,7 @@ var getSkyLightCursor = function(x, y, z) {
 };
 
 var getBiomeCursor = function(x, y, z) {
-    return 0;
+    return ((16 * 16 * 16) * 16 * 3) + (z * 16) + x; // X and Z may need to be flipped
 };
 
 class Chunk {
