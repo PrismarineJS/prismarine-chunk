@@ -4,18 +4,22 @@ var exists = function(val) {
     return val !== undefined;
 };
 
-var getBlockCursor = function(x, y, z) {
+var getArrayPosition = function(x, y, z) {
     var n = y >> 4;
         y = y % 16;
-    return ((n * 4096) + (y * 256) + (z * 16) + (x)) * 2;
+    return ((n * 4096) + (y * 256) + (z * 16) + (x));
+};
+
+var getBlockCursor = function(x, y, z) {
+    return getArrayPosition(x, y, z) * 2.0 + 0;
 };
 
 var getBlockLightCursor = function(x, y, z) {
-    return 0;
+    return getArrayPosition(x, y, z) * 0.5 + 131070;
 };
 
 var getSkyLightCursor = function(x, y, z) {
-    return 0;
+    return getArrayPosition(x, y, z) * 0.5 + 262140;
 };
 
 var getBiomeCursor = function(x, y, z) {
