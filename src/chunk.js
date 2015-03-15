@@ -1,6 +1,8 @@
 const BUFFER_SIZE = ((16 * 16 * 16) * 16 * 3) + 256;
 
-var exists = require('is-js').existy;
+var exists = function(val) {
+    return val !== undefined;
+};
 
 var getBlockCursor = function(x, y, z) {
     var n = y >> 4;
@@ -9,15 +11,15 @@ var getBlockCursor = function(x, y, z) {
 };
 
 var getBlockLightCursor = function(x, y, z) {
-
+    return 0;
 };
 
 var getSkyLightCursor = function(x, y, z) {
-
+    return 0;
 };
 
 var getBiomeCursor = function(x, y, z) {
-
+    return 0;
 };
 
 class Chunk {
@@ -28,15 +30,14 @@ class Chunk {
     }
 
     getBlock(x, y, z) {
-        var cursor = getCursor(x, y, z);
         return {
-            id:         getBlockType(x, y, z),
-            data:       getBlockData(x, y, z),
+            id:         this.getBlockType(x, y, z),
+            data:       this.getBlockData(x, y, z),
             light: {
-                sky:    getSkyLight(x, y, z),
-                block:  getBlockLight(x, y, z)
+                sky:    this.getSkyLight(x, y, z),
+                block:  this.getBlockLight(x, y, z)
             },
-            biome:      getBiome(x, y, z)
+            biome:      this.getBiome(x, y, z)
         };
     }
 
@@ -67,29 +68,29 @@ class Chunk {
 
     setBlock(x, y, z, block) {
         if(exists(block.id))
-            setBlockType(x, y, z, block.id);
+            this.setBlockType(x, y, z, block.id);
         if(exists(block.data))
-            setBlockData(x, y, z, block.data);
+            this.setBlockData(x, y, z, block.data);
         if(exists(block.biome))
-            setBiome(x, y, z, block.biome);
+            this.setBiome(x, y, z, block.biome);
         if(!exists(block.light))
             return;
         if(exists(block.light.sky))
-            setSkyLight(x, y, z, block.light.sky);
+            this.setSkyLight(x, y, z, block.light.sky);
         if(exists(block.light.block))
-            setBlockLight(x, y, z, block.light.block);
+            this.setBlockLight(x, y, z, block.light.block);
     }
 
     setBlockType(x, y, z, id) {
         var cursor = getBlockCursor(x, y, z);
-        var data   = getBlockData(x, y, z);
-        this.data.writeUInt16LE(cursor, (id << 4) | data);
+        var data = this.getBlockData(x, y, z);
+        this.data.writeUInt16LE((id << 4) | data, cursor);
     }
 
     setBlockData(x, y, z, data) {
         var cursor = getBlockCursor(x, y, z);
-        var type = getBlockType(x, y, z);
-        this.data.writeUInt16LE(cursor, (id << 4) | data);
+        var id = this.getBlockType(x, y, z);
+        this.data.writeUInt16LE((id << 4) | data, cursor);
     }
 
     setBlockLight(x, y, z, light) {

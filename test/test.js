@@ -37,28 +37,24 @@ describe('chunk', function() {
         assert.equal(35, chunk.getBlock(5, 5, 5).id);
         assert.equal(14, chunk.getBlock(5, 5, 5).data);
     });
-    it('should return the internal buffer when calling #save()', function() {
+    it('should return the internal buffer when calling #dump()', function() {
         var chunk = new Chunk();
 
         chunk.setBlock(0, 0, 0, { id: 5, data: 2 }); // Birch planks
 
-        var buffer = chunk.save();
-        assert.equal(0x00, buffer[0]);
-        assert.equal(0x05, buffer[1]);
-        assert.equal(0x02, buffer[2]);
+        var buffer = chunk.dump();
+        assert.equal(0x52, buffer[0]);
     });
     it('should replace the inner buffer when calling #load()', function() {
         var chunk = new Chunk();
 
-        var buffer = new Buffer(196608);
-        buffer[0] = 0x00;
-        buffer[1] = 0x05;
-        buffer[2] = 0x02;
+        var buffer = new Buffer(196864);
+        buffer[0] = 0x52;
 
         chunk.load(buffer);
 
-        assert.equal(5, chunk.getBlock(0, 0, 0).id);
-        assert.equal(2, chunk.getBlock(0, 0, 0).data);
+        assert.equal(5, chunk.getBlockType(0, 0, 0));
+        assert.equal(2, chunk.getBlockData(0, 0, 0));
     });
     it('should fail savely when load is given bad input', function() {
         var chunk = new Chunk();
