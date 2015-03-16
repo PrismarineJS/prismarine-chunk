@@ -1,5 +1,7 @@
 const BUFFER_SIZE = ((16 * 16 * 16) * 16 * 3) + 256;
 
+var { readUInt4, writeUInt4 } = require('uint4');
+
 var exists = function(val) {
     return val !== undefined;
 };
@@ -57,12 +59,12 @@ class Chunk {
 
     getBlockLight(x, y, z) {
         var cursor = getBlockLightCursor(x, y, z);
-
+        return readUInt4(this.data, cursor);
     }
 
     getSkyLight(x, y, z) {
         var cursor = getSkyLightCursor(x, y, z);
-
+        return readUInt4(this.data, cursor);
     }
 
     getBiome(x, y, z) {
@@ -99,12 +101,12 @@ class Chunk {
 
     setBlockLight(x, y, z, light) {
         var cursor  = getBlockLightCursor(x, y, z);
-
+        writeUInt4(this.data, light, cursor);
     }
 
     setSkyLight(x, y, z, light) {
         var cursor =  getSkyLightCursor(x, y, z);
-
+        writeUInt4(this.data, light, cursor);
     }
 
     setBiome(x, y, z, biome) {
