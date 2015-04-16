@@ -1,6 +1,6 @@
 const BUFFER_SIZE = ((16 * 16 * 16) * 16 * 3) + 256;
 
-var { readUInt4, writeUInt4 } = require('uint4');
+var { readUInt4LE, writeUInt4LE } = require('uint4');
 
 var exists = function(val) {
     return val !== undefined;
@@ -17,11 +17,11 @@ var getBlockCursor = function(x, y, z) {
 };
 
 var getBlockLightCursor = function(x, y, z) {
-    return getArrayPosition(x, y, z) * 0.5 + 131070;
+    return getArrayPosition(x, y, z) * 0.5 + 131072;
 };
 
 var getSkyLightCursor = function(x, y, z) {
-    return getArrayPosition(x, y, z) * 0.5 + 262140;
+    return 0//getArrayPosition(x, y, z) * 0.5 + 131071 + 163839;
 };
 
 var getBiomeCursor = function(x, y, z) {
@@ -59,12 +59,12 @@ class Chunk {
 
     getBlockLight(x, y, z) {
         var cursor = getBlockLightCursor(x, y, z);
-        return readUInt4(this.data, cursor);
+        return readUInt4LE(this.data, cursor);
     }
 
     getSkyLight(x, y, z) {
         var cursor = getSkyLightCursor(x, y, z);
-        return readUInt4(this.data, cursor);
+        return readUInt4LE(this.data, cursor);
     }
 
     getBiome(x, y, z) {
@@ -100,13 +100,13 @@ class Chunk {
     }
 
     setBlockLight(x, y, z, light) {
-        var cursor  = getBlockLightCursor(x, y, z);
-        writeUInt4(this.data, light, cursor);
+        var cursor = getBlockLightCursor(x, y, z);;
+        writeUInt4LE(this.data, light, cursor);
     }
 
     setSkyLight(x, y, z, light) {
         var cursor =  getSkyLightCursor(x, y, z);
-        writeUInt4(this.data, light, cursor);
+        writeUInt4LE(this.data, light, cursor);
     }
 
     setBiome(x, y, z, biome) {
