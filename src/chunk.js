@@ -21,7 +21,7 @@ var getBlockLightCursor = function(x, y, z) {
 };
 
 var getSkyLightCursor = function(x, y, z) {
-    return 0//getArrayPosition(x, y, z) * 0.5 + 131071 + 163839;
+    return getArrayPosition(x, y, z) * 0.5 + 163840;
 };
 
 var getBiomeCursor = function(x, y, z) {
