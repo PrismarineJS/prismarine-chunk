@@ -47,6 +47,21 @@ class Chunk {
         };
     }
 
+    setBlock(x, y, z, block) {
+        if(exists(block.id))
+            this.setBlockType(x, y, z, block.id);
+        if(exists(block.data))
+            this.setBlockData(x, y, z, block.data);
+        if(exists(block.biome))
+            this.setBiome(x, y, z, block.biome);
+        if(!exists(block.light))
+            return;
+        if(exists(block.light.sky))
+            this.setSkyLight(x, y, z, block.light.sky);
+        if(exists(block.light.block))
+            this.setBlockLight(x, y, z, block.light.block);
+    }
+
     getBlockType(x, y, z) {
         var cursor = getBlockCursor(x, y, z);
         return this.data.readUInt16LE(cursor) >> 4;
@@ -70,21 +85,6 @@ class Chunk {
     getBiome(x, y, z) {
         var cursor = getBiomeCursor(x, y, z);
         return this.data.readUInt8(cursor);
-    }
-
-    setBlock(x, y, z, block) {
-        if(exists(block.id))
-            this.setBlockType(x, y, z, block.id);
-        if(exists(block.data))
-            this.setBlockData(x, y, z, block.data);
-        if(exists(block.biome))
-            this.setBiome(x, y, z, block.biome);
-        if(!exists(block.light))
-            return;
-        if(exists(block.light.sky))
-            this.setSkyLight(x, y, z, block.light.sky);
-        if(exists(block.light.block))
-            this.setBlockLight(x, y, z, block.light.block);
     }
 
     setBlockType(x, y, z, id) {
