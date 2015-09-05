@@ -1,4 +1,4 @@
-var Chunk = require('./');
+var Chunk = require('./')("1.8");
 var Vec3 = require("vec3");
 
 var chunk=new Chunk();
@@ -12,4 +12,4 @@ for (var x = 0; x < 16;x++) {
   }
 }
 
-console.log(chunk.getBlock(new Vec3(3,50,3)));
+console.log(JSON.stringify(chunk.getBlock(new Vec3(3,50,3)),null,2));
