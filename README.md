@@ -1,10 +1,11 @@
 # prismarine-chunk
 
-[![Join the chat at https://gitter.im/dcbartlett/minecraftJS](https://img.shields.io/badge/Gitter-Chat-brightgreen.svg)]
-(https://gitter.im/PrismarineJS/Prismarine-Server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
- Come Chat with us.<br />
-[![Circle CI](https://img.shields.io/circleci/project/PrismarineJS/prismarine-chunk.svg)]
+[![NPM version](https://img.shields.io/npm/v/prismarine-chunk.svg)](http://npmjs.com/package/prismarine-chunk)
+[![Build Status](https://img.shields.io/circleci/project/PrismarineJS/prismarine-chunk/master.svg)]
 (https://circleci.com/gh/PrismarineJS/prismarine-chunk)
+[![Join the chat at https://gitter.im/PrismarineJS/prismarine-chunk]
+(https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)]
+(https://gitter.im/PrismarineJS/prismarine-chunk)
 
 ## Usage
 
