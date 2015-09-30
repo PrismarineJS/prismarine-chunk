@@ -93,6 +93,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 0.2.1
+
+ * fix the badge
+
 ### 0.2.0
 
  * use vec3
