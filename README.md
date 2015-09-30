@@ -92,6 +92,12 @@ Load raw `data` into the chunk
 
 ## History
 
+### 0.2.0
+
+ * use vec3
+ * add an example + doc
+ * use prismarine-block
+
 ### 0.1.0
 
 * First version, basic functionality
