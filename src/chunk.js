@@ -2,6 +2,16 @@ const BUFFER_SIZE = ((16 * 16 * 16) * 16 * 3) + 256;
 
 var { readUInt4LE, writeUInt4LE } = require('uint4');
 
+module.exports = loader;
+
+function loader(mcVersion)
+{
+  Block = require('prismarine-block')(mcVersion);
+  return Chunk;
+}
+
+var Block;
+
 var exists = function(val) {
     return val !== undefined;
 };
@@ -36,30 +46,23 @@ class Chunk {
     }
 
     getBlock(pos) {
-        return {
-            id:         this.getBlockType(pos),
-            data:       this.getBlockData(pos),
-            light: {
-                sky:    this.getSkyLight(pos),
-                block:  this.getBlockLight(pos)
-            },
-            biome:      this.getBiome(pos)
-        };
+        var block=new Block(this.getBlockType(pos),this.getBiome(pos),this.getBlockData(pos));
+        block.light=this.getBlockLight(pos);
+        block.skyLight=this.getSkyLight(pos);
+        return block;
     }
 
     setBlock(pos, block) {
-        if(exists(block.id))
-            this.setBlockType(pos, block.id);
-        if(exists(block.data))
-            this.setBlockData(pos, block.data);
+        if(exists(block.type))
+            this.setBlockType(pos, block.type);
+        if(exists(block.metadata))
+            this.setBlockData(pos, block.metadata);
         if(exists(block.biome))
-            this.setBiome(pos, block.biome);
-        if(!exists(block.light))
-            return;
-        if(exists(block.light.sky))
-            this.setSkyLight(pos, block.light.sky);
-        if(exists(block.light.block))
-            this.setBlockLight(pos, block.light.block);
+            this.setBiome(pos, block.biome.id);
+        if(exists(block.skyLight))
+            this.setSkyLight(pos, block.skyLight);
+        if(exists(block.light))
+            this.setBlockLight(pos, block.light);
     }
 
     getBlockType(pos) {
@@ -127,5 +130,3 @@ class Chunk {
     }
 
 }
-
-module.exports = Chunk;
