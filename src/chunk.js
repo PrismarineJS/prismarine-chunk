@@ -19,7 +19,7 @@ var exists = function(val) {
 var getArrayPosition = function(pos) {
     var n = pos.y >> 4; // y chunk number
     var y = pos.y % 16; // position in chunk
-    return pos.x + 16*(pos.z + 256*(y + 16*n); // pos.y == y + 16*n
+    return pos.x + 16*(pos.z + 256*(y + 16*n)); // pos.y == y + 16*n
 };
 
 var getBlockCursor = function(pos) {
