@@ -17,9 +17,9 @@ var exists = function(val) {
 };
 
 var getArrayPosition = function(pos) {
-    var n = pos.y >> 4;
-        var y = pos.y % 16;
-    return ((n * 4096) + (y * 256) + (pos.z * 16) + (pos.x));
+    var n = pos.y >> 4; // y chunk number
+    var y = pos.y % 16; // position in chunk
+    return pos.x + 16*(pos.z + 16*(y + 16*n)); // pos.y == y + 16*n
 };
 
 var getBlockCursor = function(pos) {
@@ -27,11 +27,11 @@ var getBlockCursor = function(pos) {
 };
 
 var getBlockLightCursor = function(pos) {
-    return getArrayPosition(pos) * 0.5 + 131072;
+    return getArrayPosition(pos) * 0.5 + 256*16*16*2;
 };
 
 var getSkyLightCursor = function(pos) {
-    return getArrayPosition(pos) * 0.5 + 163840;
+    return getArrayPosition(pos) * 0.5 + 256*16*8*5;
 };
 
 var getBiomeCursor = function(pos) {
