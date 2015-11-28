@@ -17,9 +17,7 @@ var exists = function (val) {
 
 
 var getArrayPosition = function (pos) {
-  var n = pos.y >> 4;
-  var y = pos.y % 16;
-  return ((n * 4096) + (y * 256) + (pos.z * 16) + (pos.x));
+  return pos.x+16*(pos.z+16*pos.y);
 };
 
 var getBlockCursor = function (pos) {
