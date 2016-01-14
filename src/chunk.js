@@ -21,7 +21,7 @@ var getArrayPosition = function (pos) {
 };
 
 var getBlockCursor = function (pos) {
-  return getArrayPosition(pos) * 2.0 + 0;
+  return getArrayPosition(pos) * 2.0;
 };
 
 var getBlockLightCursor = function(pos) {
@@ -33,7 +33,7 @@ var getSkyLightCursor = function(pos) {
 };
 
 var getBiomeCursor = function (pos) {
-  return ((16 * 16 * 16) * 16 * 3) + (pos.z * 16) + pos.x; // X and Z may need to be flipped
+  return ((16 * 16 * 16) * 16 * 3) + (pos.z * 16) + pos.x;
 };
 
 class Chunk {
