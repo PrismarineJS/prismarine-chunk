@@ -102,6 +102,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 0.3.0
+
+* add Chunk.initialize, useful for fast generation
+
 ### 0.2.1
 
  * fix the badge
