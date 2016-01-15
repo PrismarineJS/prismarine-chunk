@@ -43,6 +43,31 @@ class Chunk {
     this.data.fill(0);
   }
 
+  initialize(iniFunc,length=16,width=16,height=256,iniPosX=0,iniPosY=0,iniPosZ=0) {
+    let n=iniPosX+16*(iniPosZ+16*iniPosY);
+    const skylight=256*16*8*5;
+    const light=256*16*16*2;
+    let biome=((16 * 16 * 16) * 16 * 3);
+    for(let y=0;y<height;y++) {
+      for(let z=0;z<length;z++) {
+        for(let x=0;x<width;x++,n++) {
+          const block=iniFunc(x,y,z,n);
+          this.data.writeUInt16LE(block.type<<4 | block.metadata,n*2);
+          writeUInt4LE(this.data, block.light, n*0.5+light);
+          writeUInt4LE(this.data, block.skyLight, n*0.5+skylight);
+          if(y==0) {
+            this.data.writeUInt8(block.biome.id || 0, biome);
+            biome++;
+          }
+        }
+        n+=16-width;
+        if(y==0) biome+=16-width;
+      }
+      n+=(16-length)*16;
+      if(y==0) biome+=(16-length)*16;
+    }
+  };
+
   getBlock(pos) {
     var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos));
     block.light = this.getBlockLight(pos);

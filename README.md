@@ -35,6 +35,15 @@ console.log(JSON.stringify(chunk.getBlock(new Vec3(3,50,3)),null,2));
 
 Build a new chunk
 
+#### Chunk.initialize(iniFunc,length=16,width=16,height=256,iniPosX=0,iniPosY=0,iniPosZ=0)
+
+Initialize a chunk.
+* `iniFunc` is a function(x,y,z) returning a prismarine-block.
+* `length`, `width` and `height` are the size to iterate on
+* `iniPosX`, `iniPosY` and `iniPosZ` represent the initial position of the iteration (useful to start adding things from a given position of the chunk)
+
+That function is much faster than iterating and calling the setBlock* manually. It is useful to generate a whole chunk and load a whole chunk.
+
 #### Chunk.getBlock(pos)
 
 Get the [Block](https://github.com/PrismarineJS/prismarine-block) at [pos](https://github.com/andrewrk/node-vec3)
