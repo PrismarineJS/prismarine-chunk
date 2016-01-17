@@ -102,6 +102,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 0.3.1
+
+* fix iniPos in initialize
+
 ### 0.3.0
 
 * add Chunk.initialize, useful for fast generation
