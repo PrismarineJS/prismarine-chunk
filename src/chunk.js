@@ -44,12 +44,16 @@ class Chunk {
   }
 
   initialize(iniFunc,length=16,width=16,height=256,iniPosX=0,iniPosY=0,iniPosZ=0) {
-    let n=iniPosX+16*(iniPosZ+16*iniPosY);
+    let n=16*16*iniPosY;
     const skylight=256*16*8*5;
     const light=256*16*16*2;
     let biome=((16 * 16 * 16) * 16 * 3);
     for(let y=0;y<height;y++) {
+      n+=iniPosZ*16;
+      if(y==0) biome+=iniPosZ*16;
       for(let z=0;z<length;z++) {
+        n+=iniPosX;
+        if(y==0) biome+=iniPosX;
         for(let x=0;x<width;x++,n++) {
           const block=iniFunc(x,y,z,n);
           this.data.writeUInt16LE(block.type<<4 | block.metadata,n*2);
@@ -60,11 +64,11 @@ class Chunk {
             biome++;
           }
         }
-        n+=16-width;
-        if(y==0) biome+=16-width;
+        n+=16-width-iniPosX;
+        if(y==0) biome+=16-width-iniPosX;
       }
-      n+=(16-length)*16;
-      if(y==0) biome+=(16-length)*16;
+      n+=(16-length-iniPosZ)*16;
+      if(y==0) biome+=(16-length-iniPosZ)*16;
     }
   };
 
