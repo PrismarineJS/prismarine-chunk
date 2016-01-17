@@ -100,6 +100,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 0.3.2
+
+* simplify and fix initialize
+
 ### 0.3.1
 
 * fix iniPos in initialize
