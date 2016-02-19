@@ -27,10 +27,11 @@
     "gulp": "^3.8.11",
     "gulp-babel": "^4.0.0",
     "mocha": "^2.1.0",
-    "vec3": "~0.1.3"
+    "vec3": "~0.1.3",
+    "minecraft-data":"^1.0.0"
   },
   "dependencies": {
-    "uint4": "0.1.2",
-    "prismarine-block":"0.1.0"
+    "uint4": "^0.1.2",
+    "prismarine-block":"^1.0.0"
   }
 }
