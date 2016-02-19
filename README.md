@@ -100,6 +100,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 1.0.0
+
+* bump dependencies
+
 ### 0.3.2
 
 * simplify and fix initialize
