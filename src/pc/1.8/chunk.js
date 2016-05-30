@@ -36,6 +36,7 @@ var getBiomeCursor = function (pos) {
   return ((16 * 16 * 16) * 16 * 3) + (pos.z * 16) + pos.x;
 };
 
+
 class Chunk {
 
   constructor() {
@@ -152,4 +153,17 @@ class Chunk {
     this.data = data;
   }
 
+  static get height() {
+    return 256;
+  }
+
+  static get length() {
+    return 16;
+  }
+
+  static get width() {
+    return 16;
+  }
+
 }
+

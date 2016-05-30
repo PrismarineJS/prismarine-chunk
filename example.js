@@ -1,12 +1,12 @@
-var Chunk = require('./')("1.8");
+var Chunk = require('./')("pe_0.14");
 var Vec3 = require("vec3");
 
 var chunk=new Chunk();
 
-for (var x = 0; x < 16;x++) {
-  for (var z = 0; z < 16; z++) {
+for (var x = 0; x < Chunk.width;x++) {
+  for (var z = 0; z < Chunk.length; z++) {
     chunk.setBlockType(new Vec3(x, 50, z), 2);
-    for (var y = 0; y < 256; y++) {
+    for (var y = 0; y < Chunk.height; y++) {
       chunk.setSkyLight(new Vec3(x, y, z), 15);
     }
   }
