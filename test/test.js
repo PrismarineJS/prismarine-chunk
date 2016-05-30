@@ -10,7 +10,7 @@ describe('chunk', function() {
         var chunk = new Chunk();
 
         assert.equal(0, chunk.getBlock(new Vec3(0, 0, 0)).type);
-        assert.equal(0, chunk.getBlock(new Vec3(15, Chunk.height-1, 15)).type);
+        assert.equal(0, chunk.getBlock(new Vec3(15, Chunk.h-1, 15)).type);
     });
     it('should set a block at the given position', function() {
         var chunk = new Chunk();

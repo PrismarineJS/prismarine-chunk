@@ -1,4 +1,8 @@
-const BUFFER_SIZE = ((16 * 16 * 16) * 16 * 3) + 256;
+const w=16;
+const l=16;
+const h=256;
+
+const BUFFER_SIZE = (w * l * h * 3) + w*l;
 
 var { readUInt4LE, writeUInt4LE } = require('uint4');
 
@@ -6,6 +10,9 @@ module.exports = loader;
 
 function loader(mcVersion) {
   Block = require('prismarine-block')(mcVersion);
+  Chunk.w=w;
+  Chunk.l=l;
+  Chunk.h=h;
   return Chunk;
 }
 
@@ -17,7 +24,7 @@ var exists = function (val) {
 
 
 var getArrayPosition = function (pos) {
-  return pos.x+16*(pos.z+16*pos.y);
+  return pos.x+w*(pos.z+l*pos.y);
 };
 
 var getBlockCursor = function (pos) {
@@ -25,15 +32,15 @@ var getBlockCursor = function (pos) {
 };
 
 var getBlockLightCursor = function(pos) {
-    return getArrayPosition(pos) * 0.5 + 256*16*16*2;
+    return getArrayPosition(pos) * 0.5 + w * l * h*2;
 };
 
 var getSkyLightCursor = function(pos) {
-  return getArrayPosition(pos) * 0.5 + 256*16*8*5;
+  return getArrayPosition(pos) * 0.5 + w * l * h/2*5;
 };
 
 var getBiomeCursor = function (pos) {
-  return ((16 * 16 * 16) * 16 * 3) + (pos.z * 16) + pos.x;
+  return (w * l * h * 3) + (pos.z * w) + pos.x;
 };
 
 
@@ -45,13 +52,13 @@ class Chunk {
   }
 
   initialize(iniFunc) {
-    const skylight=256*16*8*5;
-    const light=256*16*16*2;
-    let biome=((16 * 16 * 16) * 16 * 3)-1;
+    const skylight=w * l * h/2*5;
+    const light=w * l * h*2;
+    let biome=(w * l * h * 3)-1;
     let n=0;
-    for(let y=0;y<256;y++) {
-      for(let z=0;z<16;z++) {
-        for(let x=0;x<16;x++,n++) {
+    for(let y=0;y<h;y++) {
+      for(let z=0;z<w;z++) {
+        for(let x=0;x<l;x++,n++) {
           if(y==0)
             biome++;
           const block=iniFunc(x,y,z,n);
@@ -152,18 +159,5 @@ class Chunk {
       throw(new Error(`Data buffer not correct size \(was ${data.length}, expected ${BUFFER_SIZE}\)`));
     this.data = data;
   }
-
-  static get height() {
-    return 256;
-  }
-
-  static get length() {
-    return 16;
-  }
-
-  static get width() {
-    return 16;
-  }
-
 }
 

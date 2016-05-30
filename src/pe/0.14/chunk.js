@@ -1,11 +1,14 @@
 'use strict';
 
-const BLOCK_DATA_SIZE = 16 * 16 * 128;
-const REGULAR_DATA_SIZE = 16384;
-const SKYLIGHT_DATA_SIZE = 16384;
-const BLOCKLIGHT_DATA_SIZE = 16384;
-const ADDITIONAL_DATA_SIZE_DIRTY = 256;
-const ADDITIONAL_DATA_SIZE_COLOR = 1024;
+const w=16;
+const l=16;
+const h=128;
+const BLOCK_DATA_SIZE = w * l * h;
+const REGULAR_DATA_SIZE = BLOCK_DATA_SIZE/2;
+const SKYLIGHT_DATA_SIZE = BLOCK_DATA_SIZE/2;
+const BLOCKLIGHT_DATA_SIZE = BLOCK_DATA_SIZE/2;
+const ADDITIONAL_DATA_SIZE_DIRTY = w*l;
+const ADDITIONAL_DATA_SIZE_COLOR = w*l*4;
 const BUFFER_SIZE = BLOCK_DATA_SIZE + REGULAR_DATA_SIZE + SKYLIGHT_DATA_SIZE + BLOCKLIGHT_DATA_SIZE + ADDITIONAL_DATA_SIZE_COLOR + ADDITIONAL_DATA_SIZE_DIRTY;
 
 const readUInt4LE = require('uint4').readUInt4LE;
@@ -15,6 +18,9 @@ module.exports = loader;
 
 function loader(mcVersion) {
   Block = require('prismarine-block')(mcVersion);
+  Chunk.w=w;
+  Chunk.l=l;
+  Chunk.h=h;
   return Chunk;
 }
 
@@ -24,6 +30,34 @@ function exists(val) {
   return val !== undefined;
 }
 
+
+var getArrayPosition = function (pos) {
+  return pos.x+w*(pos.z+l*pos.y);
+};
+
+var getBlockCursor = function (pos) {
+  return getArrayPosition(pos);
+};
+
+var getBlockDataCursor = function(pos) {
+  return getArrayPosition(pos) * 0.5;
+};
+
+var getBlockLightCursor = function(pos) {
+  return getArrayPosition(pos) * 0.5;
+};
+
+var getSkyLightCursor = function(pos) {
+  return getArrayPosition(pos) * 0.5;
+};
+
+var getBiomeCursor = function (pos) {
+  return ((pos.z * w) + pos.x)*4;
+};
+
+var getHeightMapCursor = function (pos) {
+  return (pos.z * w) + pos.x;
+};
 
 class Chunk {
   constructor() {
@@ -63,39 +97,39 @@ class Chunk {
   }
 
   getBlockType(pos) {
-    return this.blocks[pos.x + 16 * (pos.z + 16 * pos.y)] & 0xff;
+    return this.blocks.readUInt8(getBlockCursor(pos));
   }
 
   setBlockType(pos, id) {
-    this.blocks[pos.x + 16 * (pos.z + 16 * pos.y)] = id;
+    this.blocks.writeUInt8(id,getBlockCursor(pos));
   }
 
   getBlockData(pos) {
-    return readUInt4LE(this.data, (pos.x + 16 * (pos.z + 16 * pos.y)) * 0.5);
+    return readUInt4LE(this.data, getBlockDataCursor(pos));
   }
 
   setBlockData(pos, data) {
-    writeUInt4LE(this.data, data, (pos.x + 16 * (pos.z + 16 * pos.y)) * 0.5);
+    writeUInt4LE(this.data, data, getBlockDataCursor(pos));
   }
 
   getBlockLight(pos) {
-    return readUInt4LE(this.blockLight, (pos.x + 16 * (pos.z + 16 * pos.y)) * 0.5);
+    return readUInt4LE(this.blockLight, getBlockLightCursor(pos));
   }
 
   setBlockLight(pos, light) {
-    writeUInt4LE(this.blockLight, light, (pos.x + 16 * (pos.z + 16 * pos.y)) * 0.5);
+    writeUInt4LE(this.blockLight, light, getBlockLightCursor(pos));
   }
 
   getSkyLight(pos) {
-    return readUInt4LE(this.skyLight, (pos.x + 16 * (pos.z + 16 * pos.y)) * 0.5);
+    return readUInt4LE(this.skyLight, getSkyLightCursor(pos));
   }
 
   setSkyLight(pos, light) {
-    writeUInt4LE(this.skyLight, light, (pos.x + 16 * (pos.z + 16 * pos.y)) * 0.5);
+    writeUInt4LE(this.skyLight, light, getSkyLightCursor(pos));
   }
 
   getBiomeColor(pos) {
-    var color = this.biomeColors.readInt32BE(((pos.z << 4) + pos.x) * 4) & 0xFFFFFF;
+    var color = this.biomeColors.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF;
 
     return {
       r: (color >> 16),
@@ -105,23 +139,23 @@ class Chunk {
   }
 
   setBiomeColor(pos, r, g, b) {
-    this.biomeColors.writeInt32BE((this.biomeColors.readInt32BE(((pos.z << 4) + pos.x) * 4) & 0xFF000000) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0XFF), ((pos.z << 4) + pos.x) * 4);
+    this.biomeColors.writeInt32BE((this.biomeColors.readInt32BE(getBiomeCursor(pos)) & 0xFF000000) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0XFF), ((pos.z << 4) + pos.x) * 4);
   }
 
   getBiome(pos) {
-    return (this.biomeColors.readInt32BE(((pos.z << 4) + pos.x) * 4) & 0xFF000000) >> 24;
+    return (this.biomeColors.readInt32BE(getBiomeCursor(pos)) & 0xFF000000) >> 24;
   }
 
   setBiome(pos, id) {
-    this.biomeColors.writeInt32BE((this.biomeColors.readInt32BE(((pos.z << 4) + pos.x) * 4) & 0xFFFFFF) | (id << 24), ((pos.z << 4) + pos.x) * 4);
-  }
-
-  setHeight(pos, value) {
-    this.heightMap[(pos.z << 4) + pos.x] = value;
+    this.biomeColors.writeInt32BE((this.biomeColors.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF) | (id << 24), ((pos.z << 4) + pos.x) * 4);
   }
 
   getHeight(pos) {
-    return this.heightMap[(pos.z << 4) + pos.x];
+    return this.heightMap.readUInt8(getHeightMapCursor(pos,value));
+  }
+
+  setHeight(pos, value) {
+    this.heightMap.writeUInt8(value,getHeightMapCursor(pos));
   }
 
   load(data) {
@@ -157,18 +191,5 @@ class Chunk {
       this.heightMap,
       this.biomeColors
     ], BUFFER_SIZE);
-  }
-
-
-  static get height() {
-    return 128;
-  }
-
-  static get length() {
-    return 16;
-  }
-
-  static get width() {
-    return 16;
   }
 }
