@@ -74,7 +74,7 @@ class Chunk {
         }
       }
     }
-  };
+  }
 
   getBlock(pos) {
     var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos));
