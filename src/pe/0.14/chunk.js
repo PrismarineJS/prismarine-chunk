@@ -139,7 +139,7 @@ class Chunk {
   }
 
   setBiome(pos, id) {
-    this.buffer.writeInt32BE((this.buffer.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF) | (id << 24), ((pos.z << 4) + pos.x) * 4);
+    this.buffer.writeInt32BE((this.buffer.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF) | (id << 24), getBiomeCursor(pos));
   }
 
   getHeight(pos) {
