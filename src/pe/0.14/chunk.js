@@ -21,6 +21,7 @@ function loader(mcVersion) {
   Chunk.w=w;
   Chunk.l=l;
   Chunk.h=h;
+  Chunk.BUFFER_SIZE=BUFFER_SIZE;
   return Chunk;
 }
 
@@ -62,9 +63,9 @@ var getBiomeCursor = function (pos) {
 
 class Chunk {
   constructor() {
-    this.buffer = new Buffer(BUFFER_SIZE);
+    this.data = new Buffer(BUFFER_SIZE);
 
-    this.buffer.fill(0);
+    this.data.fill(0);
   }
 
   getBlock(pos) {
@@ -88,39 +89,39 @@ class Chunk {
   }
 
   getBlockType(pos) {
-    return this.buffer.readUInt8(getBlockCursor(pos));
+    return this.data.readUInt8(getBlockCursor(pos));
   }
 
   setBlockType(pos, id) {
-    this.buffer.writeUInt8(id,getBlockCursor(pos));
+    this.data.writeUInt8(id,getBlockCursor(pos));
   }
 
   getBlockData(pos) {
-    return readUInt4LE(this.buffer, getBlockDataCursor(pos));
+    return readUInt4LE(this.data, getBlockDataCursor(pos));
   }
 
   setBlockData(pos, data) {
-    writeUInt4LE(this.buffer, data, getBlockDataCursor(pos));
+    writeUInt4LE(this.data, data, getBlockDataCursor(pos));
   }
 
   getBlockLight(pos) {
-    return readUInt4LE(this.buffer, getBlockLightCursor(pos));
+    return readUInt4LE(this.data, getBlockLightCursor(pos));
   }
 
   setBlockLight(pos, light) {
-    writeUInt4LE(this.buffer, light, getBlockLightCursor(pos));
+    writeUInt4LE(this.data, light, getBlockLightCursor(pos));
   }
 
   getSkyLight(pos) {
-    return readUInt4LE(this.buffer, getSkyLightCursor(pos));
+    return readUInt4LE(this.data, getSkyLightCursor(pos));
   }
 
   setSkyLight(pos, light) {
-    writeUInt4LE(this.buffer, light, getSkyLightCursor(pos));
+    writeUInt4LE(this.data, light, getSkyLightCursor(pos));
   }
 
   getBiomeColor(pos) {
-    var color = this.buffer.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF;
+    var color = this.data.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF;
 
     return {
       r: (color >> 16),
@@ -130,31 +131,35 @@ class Chunk {
   }
 
   setBiomeColor(pos, r, g, b) {
-    this.buffer.writeInt32BE((this.buffer.readInt32BE(getBiomeCursor(pos)) & 0xFF000000)
+    this.data.writeInt32BE((this.data.readInt32BE(getBiomeCursor(pos)) & 0xFF000000)
       | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0XFF), getBiomeCursor(pos));
   }
 
   getBiome(pos) {
-    return (this.buffer.readInt32BE(getBiomeCursor(pos)) & 0xFF000000) >> 24;
+    return (this.data.readInt32BE(getBiomeCursor(pos)) & 0xFF000000) >> 24;
   }
 
   setBiome(pos, id) {
-    this.buffer.writeInt32BE((this.buffer.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF) | (id << 24), getBiomeCursor(pos));
+    this.data.writeInt32BE((this.data.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF) | (id << 24), getBiomeCursor(pos));
   }
 
   getHeight(pos) {
-    return this.buffer.readUInt8(getHeightMapCursor(pos,value));
+    return this.data.readUInt8(getHeightMapCursor(pos,value));
   }
 
   setHeight(pos, value) {
-    this.buffer.writeUInt8(value,getHeightMapCursor(pos));
+    this.data.writeUInt8(value,getHeightMapCursor(pos));
   }
 
   load(data) {
-    this.buffer=data;
+    if (!Buffer.isBuffer(data))
+      throw(new Error('Data must be a buffer'));
+    if (data.length != BUFFER_SIZE)
+      throw(new Error(`Data buffer not correct size \(was ${data.length}, expected ${BUFFER_SIZE}\)`));
+    this.data = data;
   }
 
   dump() {
-    return this.buffer;
+    return this.data;
   }
 }

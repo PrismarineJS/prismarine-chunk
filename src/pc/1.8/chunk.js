@@ -13,6 +13,7 @@ function loader(mcVersion) {
   Chunk.w=w;
   Chunk.l=l;
   Chunk.h=h;
+  Chunk.BUFFER_SIZE=BUFFER_SIZE;
   return Chunk;
 }
 
