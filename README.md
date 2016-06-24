@@ -7,6 +7,8 @@
 (https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)]
 (https://gitter.im/PrismarineJS/prismarine-chunk)
 
+A class to hold chunk data for Minecraft PC 1.8 and PE 0.14
+
 ## Usage
 
 ```js
@@ -70,6 +72,10 @@ Get the block sky light at `pos`
 
 Get the block biome id at `pos`
 
+#### Chunk.getBiomeColor(pos)
+
+Get the block biome color at `pos`. Does nothing for PC.
+
 #### Chunk.setBlockType(pos, id)
 
 Set the block type `id` at `pos`
@@ -89,6 +95,10 @@ Set the block sky `light` at `pos`
 #### Chunk.setBiome(pos, biome)
 
 Set the block `biome` id at `pos`
+
+#### Chunk.setBiomeColor(pos, biomeColor)
+
+Set the block `biomeColor` at `pos`. Does nothing for PC.
 
 #### Chunk.dump()
 
