@@ -95,6 +95,18 @@ class Chunk {
       this.setBlockLight(pos, block.light);
   }
 
+  getBiomeColor(pos) {
+    return {
+      r: 0,
+      g: 0,
+      b: 0
+    }
+  }
+
+  setBiomeColor(pos, r, g, b) {
+
+  }
+
   getBlockType(pos) {
     var cursor = getBlockCursor(pos);
     return this.data.readUInt16LE(cursor) >> 4;
