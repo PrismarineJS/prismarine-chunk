@@ -7,7 +7,7 @@
 (https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)]
 (https://gitter.im/PrismarineJS/prismarine-chunk)
 
-A class to hold chunk data for Minecraft PC 1.8 and PE 0.14
+A class to hold chunk data for Minecraft PC 1.8 and PE 0.14 and 1.0
 
 ## Usage
 

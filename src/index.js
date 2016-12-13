@@ -3,7 +3,8 @@ var chunkImplementations={
     "1.8":require("./pc/1.8/chunk")
   },
   "pe":{
-    "0.14":require("./pe/0.14/chunk")
+    "0.14":require("./pe/0.14/chunk"),
+    "1.0":require("./pe/1.0/chunk")
   }
 };
 
