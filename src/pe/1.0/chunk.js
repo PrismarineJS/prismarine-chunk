@@ -11,15 +11,23 @@ const BUFFER_SIZE = BIOME_ID_SIZE + HEIGHT_SIZE;
 module.exports = loader;
 
 function loader(mcVersion) {
-  Block = require('prismarine-block')("pe_0.15");
+  Block = require('prismarine-block')(mcVersion);
   Chunk.w = 16;
   Chunk.l = 16;
   Chunk.h = 256;
-  //Chunk.BUFFER_SIZE = Chunk.size();
+  Chunk.BUFFER_SIZE = 3 + 256 + 512 + (16 * 10240);
   return Chunk;
 }
 
 var Block;
+
+function getOffset(pos) {
+	return (pos.x * 16 + pos.z) * 256 + pos.y;
+}
+
+function exists(val) {
+  return val !== undefined;
+}
 
 class Chunk {
   constructor() {
@@ -35,14 +43,14 @@ class Chunk {
     }
   }
 
-  getBlock() {
+  getBlock(pos)  {
     var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos));
     block.light = this.getBlockLight(pos);
     block.skyLight = this.getSkyLight(pos);
     return block;
   }
 
-  setBlock() {
+  setBlock(pos, block) {
     if (exists(block.type))
       this.setBlockType(pos, block.type);
     if (exists(block.metadata))
@@ -61,7 +69,9 @@ class Chunk {
   }
 
   setBlockType(pos, type) {
+	  //console.log(pos.y >> 4);
     var chunk = this.chunks[pos.y >> 4];
+	  //console.log(chunk);
     chunk.setBlockType(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), type);
   }
 
@@ -125,12 +135,13 @@ class Chunk {
     
     var offset = 0;
     var numberOfChunks = data.readUInt8(offset);
-
+    offset += 1;
+	  //console.log(numberOfChunks);
+    
     for(var i = 0; i < numberOfChunks; i++) {
       this.chunks[i].load(data.slice(offset, offset + 10240));
       offset += 10240
     }
-
     // ignore the rest ??
   }
 
@@ -141,7 +152,7 @@ class Chunk {
     size += BIOME_ID_SIZE; 
     size += 1; // border block count (byte)
     size += 1; // signed varint block extradata count
-
+    //console.log(size);
     return size;
   }
 

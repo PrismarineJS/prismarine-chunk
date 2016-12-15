@@ -11,6 +11,6 @@ var chunkImplementations={
 module.exports = loader;
 
 function loader(mcVersion) {
-  var mcData = require('minecraft-data')("pe_0.15"); //FIXME
-  return chunkImplementations[mcData.type]["1.0"](mcVersion); //FIXME
+  var mcData = require('minecraft-data')(mcVersion);
+  return chunkImplementations[mcData.type][mcData.version.majorVersion](mcVersion);
 }
