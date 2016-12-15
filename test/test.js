@@ -58,7 +58,8 @@ versions.forEach(function(version) {
       var chunk = new Chunk();
 
       var buffer = new Buffer(Chunk.BUFFER_SIZE);
-     //console.log(Chunk.BUFFER_SIZE); 
+      buffer.fill(0);
+	    //console.log(Chunk.BUFFER_SIZE); 
       if(version != 'pe_1.0') {
       	buffer[0] = version == "1.8" ? 0x52 : 0x5;
       } else {
