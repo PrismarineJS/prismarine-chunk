@@ -14,8 +14,9 @@ function getIndex(pos) {
 }
 
 class SubChunk {
-  construct() {
+  constructor() {
     this.data = new Buffer(BUFFER_SIZE);
+    this.data.fill(0);
   }
 
   getBlockType(pos) {
