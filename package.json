@@ -1,6 +1,6 @@
 {
   "name": "prismarine-chunk",
-  "version": "1.2.0",
+  "version": "1.1.0",
   "description": "A class to hold chunk data for prismarine",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,7 @@
     "gulp-sourcemaps": "^1.6.0",
     "mocha": "^2.1.0",
     "vec3": "~0.1.3",
-    "minecraft-data":"^2.8.0"
+    "minecraft-data":"^2.0.0"
   },
   "dependencies": {
     "uint4": "^0.1.2",
