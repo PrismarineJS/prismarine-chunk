@@ -110,6 +110,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 1.2.0
+
+* support MCPE 1.0 chunks
+
 ### 1.1.0
 
 * support MCPE 0.14 chunks
