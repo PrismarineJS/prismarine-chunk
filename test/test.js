@@ -1,7 +1,7 @@
 var assert = require('assert');
 var Vec3 = require("vec3");
 
-const versions=['pe_0.14','1.8'];
+const versions=['pe_0.14', 'pe_1.0', '1.8'];
 versions.forEach(function(version) {
   var Chunk = require('../index.js')(version);
   var Block = require('prismarine-block')(version);
@@ -44,18 +44,28 @@ versions.forEach(function(version) {
       var chunk = new Chunk();
 
       chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)); // Birch planks
-
       var buffer = chunk.dump();
-      assert.equal(version == "1.8" ? 0x52 : 0x5, buffer[0]);
+
+      if(version != 'pe_1.0') {
+      	assert.equal(version == "1.8" ? 0x52 : 0x5, buffer[0]);
+      } else {
+	      assert.equal(0x05, buffer[2]);
+      }
     });
     it('should replace the inner buffer when calling #load()', function () {
       var chunk = new Chunk();
 
       var buffer = new Buffer(Chunk.BUFFER_SIZE);
-      buffer[0] = version == "1.8" ? 0x52 : 0x5;
+      buffer.fill(0);
+      
+      if(version != 'pe_1.0') {
+      	buffer[0] = version == "1.8" ? 0x52 : 0x5;
+      } else {
+      	buffer[0] = 16;
+      	buffer[2] = 0x05;
+      }
 
       chunk.load(buffer);
-
       assert.equal(5, chunk.getBlockType(new Vec3(0, 0, 0)));
     });
     it('should fail savely when load is given bad input', function () {
