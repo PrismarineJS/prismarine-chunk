@@ -7,10 +7,10 @@ const BLOCK_SIZE = 16 * 16 * 16;
 const METADATA_SIZE = (16 * 16 * 16) / 2;
 const SKYLIGHT_SIZE = (16 * 16 * 16) / 2;
 const BLOCKLIGHT_SIZE = (16 * 16 * 16) / 2;
-const BUFFER_SIZE = BLOCK_SIZE + METADATA_SIZE + BLOCKLIGHT_SIZE + SKYLIGHT_SIZE;
+const BUFFER_SIZE = 1 + (BLOCK_SIZE + METADATA_SIZE + BLOCKLIGHT_SIZE + SKYLIGHT_SIZE);
 
 function getIndex(pos) {
-  return (pos.x * 256) + (pos.z * 16) + pos.y;
+  return 1 + ((pos.x * 256) + (pos.z * 16) + pos.y); // 1 + is for the version code :P
 }
 
 class SubChunk {
@@ -24,31 +24,31 @@ class SubChunk {
   }
 
   setBlockType(pos, type) {
-    this.data.writeUInt8(type, getIndex(pos))
+    this.data.writeUInt8(type, getIndex(pos));
   }
 
   getBlockLight(pos) {
-    return readUInt4LE(this.data, BLOCK_SIZE + METADATA_SIZE + SKYLIGHT_SIZE + getIndex(pos));
+    return readUInt4LE(this.data, BLOCK_SIZE + METADATA_SIZE + SKYLIGHT_SIZE + (getIndex(pos)/2));
   }
 
   setBlockLight(pos, light) {
-    writeUInt4LE(this.data, light, BLOCK_SIZE + METADATA_SIZE + SKYLIGHT_SIZE + getIndex(pos));
+    writeUInt4LE(this.data, light, BLOCK_SIZE + METADATA_SIZE + SKYLIGHT_SIZE + (getIndex(pos)/2));
   }
 
   getSkyLight(pos) {
-    return readUInt4LE(this.data, BLOCK_SIZE + METADATA_SIZE + getIndex(pos));
+    return readUInt4LE(this.data, BLOCK_SIZE + METADATA_SIZE + (getIndex(pos)/2));
   }
 
   setSkyLight(pos, light) {
-    writeUInt4LE(this.data, light, BLOCK_SIZE + METADATA_SIZE + getIndex(pos));
+    writeUInt4LE(this.data, light, BLOCK_SIZE + METADATA_SIZE + (getIndex(pos)/2));
   }
 
   getBlockData(pos) {
-    return readUInt4LE(this.data, BLOCK_SIZE + getIndex(pos));
+    return readUInt4LE(this.data, BLOCK_SIZE + (getIndex(pos)/2));
   }
 
   setBlockData(pos, data) {
-    writeUInt4LE(this.data, data, BLOCK_SIZE + getIndex(pos));
+    writeUInt4LE(this.data, data, BLOCK_SIZE + (getIndex(pos)/2));
   }
 
   load(data) {

@@ -49,27 +49,23 @@ versions.forEach(function(version) {
       if(version != 'pe_1.0') {
       	assert.equal(version == "1.8" ? 0x52 : 0x5, buffer[0]);
       } else {
-	//console.log(buffer[0]);
-	      assert.equal(0x05, buffer[1]);
+	      assert.equal(0x05, buffer[2]);
       }
-      //console.log(buffer.length);
     });
     it('should replace the inner buffer when calling #load()', function () {
       var chunk = new Chunk();
 
       var buffer = new Buffer(Chunk.BUFFER_SIZE);
       buffer.fill(0);
-	    //console.log(Chunk.BUFFER_SIZE); 
+      
       if(version != 'pe_1.0') {
       	buffer[0] = version == "1.8" ? 0x52 : 0x5;
       } else {
-	buffer[0] = 16;
-	buffer[1] = 0x5;
+      	buffer[0] = 16;
+      	buffer[2] = 0x05;
       }
-     console.log(buffer);
 
       chunk.load(buffer);
-      //console.log(chunk.getBlock(new Vec3(0,0,0)));
       assert.equal(5, chunk.getBlockType(new Vec3(0, 0, 0)));
     });
     it('should fail savely when load is given bad input', function () {

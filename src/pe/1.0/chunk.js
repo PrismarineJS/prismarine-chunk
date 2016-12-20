@@ -15,7 +15,7 @@ function loader(mcVersion) {
   Chunk.w = 16;
   Chunk.l = 16;
   Chunk.h = 256;
-  Chunk.BUFFER_SIZE = 3 + 256 + 512 + (16 * 10240);
+  Chunk.BUFFER_SIZE = 3 + 256 + 512 + (16 * 10241);
   return Chunk;
 }
 
@@ -32,7 +32,9 @@ function exists(val) {
 class Chunk {
   constructor() {
     this.chunks = new Array(16);
-    this.chunks.fill(new SubChunk());
+    for (var i = 0; i < this.chunks.length; i++) {
+      this.chunks[i] = new SubChunk();
+    }
 
     this.data = new Buffer(BUFFER_SIZE);
     this.data.fill(0);
@@ -69,9 +71,7 @@ class Chunk {
   }
 
   setBlockType(pos, type) {
-	  //console.log(pos.y >> 4);
     var chunk = this.chunks[pos.y >> 4];
-	  //console.log(chunk);
     chunk.setBlockType(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), type);
   }
 
@@ -129,51 +129,60 @@ class Chunk {
     this.data.writeUInt8(height, (pos.z << 4) + (pos.x));
   }
 
-  load(data) {
-    if (!Buffer.isBuffer(data))
+  load(newData) {
+    if (!Buffer.isBuffer(newData))
       throw(new Error('Data must be a buffer'));
     
     var offset = 0;
-    var numberOfChunks = data.readUInt8(offset);
+    var numberOfChunks = newData.readUInt8(offset);
     offset += 1;
-	  //console.log(numberOfChunks);
+
+    if (((numberOfChunks * 10241) + 1) > newData.length) {
+      throw(new Error(`Data buffer not correct size \(was ${newData.length}, expected ${3 + 256 + 512 + (16 * 10241)}\)`));
+    }
     
     for(var i = 0; i < numberOfChunks; i++) {
-      this.chunks[i].load(data.slice(offset, offset + 10240));
-      offset += 10240
+      this.chunks[i].load(newData.slice(offset, offset + 10241));
+      offset += 10241
     }
-    // ignore the rest ??
+
+    // ignore the rest
   }
 
   size() {
     var size = 1; // count of subchunks (byte)
-    size += this.chunks.length * 10240; // all of the chunks and their size
+    size += this.chunks.length * 10241; // all of the chunks and their size
     size += HEIGHT_SIZE;
     size += BIOME_ID_SIZE; 
     size += 1; // border block count (byte)
     size += 1; // signed varint block extradata count
-    //console.log(size);
     return size;
   }
 
   dump() {
     var offset = 0;
-    var data = new Buffer(this.size());
-    this.data.fill(0);
 
-    data.writeUInt8(this.chunks.length, offset);
+    var exportData = new Buffer(this.size());
+    exportData.fill(0);
+
+    exportData.writeUInt8(this.chunks.length, offset);
     offset += 1;
+
     for (var i = 0; i < this.chunks.length; i++) {
       var dump = this.chunks[i].dump();
-      dump.copy(data, offset);
+      dump.copy(exportData, offset);
       offset += dump.length;
     }
-    this.data.copy(data, offset);
+
+    this.data.copy(exportData, offset);
     offset += this.data.length;
-    data.writeUInt8(0, offset) // border block count
+
+    exportData.writeUInt8(0, offset) // border block count
     offset += 1;
-    data.writeUInt8(0, offset) // signed varint ?! (extdata count)
+
+    exportData.writeUInt8(0, offset) // signed varint ?! (extdata count)
     offset += 1;
-    return data;
+
+    return exportData;
   }
 }
