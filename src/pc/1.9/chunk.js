@@ -219,8 +219,78 @@ class Chunk {
     this.data.writeUInt8(biome, cursor);
   }
 
-  dump() {
-    return this.data;
+dump() {
+    //OLD/INTERNAL FORMAT:
+    //The first w*l*h*2 bytes are blocks, each of which are shorts.
+    //After that, the first w*l*h*0.5 bytes are block-light-levels, each half-bytes.
+    //Next, the first w*l*h*0.5 bytes are sky-light-levels, each half-bytes.
+    //Finally, the next w*l bytes are biomes.
+	console.log("TESTING");
+
+    let outputBuffer = Buffer.alloc(0);
+
+    let chunkBlocks = Chunk.l * Chunk.w * 16;
+    let blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2;
+    let skyLightStart = blockLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
+    let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
+
+    for (let y = 0; y < 16; y++) {
+      outputBuffer = Buffer.concat([outputBuffer, Chunk.packingProtocol.createPacketBuffer('section', {
+        bitsPerBlock: 13,
+        palette: Buffer.alloc(0),
+        blockData: this.packBlockData(this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2), 13),
+        blockLight: this.data.slice(blockLightStart + y * chunkBlocks / 2, (y + 1) * chunkBlocks / 2),
+        skyLight: this.data.slice(blockLightStart + y * chunkBlocks / 2, (y + 1) * chunkBlocks / 2),
+      })]);
+    }
+    return outputBuffer.concat([buffer, this.data.slice(biomestart, biomestart + Chunk.l * Chunk.w)]);
+  }
+
+  packBlockData(rawdata, bitsPerBlock) {
+    let blockCount = Chunk.l * Chunk.w * 16;
+    let resultantBuffer = Buffer.alloc(blockCount * bitsPerBlock / 8);
+    for (let block = 0; block < blockCount; block++) {
+      //Determine the start-bit for the block.
+      let bit = block * bitsPerBlock;
+      //Determine the start-byte for that bit.
+      let targetlong = Math.floor(bit / 64);
+      //We write backwards from the end of the long. First, we determine the local writing start.
+      let localstart = 64 - bit % 64 - bitsPerBlock;
+      //Next, we determine if we need to write across multiple branches
+      if (localstart >= 0) { //We do not!
+        //We'll read both halves of the long out of what we've already written:
+        var longhalfa = resultantBuffer.readUInt32BE(targetlong * 4, true);
+        var longhalfb = resultantBuffer.readUInt32BE(targetlong * 4 + 1, true);
+        //Pretend our data starts at the end of the first half. Bit shift it into the second half accordingly:
+        var dataToWritea = rawdata >>> (localstart - (64 - bitsPerBlock));
+        //Pretend our data starts at the end of the second half. Bit shift it into the first half accordingly:
+        var dataToWriteb = rawdata << (64 - localstart - bitsPerBlock);
+        //Now, we write into our long-halves:
+        longhalfa = longhalfa | dataToWritea;
+        longhalfb = longhalfb | dataToWriteb;
+        //Finally, we write our long-halves back into the buffer:
+        resultantBuffer.writeUInt32BE(longhalfa, targetlong * 4);
+        resultantBuffer.writeUInt32BE(longhalfb, targetlong * 4 + 1);
+      } else { //We do.
+        //We now have two different local starts:
+        var localstarta = 64 + localstart;
+        var localstartb = 0;
+        //We'll load the first half of the first long, and the last half of the last long
+        var longhalfa = resultantBuffer.readUInt32BE(targetlong * 4 + 4, true); //last half of last long
+        var longhalfb = resultantBuffer.readUInt32BE(targetlong * 4, true); //First half of first long
+        //Pretend our data starts at the end of the first half. Bit shift it into the second half accordingly:
+        var dataToWritea = rawdata >>> (localstarta - (64 - bitsPerBlock));
+        //Pretend our data starts at the end of the second half. Bit shift it into the first half accordingly:
+        var dataToWriteb = rawdata << (64 - localstartb - bitsPerBlock);
+        //Now, we write into our long-halves:
+        longhalfa = longhalfa | dataToWritea;
+        longhalfb = longhalfb | dataToWriteb;
+        //Finally, we write our long-halves back into the buffer:
+        resultantBuffer.writeUInt32BE(longhalfa, targetlong * 4 + 4);
+        resultantBuffer.writeUInt32BE(longhalfb, targetlong * 4);
+      }
+    }
+    return resultantBuffer;
   }
 
   load(data, bitMap) {
