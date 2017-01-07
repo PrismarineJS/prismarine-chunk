@@ -339,17 +339,124 @@ class Chunk {
       throw e;
     }
   }
+  
+  
+  //Simplified eatPackedBlockLongs Algorithm
+  eatPackedBlockLongs(rawBuffer, palette, bitsPerBlock)
+  {
+  	//The critical problem is that the internal order of each long is opposite to the organizational order of the longs
+  	//This is easily fixed by flipping the order of the longs.
+  	//Therefore, we will read 4 bytes at a time, bit-flip them, and write them into a new buffer.
+  	//From there, the old algorithm for reading will work just fine, we don't even have to consider the existence of the longs anymore.
+  	//A major side-effect, though, is that all of the internal block-datas will be flipped, so we have to flip them again before extracting data.
+	let unjumbledBuffer = Buffer.alloc(rawBuffer.length);
+	for (let l = 0; l < rawBuffer.length; l+= 8)
+	{
+		//Load the long
+		let longleftjumbled = rawBuffer.readUInt32BE(l, true);
+		let longrightjumbled = rawBuffer.readUInt32BE(l + 4, true);
+		//Write in reverse order -- flip bits by using little endian.
+		unjumbledBuffer.writeUInt32LE(longrightjumbled, l);
+		unjumbledBuffer.writeUInt32LE(longleftjumbled, l + 4);
+	}
 
+    let blockCount = unjumbledBuffer.length * 8 / bitsPerBlock;
+    let resultantBuffer = Buffer.alloc(blockCount * 2)
+    let localBit = 0;
+
+    for (let block = 0; block < blockCount; block++)
+    {
+      //Determine the start-bit for the block.
+      let bit = block * bitsPerBlock;
+      //Determine the start-byte for that bit.
+      let targetbyte = Math.floor(bit / 8);
+
+      //Read a 32-bit section surrounding the targeted block
+      let datatarget = unjumbledBuffer.readUInt32LE(targetbyte, true);
+
+      //Determine the start bit local to the datatarget.
+      let localbit = bit % 8;
+
+      //Chop off uninteresting bits, then shift to that start bit:
+      let paletteid = (datatarget << (32 - localbit - bitsPerBlock)) >>> (32 - bitsPerBlock);
+
+      //Grab the data from the palette
+      let data = palette[paletteid] & 0b1111;
+      let id = palette[paletteid] >>> 4;
+      resultantBuffer.writeUInt16LE((id << 4) | data, block * 2);
+    }
+    return resultantBuffer;
+  }
+  
+  
+  //This function turned out to be useless -- I just changed endianness on my reads/writes in clever spots
+  reverseBits(data, n)
+  {
+  	let storage = 0;
+  	for (let i = 0; i < n; i++)
+  	{
+  		storage = storage | (data&1);
+  		if (i != n-1)
+  		{
+  			storage = storage << 1;
+  			data = data >> 1;
+  		}
+  	}
+  	return storage;
+  }
+
+
+  /*
   eatPackedBlockLongs(rawBuffer, palette, bitsPerBlock) {
     let blockCount = rawBuffer.length * 8 / bitsPerBlock;
     let resultantBuffer = Buffer.alloc(blockCount * 2)
     let localBit = 0;
 
     for (let block = 0; block < blockCount; block++) {
-      //Determine the start-bit for the block.
+      ///Determine the start-bit for the block.
       let bit = block * bitsPerBlock;
       //Determine the start-byte for that bit.
-      let targetbyte = Math.floor(bit / 8);
+      let targetlong = Math.floor(bit / 64);
+      //We write backwards from the end of the long. First, we determine the local reading start.
+      let localstart = 64 - bit % 64 - bitsPerBlock;
+      //Next, we determine if we need to read across multiple branches
+      if (localstart >= 0) { //We do not!
+        //We'll read both halves of the long
+        var longhalfa = rawBuffer.readUInt32BE(targetlong * 4, true);
+        var longhalfb = rawBuffer.readUInt32BE(targetlong * 4 + 1, true);
+        //Bit-shift the local-start within each int to the int end.
+        var dataa = longhalfa >>> (32 - localstart - bitsPerBlock);
+        var datab = longhalfb >>> (64 - localstart - bitsPerBlock);
+        //Pretend our data starts at the end of the second half. Bit shift it into the first half accordingly:
+        var dataToWriteb = rawdata >> (64 - localstart - bitsPerBlock);
+        //Now, we write into our long-halves:
+        longhalfa = longhalfa | dataToWritea;
+        longhalfb = longhalfb | dataToWriteb;
+        //Finally, we write our long-halves back into the buffer:
+        resultantBuffer.writeUInt32BE(longhalfa, targetlong * 4);
+        resultantBuffer.writeUInt32BE(longhalfb, targetlong * 4 + 1);
+      } else { //We do.
+        //We now have two different local starts:
+        var localstarta = 64 + localstart;
+        var localstartb = 0;
+        //We'll load the first half of the first long, and the last half of the last long
+        var longhalfa = resultantBuffer.readUInt32BE(targetlong * 4 + 4, true); //last half of last long
+        var longhalfb = resultantBuffer.readUInt32BE(targetlong * 4, true); //First half of first long
+        //Pretend our data starts at the end of the first half. Bit shift it into the second half accordingly:
+        var dataToWritea = rawdata >>> (localstarta - (64 - bitsPerBlock));
+        //Pretend our data starts at the end of the second half. Bit shift it into the first half accordingly:
+        var dataToWriteb = rawdata << (64 - localstartb - bitsPerBlock);
+        //Now, we write into our long-halves:
+        longhalfa = longhalfa | dataToWritea;
+        longhalfb = longhalfb | dataToWriteb;
+        //Finally, we write our long-halves back into the buffer:
+        resultantBuffer.writeUInt32BE(longhalfa, targetlong * 4 + 4);
+        resultantBuffer.writeUInt32BE(longhalfb, targetlong * 4);
+      }
+      
+      
+      
+      
 
       //Read a 32-bit section surrounding the targeted block
       let datatarget = rawBuffer.readUInt32BE(targetbyte, true);
@@ -367,4 +474,5 @@ class Chunk {
     }
     return resultantBuffer;
   }
+  */
 }
