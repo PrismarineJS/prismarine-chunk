@@ -1,6 +1,6 @@
 var chunkImplementations={
   "pc":{
-    "1.8":require("./pc/1.8/chunk")
+    "1.8":require("./pc/1.8/chunk"),
     "1.9":require("./pc/1.9/chunk")
   },
   "pe":{
