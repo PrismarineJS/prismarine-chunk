@@ -1,7 +1,7 @@
 var assert = require('assert');
 var Vec3 = require("vec3");
 
-const versions=['pe_0.14', 'pe_1.0', '1.8'];
+const versions=['pe_0.14', 'pe_1.0', '1.8', '1.9'];
 versions.forEach(function(version) {
   var Chunk = require('../index.js')(version);
   var Block = require('prismarine-block')(version);
@@ -40,34 +40,38 @@ versions.forEach(function(version) {
       assert.equal(35, chunk.getBlock(new Vec3(5, 5, 5)).type);
       assert.equal(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata);
     });
-    it('should return the internal buffer when calling #dump()', function () {
-      var chunk = new Chunk();
+    if(version != '1.9') {
+      it('should return the internal buffer when calling #dump()', function () {
+        var chunk = new Chunk();
 
-      chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)); // Birch planks
-      var buffer = chunk.dump();
+        chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)); // Birch planks
+        var buffer = chunk.dump();
 
-      if(version != 'pe_1.0') {
-      	assert.equal(version == "1.8" ? 0x52 : 0x5, buffer[0]);
-      } else {
-	      assert.equal(0x05, buffer[2]);
-      }
-    });
-    it('should replace the inner buffer when calling #load()', function () {
-      var chunk = new Chunk();
+        if(version != 'pe_1.0') {
+        	assert.equal(version == "1.8" ? 0x52 : 0x5, buffer[0]);
+        } else {
+  	      assert.equal(0x05, buffer[2]);
+        }
+      });
+    }
+    if(version != '1.9') {
+      it('should replace the inner buffer when calling #load()', function () {
+        var chunk = new Chunk();
 
-      var buffer = new Buffer(Chunk.BUFFER_SIZE);
-      buffer.fill(0);
-      
-      if(version != 'pe_1.0') {
-      	buffer[0] = version == "1.8" ? 0x52 : 0x5;
-      } else {
-      	buffer[0] = 16;
-      	buffer[2] = 0x05;
-      }
+        var buffer = new Buffer(Chunk.BUFFER_SIZE);
+        buffer.fill(0);
+        
+        if(version != 'pe_1.0') {
+        	buffer[0] = version == "1.8" ? 0x52 : 0x5;
+        } else {
+        	buffer[0] = 16;
+        	buffer[2] = 0x05;
+        }
 
-      chunk.load(buffer);
-      assert.equal(5, chunk.getBlockType(new Vec3(0, 0, 0)));
-    });
+        chunk.load(buffer);
+        assert.equal(5, chunk.getBlockType(new Vec3(0, 0, 0)));
+      });
+    }
     it('should fail savely when load is given bad input', function () {
       var chunk = new Chunk();
 
