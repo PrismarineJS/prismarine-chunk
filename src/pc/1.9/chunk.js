@@ -155,6 +155,7 @@ class Chunk {
   }
 
   getBiomeColor(pos) {
+    // polyfill
     return {
       r: 0,
       g: 0,
@@ -163,7 +164,7 @@ class Chunk {
   }
 
   setBiomeColor(pos, r, g, b) {
-
+    // polyfill
   }
 
   getBlockType(pos) {
@@ -223,7 +224,7 @@ class Chunk {
   }
 
   load(data, bitMap) {
-    let unpackeddata = unpackChunkData(data, bitMap);
+    let unpackeddata = this.unpackChunkData(data, bitMap);
     if (!Buffer.isBuffer(unpackeddata))
       throw (new Error('Data must be a buffer'));
     if (unpackeddata.length != BUFFER_SIZE)
@@ -243,9 +244,9 @@ class Chunk {
         const {
           size,
           value
-        } = readSection(chunk.slice(offset));
+        } = this.readSection(chunk.slice(offset));
         offset += size;
-        blocks = Buffer.concat([blocks, eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock)])
+        blocks = Buffer.concat([blocks, this.eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock)])
         blocklights = Buffer.concat([blocklights, value.blockLight]);
         skylights = Buffer.concat([skylights, value.skyLight]);
       } else { //Old format expects *all* blocks to be present, so if the new format omits a section, we must fill with zeroes.
@@ -262,7 +263,7 @@ class Chunk {
 
   readSection(section) {
     try {
-      return this.packingProtocol.read(section, 0, 'section', {});
+      return Chunk.packingProtocol.read(section, 0, 'section', {});
     } catch (e) {
       e.message = `Read error for ${e.field} : ${e.message}`;
       throw e;
