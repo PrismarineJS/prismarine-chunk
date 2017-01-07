@@ -225,27 +225,28 @@ class Chunk {
     //After that, the first w*l*h*0.5 bytes are block-light-levels, each half-bytes.
     //Next, the first w*l*h*0.5 bytes are sky-light-levels, each half-bytes.
     //Finally, the next w*l bytes are biomes.
-
+	console.log("hello?");
+	//console.log(ProtoDef.sizeOfVarInt);
+	
     let outputBuffer = Buffer.alloc(0);
-
     let chunkBlocks = Chunk.l * Chunk.w * 16;
     let blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2;
     let skyLightStart = blockLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
     let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
-
     for (let y = 0; y < 16; y++) {
-      outputBuffer = Buffer.concat([outputBuffer, Chunk.packingProtocol.createPacketBuffer('section', {
+      outputBuffer = Buffer.concat([Chunk.packingProtocol.createPacketBuffer('section', {
         bitsPerBlock: 13,
-        palette: Buffer.alloc(0),
-        blockData: this.packBlockData(this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2), 13),
+        palette: [],
+        dataArray: this.packBlockData(this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2), 13),
         blockLight: this.data.slice(blockLightStart + y * chunkBlocks / 2, (y + 1) * chunkBlocks / 2),
         skyLight: this.data.slice(blockLightStart + y * chunkBlocks / 2, (y + 1) * chunkBlocks / 2),
       })]);
     }
-    return outputBuffer.concat([buffer, this.data.slice(biomestart, biomestart + Chunk.l * Chunk.w)]);
+    return Buffer.concat([outputBuffer, this.data.slice(biomestart, biomestart + Chunk.l * Chunk.w)]);
   }
 
   packBlockData(rawdata, bitsPerBlock) {
+  
     let blockCount = Chunk.l * Chunk.w * 16;
     let resultantBuffer = Buffer.alloc(blockCount * bitsPerBlock / 8);
     for (let block = 0; block < blockCount; block++) {
