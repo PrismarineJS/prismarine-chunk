@@ -219,13 +219,12 @@ class Chunk {
     this.data.writeUInt8(biome, cursor);
   }
 
-dump() {
+  dump() {
     //OLD/INTERNAL FORMAT:
     //The first w*l*h*2 bytes are blocks, each of which are shorts.
     //After that, the first w*l*h*0.5 bytes are block-light-levels, each half-bytes.
     //Next, the first w*l*h*0.5 bytes are sky-light-levels, each half-bytes.
     //Finally, the next w*l bytes are biomes.
-	console.log("TESTING");
 
     let outputBuffer = Buffer.alloc(0);
 
