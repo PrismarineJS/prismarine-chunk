@@ -1,4 +1,4 @@
-var Chunk = require('./')("pe_1.0");
+var Chunk = require('./')("1.8");
 var Vec3 = require("vec3");
 
 var chunk=new Chunk();
