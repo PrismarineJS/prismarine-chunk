@@ -19,9 +19,9 @@ versions.forEach(function(version) {
       assert.equal(5, chunk.getBlock(new Vec3(0, 0, 0)).type);
       assert.equal(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata);
 
-      chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)); // Iron block
-      assert.equal(42, chunk.getBlock(new Vec3(0, 1, 0)).type);
-      assert.equal(0, chunk.getBlock(new Vec3(0, 1, 0)).metadata);
+      chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)); // Iron block
+      assert.equal(42, chunk.getBlock(new Vec3(0, 37, 0)).type);
+      assert.equal(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata);
 
       chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)); // Orange wool
       assert.equal(35, chunk.getBlock(new Vec3(1, 0, 0)).type);
@@ -40,35 +40,7 @@ versions.forEach(function(version) {
       assert.equal(35, chunk.getBlock(new Vec3(5, 5, 5)).type);
       assert.equal(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata);
     });
-    it('should return the internal buffer when calling #dump()', function () {
-      var chunk = new Chunk();
-
-      chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)); // Birch planks
-      var buffer = chunk.dump();
-
-      if(version != 'pe_1.0') {
-      	assert.equal(version == "1.8" ? 0x52 : 0x5, buffer[0]);
-      } else {
-	      assert.equal(0x05, buffer[2]);
-      }
-    });
-    it('should replace the inner buffer when calling #load()', function () {
-      var chunk = new Chunk();
-
-      var buffer = new Buffer(Chunk.BUFFER_SIZE);
-      buffer.fill(0);
-      
-      if(version != 'pe_1.0') {
-      	buffer[0] = version == "1.8" ? 0x52 : 0x5;
-      } else {
-      	buffer[0] = 16;
-      	buffer[2] = 0x05;
-      }
-
-      chunk.load(buffer);
-      assert.equal(5, chunk.getBlockType(new Vec3(0, 0, 0)));
-    });
-    it('should fail savely when load is given bad input', function () {
+    it('should fail safely when load is given bad input', function () {
       var chunk = new Chunk();
 
       var tooShort = new Buffer(3);
@@ -81,6 +53,33 @@ versions.forEach(function(version) {
       assert.throws(function () {
         chunk.load(notABuffer);
       });
+    });
+
+    if(version!="pe_1.0") it('should load/dump consistently',function() {
+      var chunk = new Chunk();
+
+
+      chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)); // Iron block
+      assert.equal(42, chunk.getBlock(new Vec3(0, 37, 0)).type);
+      assert.equal(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata);
+
+      var buf=chunk.dump();
+
+      var chunk2 = new Chunk();
+
+      chunk2.load(buf);
+
+      assert.equal(42, chunk2.getBlock(new Vec3(0, 37, 0)).type);
+      assert.equal(0, chunk2.getBlock(new Vec3(0, 37, 0)).metadata);
+
+      var buf2=chunk2.dump();
+
+      if(!buf.equals(buf2)) {
+        assert.equal(buf,buf2);
+      }
+
+      assert(buf.equals(buf2));
+
     });
   });
 });

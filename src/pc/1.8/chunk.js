@@ -1,10 +1,15 @@
-const w=16;
-const l=16;
-const h=256;
+const Section=require('./section');
+const Vec3 = require("vec3").Vec3;
 
-const BUFFER_SIZE = (w * l * h * 3) + w*l;
+const w=Section.w;
+const l=Section.l;
+const sh=Section.sh;//section height
+const sectionCount=16;
+const h=sh*sectionCount;
 
-var { readUInt4LE, writeUInt4LE } = require('uint4');
+const SECTION_SIZE=Section.SECTION_SIZE;
+const BIOME_SIZE=w*l;
+const BUFFER_SIZE = SECTION_SIZE*sectionCount + BIOME_SIZE; // max
 
 module.exports = loader;
 
@@ -17,67 +22,57 @@ function loader(mcVersion) {
   return Chunk;
 }
 
-var Block;
+let Block;
 
-var exists = function (val) {
+const exists = function (val) {
   return val !== undefined;
 };
 
-
-var getArrayPosition = function (pos) {
-  return pos.x+w*(pos.z+l*pos.y);
+const getBiomeCursor = function (pos) {
+  return (pos.z * w) + pos.x;
 };
 
-var getBlockCursor = function (pos) {
-  return getArrayPosition(pos) * 2.0;
-};
+function posInSection(pos) {
+  return pos.modulus(new Vec3(w,l,sh))
+}
 
-var getBlockLightCursor = function(pos) {
-    return getArrayPosition(pos) * 0.5 + w * l * h*2;
-};
-
-var getSkyLightCursor = function(pos) {
-  return getArrayPosition(pos) * 0.5 + w * l * h/2*5;
-};
-
-var getBiomeCursor = function (pos) {
-  return (w * l * h * 3) + (pos.z * w) + pos.x;
-};
-
+function parseBitMap(bitMap) {
+  const chunkIncluded = new Array(sectionCount);
+  let chunkCount=0;
+  for(let y = 0; y < sectionCount; ++y) {
+    chunkIncluded[y] = bitMap & (1 << y);
+    if(chunkIncluded[y]) chunkCount++;
+  }
+  return {chunkIncluded,chunkCount};
+}
 
 class Chunk {
 
   constructor() {
-    this.data = new Buffer(BUFFER_SIZE);
-    this.data.fill(0);
+    this.sections=new Array(sectionCount);
+    for(let i=0;i<sectionCount;i++)
+      this.sections[i]=new Section()
+    this.biome=new Buffer(BIOME_SIZE);
+    this.biome.fill(0);
   }
 
   initialize(iniFunc) {
-    const skylight=w * l * h/2*5;
-    const light=w * l * h*2;
-    let biome=(w * l * h * 3)-1;
-    let n=0;
-    for(let y=0;y<h;y++) {
-      for(let z=0;z<w;z++) {
-        for(let x=0;x<l;x++,n++) {
-          if(y==0)
-            biome++;
-          const block=iniFunc(x,y,z,n);
-          if(block==null)
-            continue;
-          this.data.writeUInt16LE(block.type<<4 | block.metadata,n*2);
-          writeUInt4LE(this.data, block.light, n*0.5+light);
-          writeUInt4LE(this.data, block.skyLight, n*0.5+skylight);
-          if(y==0) {
-            this.data.writeUInt8(block.biome.id || 0, biome);
-          }
+    let biome=-1;
+    for(let i=0;i<sectionCount;i++) {
+      this.sections.initialize((x,y,z,n) => {
+        let block= iniFunc(x,y%sh,z,n);
+        if(block==null)
+          return;
+        if(y==0) {
+          biome++;
+          this.biome.writeUInt8(block.biome.id || 0, biome);
         }
-      }
+      });
     }
   }
 
   getBlock(pos) {
-    var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos));
+    const block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos));
     block.light = this.getBlockLight(pos);
     block.skyLight = this.getSkyLight(pos);
     return block;
@@ -108,69 +103,93 @@ class Chunk {
 
   }
 
+  _getSection(pos) {
+    return this.sections[pos.y>>4];
+  }
+
   getBlockType(pos) {
-    var cursor = getBlockCursor(pos);
-    return this.data.readUInt16LE(cursor) >> 4;
+    return this._getSection(pos).getBlockType(posInSection(pos));
   }
 
   getBlockData(pos) {
-    var cursor = getBlockCursor(pos);
-    return this.data.readUInt16LE(cursor) & 15;
+    return this._getSection(pos).getBlockData(posInSection(pos));
   }
 
   getBlockLight(pos) {
-    var cursor = getBlockLightCursor(pos);
-    return readUInt4LE(this.data, cursor);
+    return this._getSection(pos).getBlockLight(posInSection(pos));
   }
 
   getSkyLight(pos) {
-    var cursor = getSkyLightCursor(pos);
-    return readUInt4LE(this.data, cursor);
+    return this._getSection(pos).getSkyLight(posInSection(pos));
   }
 
   getBiome(pos) {
-    var cursor = getBiomeCursor(pos);
-    return this.data.readUInt8(cursor);
+    const cursor = getBiomeCursor(pos);
+    return this.biome.readUInt8(cursor);
   }
 
   setBlockType(pos, id) {
-    var cursor = getBlockCursor(pos);
-    var data = this.getBlockData(pos);
-    this.data.writeUInt16LE((id << 4) | data, cursor);
+    this._getSection(pos).setBlockType(posInSection(pos),id);
   }
 
   setBlockData(pos, data) {
-    var cursor = getBlockCursor(pos);
-    var id = this.getBlockType(pos);
-    this.data.writeUInt16LE((id << 4) | data, cursor);
+    this._getSection(pos).setBlockData(posInSection(pos),data);
   }
 
   setBlockLight(pos, light) {
-    var cursor = getBlockLightCursor(pos);
-    writeUInt4LE(this.data, light, cursor);
+    this._getSection(pos).setBlockLight(posInSection(pos),light);
   }
 
   setSkyLight(pos, light) {
-    var cursor = getSkyLightCursor(pos);
-    writeUInt4LE(this.data, light, cursor);
+    this._getSection(pos).setSkyLight(posInSection(pos),light);
   }
 
   setBiome(pos, biome) {
-    var cursor = getBiomeCursor(pos);
-    this.data.writeUInt8(biome, cursor);
+    const cursor = getBiomeCursor(pos);
+    this.biome.writeUInt8(biome, cursor);
   }
 
-  dump() {
-    return this.data;
+  dump(bitMap=0xFFFF) {
+    const {chunkIncluded,chunkCount}=parseBitMap(bitMap);
+    const bufferLength=chunkCount*SECTION_SIZE+BIOME_SIZE;
+    const buffer=new Buffer(bufferLength);
+    let offset=0;
+    let offsetLight=w*l*sectionCount*chunkCount*2;
+    let offsetSkyLight=w*l*sectionCount*chunkCount/2*5;
+    for(let i=0;i<sectionCount;i++) {
+      if(chunkIncluded[i]) {
+        offset += this.sections[i].dump().copy(buffer, offset, 0, w * l * sh * 2);
+        offsetLight += this.sections[i].dump().copy(buffer, offsetLight,w * l * sh*2, w * l * sh*2+w * l * sh/2);
+        offsetSkyLight += this.sections[i].dump().copy(buffer, offsetSkyLight,w * l * sh/2*5, w * l * sh/2*5+w * l * sh/2);
+
+      }
+    }
+    this.biome.copy(buffer,w * l * sectionCount*chunkCount * 3);
+    return buffer;
   }
 
 
-  load(data) {
+  load(data,bitMap=0xFFFF) {
     if (!Buffer.isBuffer(data))
       throw(new Error('Data must be a buffer'));
-    if (data.length != BUFFER_SIZE)
+    const {chunkIncluded,chunkCount}=parseBitMap(bitMap);
+    let offset=0;
+    let offsetLight=w*l*sectionCount*chunkCount*2;
+    let offsetSkyLight=w*l*sectionCount*chunkCount/2*5;
+    for(let i=0;i<sectionCount;i++) {
+      if(chunkIncluded[i]) {
+        const sectionBuffer=new Buffer(SECTION_SIZE);
+        offset+=data.copy(sectionBuffer,0,offset,offset+w*l*sh*2);
+        offsetLight+=data.copy(sectionBuffer,w*l*sh*2,offsetLight,offsetLight+w*l*sh/2);
+        offsetSkyLight+=data.copy(sectionBuffer,w*l*sh*5/2,offsetLight,offsetSkyLight+w*l*sh/2);
+        this.sections[i].load(sectionBuffer);
+      }
+    }
+    data.copy(this.biome,w*l*sectionCount*chunkCount*3);
+
+
+    if (data.length != SECTION_SIZE*chunkCount+w*l)
       throw(new Error(`Data buffer not correct size \(was ${data.length}, expected ${BUFFER_SIZE}\)`));
-    this.data = data;
   }
 }
 
