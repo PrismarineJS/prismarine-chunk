@@ -41,7 +41,7 @@ function parseBitMap(bitMap) {
   let chunkCount=0;
   for(let y = 0; y < sectionCount; ++y) {
     chunkIncluded[y] = bitMap & (1 << y);
-    chunkCount++;
+    if(chunkIncluded[y]) chunkCount++;
   }
   return {chunkIncluded,chunkCount};
 }
