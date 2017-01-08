@@ -154,27 +154,28 @@ class Chunk {
     const bufferLength=chunkCount*SECTION_SIZE+BIOME_SIZE;
     const buffer=new Buffer(bufferLength);
     let offset=0;
-    let offsetLight=w*l*sectionCount*2;
-    let offsetSkyLight=w*l*sectionCount/2*5;
+    let offsetLight=w*l*sectionCount*chunkCount*2;
+    let offsetSkyLight=w*l*sectionCount*chunkCount/2*5;
     for(let i=0;i<sectionCount;i++) {
       if(chunkIncluded[i]) {
         offset += this.sections[i].dump().copy(buffer, offset, 0, w * l * sh * 2);
         offsetLight += this.sections[i].dump().copy(buffer, offsetLight,w * l * sh*2, w * l * sh*2+w * l * sh/2);
         offsetSkyLight += this.sections[i].dump().copy(buffer, offsetSkyLight,w * l * sh/2*5, w * l * sh/2*5+w * l * sh/2);
+
       }
     }
-    this.biome.copy(buffer,w * l * h * 3);
+    this.biome.copy(buffer,w * l * sectionCount*chunkCount * 3);
     return buffer;
   }
 
 
-  load(data,bitMap) {
+  load(data,bitMap=0xFFFF) {
     if (!Buffer.isBuffer(data))
       throw(new Error('Data must be a buffer'));
     const {chunkIncluded,chunkCount}=parseBitMap(bitMap);
     let offset=0;
-    let offsetLight=w*l*sectionCount*2;
-    let offsetSkyLight=w*l*sectionCount/2*5;
+    let offsetLight=w*l*sectionCount*chunkCount*2;
+    let offsetSkyLight=w*l*sectionCount*chunkCount/2*5;
     for(let i=0;i<sectionCount;i++) {
       if(chunkIncluded[i]) {
         const sectionBuffer=new Buffer(SECTION_SIZE);
@@ -184,7 +185,7 @@ class Chunk {
         this.sections[i].load(sectionBuffer);
       }
     }
-    data.copy(this.biome,w*l*h*3);
+    data.copy(this.biome,w*l*sectionCount*chunkCount*3);
 
 
     if (data.length != SECTION_SIZE*chunkCount+w*l)

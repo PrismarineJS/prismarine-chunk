@@ -54,5 +54,32 @@ versions.forEach(function(version) {
         chunk.load(notABuffer);
       });
     });
+
+    if(version!="pe_1.0") it('should load/dump consistently',function() {
+      var chunk = new Chunk();
+
+
+      chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)); // Iron block
+      assert.equal(42, chunk.getBlock(new Vec3(0, 37, 0)).type);
+      assert.equal(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata);
+
+      var buf=chunk.dump();
+
+      var chunk2 = new Chunk();
+
+      chunk2.load(buf);
+
+      assert.equal(42, chunk2.getBlock(new Vec3(0, 37, 0)).type);
+      assert.equal(0, chunk2.getBlock(new Vec3(0, 37, 0)).metadata);
+
+      var buf2=chunk2.dump();
+
+      if(!buf.equals(buf2)) {
+        assert.equal(buf,buf2);
+      }
+
+      assert(buf.equals(buf2));
+
+    });
   });
 });
