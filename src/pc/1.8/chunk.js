@@ -189,7 +189,6 @@ class Chunk {
 
     if (data.length != SECTION_SIZE*chunkCount+w*l)
       throw(new Error(`Data buffer not correct size \(was ${data.length}, expected ${BUFFER_SIZE}\)`));
-    this.data = data;
   }
 }
 
