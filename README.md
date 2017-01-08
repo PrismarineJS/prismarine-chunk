@@ -100,15 +100,19 @@ Set the block `biome` id at `pos`
 
 Set the block `biomeColor` at `pos`. Does nothing for PC.
 
-#### Chunk.dump()
+#### Chunk.dump(bitmap=0xFFFF)
 
 Returns the chunk raw data
 
-#### Chunk.load(data)
+#### Chunk.load(data,bitmap=0xFFFF)
 
 Load raw `data` into the chunk
 
 ## History
+
+### 1.3.0
+
+* supports bitmap in load and dump in 1.8, default to bitmap == 0xFFFF
 
 ### 1.2.0
 
