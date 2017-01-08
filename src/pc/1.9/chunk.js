@@ -225,72 +225,73 @@ class Chunk {
     //After that, the first w*l*h*0.5 bytes are block-light-levels, each half-bytes.
     //Next, the first w*l*h*0.5 bytes are sky-light-levels, each half-bytes.
     //Finally, the next w*l bytes are biomes.
-	console.log("hello?");
-	//console.log(ProtoDef.sizeOfVarInt);
 	
     let outputBuffer = Buffer.alloc(0);
     let chunkBlocks = Chunk.l * Chunk.w * 16;
     let blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2;
     let skyLightStart = blockLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
     let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
+    
+    
+   
+    
     for (let y = 0; y < 16; y++) {
-      outputBuffer = Buffer.concat([Chunk.packingProtocol.createPacketBuffer('section', {
+    	let da = this.packBlockData(this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2), 13);
+    
+    	let chunkapp = Chunk.packingProtocol.createPacketBuffer('section', {
         bitsPerBlock: 13,
         palette: [],
-        dataArray: this.packBlockData(this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2), 13),
-        blockLight: this.data.slice(blockLightStart + y * chunkBlocks / 2, (y + 1) * chunkBlocks / 2),
-        skyLight: this.data.slice(blockLightStart + y * chunkBlocks / 2, (y + 1) * chunkBlocks / 2),
-      })]);
+        dataArray: da,
+        blockLight: this.data.slice(blockLightStart + y * chunkBlocks / 2,blockLightStart+ (y + 1) * chunkBlocks / 2),
+        skyLight: this.data.slice(skyLightStart + y * chunkBlocks / 2,skyLightStart + (y + 1) * chunkBlocks / 2),
+      });
+        outputBuffer = Buffer.concat([outputBuffer, chunkapp]);
     }
-    return Buffer.concat([outputBuffer, this.data.slice(biomestart, biomestart + Chunk.l * Chunk.w)]);
+    
+	let ret = Buffer.concat([outputBuffer, this.data.slice(biomestart, biomestart + Chunk.l * Chunk.w)]);
+    return ret;
   }
-
   packBlockData(rawdata, bitsPerBlock) {
-  
+  	
     let blockCount = Chunk.l * Chunk.w * 16;
-    let resultantBuffer = Buffer.alloc(blockCount * bitsPerBlock / 8);
+    let resultantBuffer = Buffer.alloc(blockCount * bitsPerBlock / 8 + 4);
+    //We have to write very slightly past the end of the file, so we tack on 4 bytes.
+    //We'll drop them at the end.
+    
     for (let block = 0; block < blockCount; block++) {
+      //Gather and reverse the block data
+      let reversedblockdata = rawdata.readUInt16LE(block*2);
       //Determine the start-bit for the block.
-      let bit = block * bitsPerBlock;
+      let startbit = block * bitsPerBlock;
       //Determine the start-byte for that bit.
-      let targetlong = Math.floor(bit / 64);
-      //We write backwards from the end of the long. First, we determine the local writing start.
-      let localstart = 64 - bit % 64 - bitsPerBlock;
-      //Next, we determine if we need to write across multiple branches
-      if (localstart >= 0) { //We do not!
-        //We'll read both halves of the long out of what we've already written:
-        var longhalfa = resultantBuffer.readUInt32BE(targetlong * 4, true);
-        var longhalfb = resultantBuffer.readUInt32BE(targetlong * 4 + 1, true);
-        //Pretend our data starts at the end of the first half. Bit shift it into the second half accordingly:
-        var dataToWritea = rawdata >>> (localstart - (64 - bitsPerBlock));
-        //Pretend our data starts at the end of the second half. Bit shift it into the first half accordingly:
-        var dataToWriteb = rawdata << (64 - localstart - bitsPerBlock);
-        //Now, we write into our long-halves:
-        longhalfa = longhalfa | dataToWritea;
-        longhalfb = longhalfb | dataToWriteb;
-        //Finally, we write our long-halves back into the buffer:
-        resultantBuffer.writeUInt32BE(longhalfa, targetlong * 4);
-        resultantBuffer.writeUInt32BE(longhalfb, targetlong * 4 + 1);
-      } else { //We do.
-        //We now have two different local starts:
-        var localstarta = 64 + localstart;
-        var localstartb = 0;
-        //We'll load the first half of the first long, and the last half of the last long
-        var longhalfa = resultantBuffer.readUInt32BE(targetlong * 4 + 4, true); //last half of last long
-        var longhalfb = resultantBuffer.readUInt32BE(targetlong * 4, true); //First half of first long
-        //Pretend our data starts at the end of the first half. Bit shift it into the second half accordingly:
-        var dataToWritea = rawdata >>> (localstarta - (64 - bitsPerBlock));
-        //Pretend our data starts at the end of the second half. Bit shift it into the first half accordingly:
-        var dataToWriteb = rawdata << (64 - localstartb - bitsPerBlock);
-        //Now, we write into our long-halves:
-        longhalfa = longhalfa | dataToWritea;
-        longhalfb = longhalfb | dataToWriteb;
-        //Finally, we write our long-halves back into the buffer:
-        resultantBuffer.writeUInt32BE(longhalfa, targetlong * 4 + 4);
-        resultantBuffer.writeUInt32BE(longhalfb, targetlong * 4);
-      }
+      let startbyte = Math.floor(startbit / 8);
+      //Up to a byte may be intersecting with our write zone.
+      let existingdata = resultantBuffer.readUInt32BE(startbyte);
+      
+      let localbit = startbit % 8;
+      //Bit-shift the raw data into alignment:
+      let aligneddata = reversedblockdata << (32 - bitsPerBlock - localbit);
+      //Paste aligned data onto existing data
+	  let newdata = existingdata | aligneddata;
+	  //Write data back into buffer:
+	  resultantBuffer.writeInt32BE(newdata, startbyte);
     }
-    return resultantBuffer;
+    
+    //now, we jumble: (and we're sure to drop those extra 4 bytes!)
+    let jumbledBuffer = Buffer.alloc(resultantBuffer.length - 4);
+	for (let l = 0; l < resultantBuffer.length - 4; l+= 8)
+	{
+		//Load the long
+		let longleftjumbled = resultantBuffer.readUInt32BE(l, true);
+		let longrightjumbled = resultantBuffer.readUInt32BE(l + 4, true);
+		//Write in reverse order -- flip bits by using little endian.
+		jumbledBuffer.writeUInt32LE(longrightjumbled, l);
+		jumbledBuffer.writeUInt32LE(longleftjumbled, l + 4);
+	}
+
+    
+
+    return jumbledBuffer;
   }
 
   load(data, bitMap) {
@@ -298,7 +299,7 @@ class Chunk {
     if (!Buffer.isBuffer(unpackeddata))
       throw (new Error('Data must be a buffer'));
     if (unpackeddata.length != BUFFER_SIZE)
-      throw (new Error(`Data buffer not correct size \(was ${data.length}, expected ${BUFFER_SIZE}\)`));
+      throw (new Error('Data buffer not correct size (was '+unpackeddata.length+', expected '+BUFFER_SIZE+')'));
     this.data = unpackeddata;
   }
 
@@ -316,9 +317,10 @@ class Chunk {
           value
         } = this.readSection(chunk.slice(offset));
         offset += size;
-        blocks = Buffer.concat([blocks, this.eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock)])
+        blocks = Buffer.concat([blocks, this.eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock)]);
         blocklights = Buffer.concat([blocklights, value.blockLight]);
         skylights = Buffer.concat([skylights, value.skyLight]);
+        
       } else { //Old format expects *all* blocks to be present, so if the new format omits a section, we must fill with zeroes.
         blocks = Buffer.concat([blocks, Buffer.alloc(16 * 16 * 16 * 2)]);
         blocklights = Buffer.concat([blocklights, Buffer.alloc(16 * 16 * 16 / 2)]);
@@ -326,6 +328,7 @@ class Chunk {
       }
       biomes = chunk.slice(offset, offset + 256); //Does this really generate valid biome data?
     }
+    
     //Desired output format:
     //{Blocks as shorts}{Block Light as half-bytes}{Sky Light as half-bytes}{biomes as bytes}
     return Buffer.concat([blocks, blocklights, skylights, biomes]);
@@ -360,6 +363,7 @@ class Chunk {
 		unjumbledBuffer.writeUInt32LE(longleftjumbled, l + 4);
 	}
 
+	
     let blockCount = unjumbledBuffer.length * 8 / bitsPerBlock;
     let resultantBuffer = Buffer.alloc(blockCount * 2)
     let localBit = 0;
@@ -372,6 +376,7 @@ class Chunk {
       let targetbyte = Math.floor(bit / 8);
 
       //Read a 32-bit section surrounding the targeted block
+      
       let datatarget = unjumbledBuffer.readUInt32LE(targetbyte, true);
 
       //Determine the start bit local to the datatarget.
@@ -381,8 +386,11 @@ class Chunk {
       let paletteid = (datatarget << (32 - localbit - bitsPerBlock)) >>> (32 - bitsPerBlock);
 
       //Grab the data from the palette
-      let data = palette[paletteid] & 0b1111;
-      let id = palette[paletteid] >>> 4;
+	  let palettedata = paletteid;
+	  if (palette.length != 0)
+	  	palettedata=palette[paletteid];
+      let data = palettedata & 0b1111;
+      let id = palettedata >>> 4;
       resultantBuffer.writeUInt16LE((id << 4) | data, block * 2);
     }
     return resultantBuffer;
