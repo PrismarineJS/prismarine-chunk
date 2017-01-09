@@ -323,37 +323,39 @@ class Chunk {
 
   unpackChunkData(chunk, bitMap) {
     let offset = 0;
-    let blocks = Buffer.alloc(0); //byte buffer containing shorts
-    let blocklights = Buffer.alloc(0); //byte buffer containing half-bytes
-    let skylights = Buffer.alloc(0); //byte buffer containing half-bytes
-    let biomes;
+    let chunkBlocks = Chunk.l * Chunk.w * 16;
+    let blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2;
+    let skyLightStart = blockLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
+    let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
+    
+    let newBuffer = Buffer.alloc(BUFFER_SIZE);
 
     for (let y = 0; y < 16; y++) {
+      let blocksAddition;
+      let blocklightsAddition;
+      let skylightsAddition;
       if (((bitMap >> y) & 1) == 1) {
         const {
           size,
           value
         } = this.readSection(chunk.slice(offset));
         offset += size;
-        blocks = Buffer.concat([blocks, this.eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock)]);
-        blocklights = Buffer.concat([blocklights, value.blockLight]);
-        skylights = Buffer.concat([skylights, value.skyLight]);
-
+        blocksAddition = this.eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock);
+        blocklightsAddition = value.blockLight;
+        skylightsAddition = value.skyLight;
       } else { //If a chunk is skipped, we'll just fill with existing data.
-    	let chunkBlocks = Chunk.l * Chunk.w * 16;
-    	let blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2;
-    	let skyLightStart = blockLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
-    	let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
-        blocks = Buffer.concat([blocks, this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2)]);
-        blocklights = Buffer.concat([blocklights, this.data.slice(blockLightStart + y * chunkBlocks / 2, blockLightStart + (y + 1) * chunkBlocks / 2)]);
-        skylights = Buffer.concat([skylights, this.data.slice(skyLightStart + y * chunkBlocks / 2, skyLightStart + (y + 1) * chunkBlocks / 2)]);
+        blocksAddition = this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2);
+        blocklightsAddition = this.data.slice(blockLightStart + y * chunkBlocks / 2, blockLightStart + (y + 1) * chunkBlocks / 2);
+        skylightsAddition = this.data.slice(skyLightStart + y * chunkBlocks / 2, skyLightStart + (y + 1) * chunkBlocks / 2);
       }
+      blocksAddition.copy(newBuffer, y * chunkBlocks);
+      blocklightsAddition.copy(newBuffer, blockLightStart + y * chunkBlocks/2);
+      skylightsAddition.copy(newBuffer, skyLightStart + y * chunkBlocks/2);
     }
-    biomes = Buffer.alloc(256); //Does this really generate valid biome data?
-
-    //Desired output format:
-    //{Blocks as shorts}{Block Light as half-bytes}{Sky Light as half-bytes}{biomes as bytes}
-    return Buffer.concat([blocks, blocklights, skylights, biomes]);
+    if (bitMap == 0xFFFF){
+      chunk.slice(chunk.length - 256).copy(newBuffer, biomestart);
+    }
+    return newBuffer;
   }
 
   readSection(section) {

@@ -99,9 +99,12 @@ for (var i = 0; i < 20; i++)
 		}
 	  }
 	}
-	console.log(histogram);
-	console.log(total);
-	console.log(chunk.getBlock(new Vec3(3,50,3)).displayName);
+	//console.log(histogram);
+	//console.log(total);
+	for (let i = 0; i < 256; i++)
+	{
+		console.log(i + ", " + chunk.getBlock(new Vec3(3,i,3)).displayName);
+	}
 	nchunk = new Chunk();
 	nchunk.load(chunk.dump(), 0xffff);
 	chunk = nchunk;
@@ -109,7 +112,7 @@ for (var i = 0; i < 20; i++)
 }
 
 
-console.log(chunk.getBlock(new Vec3(3,50,3)));
+console.log(chunk.getBlock(new Vec3(3,50,3)).name);
 console.log(chunk.dump());
 
 /*
