@@ -106,6 +106,7 @@ var getBiomeCursor = function(pos) {
 class Chunk {
 
   constructor() {
+  	console.log("I AM ALIVE! I EXIST! ACKNOWLEDGE ME!");
     this.data = new Buffer(BUFFER_SIZE);
     this.data.fill(0);
   }
@@ -232,7 +233,7 @@ class Chunk {
     let skyLightStart = blockLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
     let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
 
-
+	
 
 
     for (let y = 0; y < 16; y++) {
@@ -247,49 +248,70 @@ class Chunk {
     }
 
     let ret = Buffer.concat([outputBuffer, this.data.slice(biomestart, biomestart + Chunk.l * Chunk.w)]);
+    //console.log(ret.length);
     return ret;
   }
   packBlockData(rawdata, bitsPerBlock) {
-
     let blockCount = Chunk.l * Chunk.w * 16;
     let resultantBuffer = Buffer.alloc(blockCount * bitsPerBlock / 8 + 4);
     //We have to write very slightly past the end of the file, so we tack on 4 bytes.
     //We'll drop them at the end.
-
     for (let block = 0; block < blockCount; block++) {
       //Gather and reverse the block data
-      let reversedblockdata = rawdata.readUInt16LE(block * 2);
+      let reversedblockdata = this.reverseBits(rawdata.readUInt16LE(block * 2), 16) >>> 3;
       //Determine the start-bit for the block.
       let startbit = block * bitsPerBlock;
       //Determine the start-byte for that bit.
       let startbyte = Math.floor(startbit / 8);
-      //Up to a byte may be intersecting with our write zone.
+      //Read 4 bytes after that start byte.
       let existingdata = resultantBuffer.readUInt32BE(startbyte);
-
+      //if (reversedblockdata == 0b0000100000000000)
+      //	console.log("existing: " + this.padbin(existingdata, 32));
+	  //Where are we writing to, in the current bit?
       let localbit = startbit % 8;
       //Bit-shift the raw data into alignment:
       let aligneddata = reversedblockdata << (32 - bitsPerBlock - localbit);
+      //if (reversedblockdata == 0b0000100000000000)
+      //	console.log("aligned: " + this.padbin(aligneddata, 32));
       //Paste aligned data onto existing data
       let newdata = existingdata | aligneddata;
       //Write data back into buffer:
-      resultantBuffer.writeInt32BE(newdata, startbyte);
+      resultantBuffer.writeUInt32BE(newdata>>>0, startbyte);
     }
 
     //now, we jumble: (and we're sure to drop those extra 4 bytes!)
     let jumbledBuffer = Buffer.alloc(resultantBuffer.length - 4);
-    for (let l = 0; l < resultantBuffer.length - 4; l += 8) {
+    for (let l = 0; l < jumbledBuffer.length; l += 8) {
       //Load the long
-      let longleftjumbled = resultantBuffer.readUInt32BE(l, true);
-      let longrightjumbled = resultantBuffer.readUInt32BE(l + 4, true);
+      let longleftjumbled = resultantBuffer.readUInt32BE(l);
+      let longrightjumbled = resultantBuffer.readUInt32BE(l + 4);
       //Write in reverse order -- flip bits by using little endian.
-      jumbledBuffer.writeUInt32LE(longrightjumbled, l);
-      jumbledBuffer.writeUInt32LE(longleftjumbled, l + 4);
+      jumbledBuffer.writeInt32BE(this.reverseBits(longrightjumbled, 32), l);
+      jumbledBuffer.writeInt32BE(this.reverseBits(longleftjumbled, 32), l + 4);
     }
-
-
-
     return jumbledBuffer;
   }
+  
+  reverseBits(data, n) {
+   let datau = data >>> 0;//Coerce unsigned.
+   let storage = 0;
+   for (let i = 0; i < n; i++) {
+     storage = storage | (datau & 1);
+     if (i != n - 1) {
+       storage = storage << 1;
+       datau = datau >>> 1;
+     }
+   }
+   return storage;
+ }
+
+  /*Debuggery
+  padbin(num, len=32) {
+    var s = (num >>> 0).toString(2);
+    while (s.length < len) s = "0" + s;
+    return s;
+   }
+   */
 
   load(data, bitMap) {
     let unpackeddata = this.unpackChunkData(data, bitMap);
@@ -327,8 +349,8 @@ class Chunk {
         blocklights = Buffer.concat([blocklights, this.data.slice(blockLightStart + y * chunkBlocks / 2, blockLightStart + (y + 1) * chunkBlocks / 2)]);
         skylights = Buffer.concat([skylights, this.data.slice(skyLightStart + y * chunkBlocks / 2, skyLightStart + (y + 1) * chunkBlocks / 2)]);
       }
-      biomes = chunk.slice(offset, offset + 256); //Does this really generate valid biome data?
     }
+    biomes = Buffer.alloc(256); //Does this really generate valid biome data?
 
     //Desired output format:
     //{Blocks as shorts}{Block Light as half-bytes}{Sky Light as half-bytes}{biomes as bytes}
