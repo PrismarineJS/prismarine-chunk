@@ -106,7 +106,6 @@ var getBiomeCursor = function(pos) {
 class Chunk {
 
   constructor() {
-  	console.log("I AM ALIVE! I EXIST! ACKNOWLEDGE ME!");
     this.data = new Buffer(BUFFER_SIZE);
     this.data.fill(0);
   }
