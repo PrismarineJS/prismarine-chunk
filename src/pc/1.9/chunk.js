@@ -312,7 +312,7 @@ class Chunk {
    }
    */
 
-  load(data, bitMap) {
+  load(data, bitMap=0xFFFF) {
     let unpackeddata = this.unpackChunkData(data, bitMap);
     if (!Buffer.isBuffer(unpackeddata))
       throw (new Error('Data must be a buffer'));

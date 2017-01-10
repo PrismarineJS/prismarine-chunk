@@ -1,9 +1,9 @@
-var Chunk = require('../')("1.9");
+var Chunk = require('../../index')("1.9");
 var Vec3 = require("vec3");
 var fs = require('fs');
 
-var dump = fs.readFileSync('chunk_-10_-1.dump');
-var data = JSON.parse(fs.readFileSync('packet_-10_-1.data').toString());
+var dump = fs.readFileSync(__dirname+'/chunk_-10_-1.dump');
+var data = JSON.parse(fs.readFileSync(__dirname+'/packet_-10_-1.data').toString());
 
 const ProtoDef = require('protodef').ProtoDef;
 
