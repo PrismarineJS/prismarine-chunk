@@ -1,6 +1,7 @@
 var Chunk = require('../')("1.9");
 var Vec3 = require("vec3");
 var fs = require('fs');
+var Block = require('prismarine-block')("1.9");
 
 var dump = fs.readFileSync('chunk_-10_-1.dump');
 var data = JSON.parse(fs.readFileSync('packet_-10_-1.data').toString());
@@ -79,14 +80,26 @@ console.log(packingProtocol.read(Buffer.concat([packed, packed]), 0, 'section', 
 
 var chunk = new Chunk();
 chunk.load(dump, data.bitMap);
+/*
+for (var x = 0; x < 16;x++) {
+	  for (var z = 0; z < 16; z++) {
+		for (var y = 0; y < 256; y++) {
+		  chunk.setBlock(new Vec3(x, y, z), new Block(42, 0, 0));
+		}
+	  }
+	}
+*/
 
 
-for (var i = 0; i < 20; i++)
+console.log(chunk.getBlock(new Vec3(0, 37, 0)));
+
+console.time("load");
+for (var i = 0; i < 10; i++)
 {
 
 	var histogram={};
 	var total = 0;
-	chunk.load(dump, data.bitMap);
+	
 	for (var x = 0; x < 16;x++) {
 	  for (var z = 0; z < 16; z++) {
 		for (var y = 0; y < 256; y++) {
@@ -99,21 +112,23 @@ for (var i = 0; i < 20; i++)
 		}
 	  }
 	}
-	//console.log(histogram);
-	//console.log(total);
+	
+	console.log(histogram);
+	console.log(total);
+	/*
 	for (let i = 0; i < 256; i++)
 	{
 		console.log(i + ", " + chunk.getBlock(new Vec3(3,i,3)).displayName);
 	}
+	*/
 	nchunk = new Chunk();
+	console.log("Dump/Load Cycle");
 	nchunk.load(chunk.dump(), 0xffff);
 	chunk = nchunk;
-
+	//console.log(chunk.getBlock(new Vec3(0, 37, 0)));
 }
+console.timeEnd("load");
 
-
-console.log(chunk.getBlock(new Vec3(3,50,3)).name);
-console.log(chunk.dump());
 
 /*
 var testChunk=new Chunk();
