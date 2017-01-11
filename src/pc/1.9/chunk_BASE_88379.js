@@ -312,7 +312,7 @@ class Chunk {
    }
    */
 
-  load(data, bitMap=0xFFFF) {
+  load(data, bitMap) {
     let unpackeddata = this.unpackChunkData(data, bitMap);
     if (!Buffer.isBuffer(unpackeddata))
       throw (new Error('Data must be a buffer'));
@@ -348,7 +348,7 @@ class Chunk {
         blocklightsAddition = this.data.slice(blockLightStart + y * chunkBlocks / 2, blockLightStart + (y + 1) * chunkBlocks / 2);
         skylightsAddition = this.data.slice(skyLightStart + y * chunkBlocks / 2, skyLightStart + (y + 1) * chunkBlocks / 2);
       }
-      blocksAddition.copy(newBuffer, y * chunkBlocks*2);
+      blocksAddition.copy(newBuffer, y * chunkBlocks);
       blocklightsAddition.copy(newBuffer, blockLightStart + y * chunkBlocks/2);
       skylightsAddition.copy(newBuffer, skyLightStart + y * chunkBlocks/2);
     }
@@ -367,7 +367,7 @@ class Chunk {
     }
   }
 
-  
+
   //Simplified eatPackedBlockLongs Algorithm
   eatPackedBlockLongs(rawBuffer, palette, bitsPerBlock) {
     //The critical problem is that the internal order of each long is opposite to the organizational order of the longs
@@ -378,18 +378,16 @@ class Chunk {
     let unjumbledBuffer = Buffer.alloc(rawBuffer.length);
     for (let l = 0; l < rawBuffer.length; l += 8) {
       //Load the long
-      
-      let longleftjumbled = rawBuffer.readUInt32BE(l);
-      let longrightjumbled = rawBuffer.readUInt32BE(l + 4);
-      //Write in reverse order
-      
-      unjumbledBuffer.writeInt32BE(this.reverseBits(longrightjumbled, 32), l);
-      unjumbledBuffer.writeInt32BE(this.reverseBits(longleftjumbled, 32), l + 4);
+      let longleftjumbled = rawBuffer.readUInt32BE(l, true);
+      let longrightjumbled = rawBuffer.readUInt32BE(l + 4, true);
+      //Write in reverse order -- flip bits by using little endian.
+      unjumbledBuffer.writeUInt32LE(longrightjumbled, l);
+      unjumbledBuffer.writeUInt32LE(longleftjumbled, l + 4);
     }
 
 
     let blockCount = unjumbledBuffer.length * 8 / bitsPerBlock;
-    let resultantBuffer = Buffer.alloc(blockCount * 2);
+    let resultantBuffer = Buffer.alloc(blockCount * 2)
     let localBit = 0;
 
     for (let block = 0; block < blockCount; block++) {
@@ -400,19 +398,13 @@ class Chunk {
 
       //Read a 32-bit section surrounding the targeted block
 
-      let datatarget = unjumbledBuffer.readUInt32BE(targetbyte, true);
-      //console.log(":");
-      //console.log(this.padbin(aligneddata,32));
+      let datatarget = unjumbledBuffer.readUInt32LE(targetbyte, true);
 
       //Determine the start bit local to the datatarget.
       let localbit = bit % 8;
 
-      //Chop off uninteresting bits, then shift interesting region to the end of the bit-buffer. Reverse the bits when done
-      
-      let paletteid = this.reverseBits((datatarget << localbit) >>> (32 - bitsPerBlock), bitsPerBlock);
-	  
-      //console.log(this.padbin(paletteid, 32));
-
+      //Chop off uninteresting bits, then shift to that start bit:
+      let paletteid = (datatarget << (32 - localbit - bitsPerBlock)) >>> (32 - bitsPerBlock);
 
       //Grab the data from the palette
       let palettedata = paletteid;

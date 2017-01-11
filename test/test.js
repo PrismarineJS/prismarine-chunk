@@ -40,7 +40,7 @@ versions.forEach(function(version) {
       assert.equal(35, chunk.getBlock(new Vec3(5, 5, 5)).type);
       assert.equal(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata);
     });
-    it('should fail safely when load is given bad input', function () {
+    if(version!="pe_1.0" && version!="1.9") it('should fail safely when load is given bad input', function () {
       var chunk = new Chunk();
 
       var tooShort = new Buffer(3);

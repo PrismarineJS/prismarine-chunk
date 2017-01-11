@@ -304,18 +304,17 @@ class Chunk {
    return storage;
  }
 
-  /*Debuggery
   padbin(num, len=32) {
     var s = (num >>> 0).toString(2);
     while (s.length < len) s = "0" + s;
     return s;
    }
-   */
+   
 
-  load(data, bitMap=0xFFFF) {
-    let unpackeddata = this.unpackChunkData(data, bitMap);
+  load(data, bitMap) {
     if (!Buffer.isBuffer(unpackeddata))
       throw (new Error('Data must be a buffer'));
+    let unpackeddata = this.unpackChunkData(data, bitMap);
     if (unpackeddata.length != BUFFER_SIZE)
       throw (new Error('Data buffer not correct size (was ' + unpackeddata.length + ', expected ' + BUFFER_SIZE + ')'));
     this.data = unpackeddata;
