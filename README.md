@@ -110,6 +110,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 1.4.0
+
+* supports mcpc 1.9 (thanks @Flynnn)
+
 ### 1.3.0
 
 * supports bitmap in load and dump in 1.8, default to bitmap == 0xFFFF
