@@ -31,10 +31,11 @@
     "gulp-sourcemaps": "^1.6.0",
     "mocha": "^2.1.0",
     "vec3": "~0.1.3",
-    "minecraft-data":"^2.8.0"
+    "minecraft-data": "^2.8.0"
   },
   "dependencies": {
-    "uint4": "^0.1.2",
-    "prismarine-block":"^1.0.0"
+    "prismarine-block": "^1.0.0",
+    "protodef": "^1.2.3",
+    "uint4": "^0.1.2"
   }
 }

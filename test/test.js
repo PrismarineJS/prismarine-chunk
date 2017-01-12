@@ -1,7 +1,7 @@
-var assert = require('assert');
+	var assert = require('assert');
 var Vec3 = require("vec3");
 
-const versions=['pe_0.14', 'pe_1.0', '1.8'];
+const versions=['pe_0.14', 'pe_1.0', '1.8', '1.9'];
 versions.forEach(function(version) {
   var Chunk = require('../index.js')(version);
   var Block = require('prismarine-block')(version);
@@ -40,7 +40,7 @@ versions.forEach(function(version) {
       assert.equal(35, chunk.getBlock(new Vec3(5, 5, 5)).type);
       assert.equal(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata);
     });
-    it('should fail safely when load is given bad input', function () {
+    if(version!="pe_1.0" && version!="1.9") it('should fail safely when load is given bad input', function () {
       var chunk = new Chunk();
 
       var tooShort = new Buffer(3);
@@ -51,7 +51,7 @@ versions.forEach(function(version) {
       });
 
       assert.throws(function () {
-        chunk.load(notABuffer);
+        chunk.load(notABuffer, 0xFFFF);
       });
     });
 
@@ -60,15 +60,12 @@ versions.forEach(function(version) {
 
 
       chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)); // Iron block
-      assert.equal(42, chunk.getBlock(new Vec3(0, 37, 0)).type);
       assert.equal(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata);
-
+      assert.equal(42, chunk.getBlock(new Vec3(0, 37, 0)).type);
       var buf=chunk.dump();
-
       var chunk2 = new Chunk();
 
-      chunk2.load(buf);
-
+      chunk2.load(buf, 0xFFFF);
       assert.equal(42, chunk2.getBlock(new Vec3(0, 37, 0)).type);
       assert.equal(0, chunk2.getBlock(new Vec3(0, 37, 0)).metadata);
 
@@ -79,7 +76,6 @@ versions.forEach(function(version) {
       }
 
       assert(buf.equals(buf2));
-
     });
   });
 });
