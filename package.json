@@ -17,7 +17,12 @@
     "chunk",
     "world"
   ],
-  "author": "Will Franzen <wtfranzen@gmail.com> (http://will.xyz/)",
+  "contributors": [
+    "Will Franzen <wtfranzen@gmail.com> (http://will.xyz/)",
+    "Romain Beaumont <romain.rom1@gmail.com>",
+    "Georges Oates Larsen (flynnn)",
+    "mhsjlw"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/PrismarineJS/prismarine-chunk/issues"
