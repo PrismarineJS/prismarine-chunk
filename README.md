@@ -110,6 +110,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 1.5.0
+
+* supports mcpc 1.10 and 1.11 (same as 1.9)
+
 ### 1.4.0
 
 * supports mcpc 1.9 (thanks @Flynnn)
