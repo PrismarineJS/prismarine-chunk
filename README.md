@@ -110,6 +110,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 1.5.1
+
+* use last protodef, fix longToByte (no countTypeArgs), and remove gulp
+
 ### 1.5.0
 
 * supports mcpc 1.10 and 1.11 (same as 1.9)
