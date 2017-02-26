@@ -43,10 +43,9 @@ function loader(mcVersion) {
     {
       "name": "dataArray",
       "type": ["buffer", {
-        "countType": "longToByte",
-        "countTypeArgs": {
+        "countType": ["longToByte",{
           "type": "varint"
-        }
+        }]
       }]
     },
     {
