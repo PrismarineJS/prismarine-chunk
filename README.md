@@ -1,9 +1,9 @@
 # prismarine-chunk
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/PrismarineJS/prismarine-chunk.svg)](https://greenkeeper.io/)
 [![NPM version](https://img.shields.io/npm/v/prismarine-chunk.svg)](http://npmjs.com/package/prismarine-chunk)
 [![Build Status](https://img.shields.io/circleci/project/PrismarineJS/prismarine-chunk/master.svg)](https://circleci.com/gh/PrismarineJS/prismarine-chunk)
 [![Join the chat at https://gitter.im/PrismarineJS/prismarine-chunk](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/PrismarineJS/prismarine-chunk)
+[![Greenkeeper badge](https://badges.greenkeeper.io/PrismarineJS/prismarine-chunk.svg)](https://greenkeeper.io/)
 
 A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10 and 1.11 and Pocket Edition 0.14 and 1.0
 
