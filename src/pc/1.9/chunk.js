@@ -62,9 +62,37 @@ function loader(mcVersion) {
     }
   ]];
 
+  let pns = ["container", [{
+      "name": "bitsPerBlock",
+      "type": "u8"
+    },
+    {
+      "name": "palette",
+      "type": ["array", {
+        "type": "varint",
+        "countType": "varint"
+      }]
+    },
+    {
+      "name": "dataArray",
+      "type": ["buffer", {
+        "countType": ["longToByte",{
+          "type": "varint"
+        }]
+      }]
+    },
+    {
+      "name": "blockLight",
+      "type": ["buffer", {
+        "count": 16 * 16 * 16 / 2
+      }]
+    }
+  ]];
+
   Chunk.packingProtocol = new ProtoDef();
   Chunk.packingProtocol.addType('longToByte', longToByte);
   Chunk.packingProtocol.addType('section', p);
+  Chunk.packingProtocol.addType('sectionNoSkylight', pns);
 
 
   Chunk.w = w;
@@ -311,8 +339,8 @@ class Chunk {
    }
    */
 
-  load(data, bitMap=0xFFFF) {
-    let unpackeddata = this.unpackChunkData(data, bitMap);
+  load(data, bitMap = 0xFFFF, skyLightSent = true) {
+    let unpackeddata = this.unpackChunkData(data, bitMap, skyLightSent);
     if (!Buffer.isBuffer(unpackeddata))
       throw (new Error('Data must be a buffer'));
     if (unpackeddata.length != BUFFER_SIZE)
@@ -320,11 +348,12 @@ class Chunk {
     this.data = unpackeddata;
   }
 
-  unpackChunkData(chunk, bitMap) {
+  unpackChunkData(chunk, bitMap, skyLightSent) {
     let offset = 0;
     let chunkBlocks = Chunk.l * Chunk.w * 16;
     let blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2;
-    let skyLightStart = blockLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
+    let skyLightSize = Chunk.l * Chunk.w * Chunk.h / 2;
+    let skyLightStart = blockLightStart + skyLightSize;
     let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
     
     let newBuffer = Buffer.alloc(BUFFER_SIZE);
@@ -337,11 +366,18 @@ class Chunk {
         const {
           size,
           value
-        } = this.readSection(chunk.slice(offset));
+        } = this.readSection(chunk.slice(offset), skyLightSent);
         offset += size;
         blocksAddition = this.eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock);
         blocklightsAddition = value.blockLight;
-        skylightsAddition = value.skyLight;
+
+        if (skyLightSent) {
+          skylightsAddition = value.skyLight;
+        } else {
+          skylightsAddition = new Buffer(skyLightSize);
+          for (let i = 0; i < skyLightSize; ++i)
+            skylightsAddition[i] = 0;
+        }
       } else { //If a chunk is skipped, we'll just fill with existing data.
         blocksAddition = this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2);
         blocklightsAddition = this.data.slice(blockLightStart + y * chunkBlocks / 2, blockLightStart + (y + 1) * chunkBlocks / 2);
@@ -357,9 +393,9 @@ class Chunk {
     return newBuffer;
   }
 
-  readSection(section) {
+  readSection(section, skyLightSent) {
     try {
-      return Chunk.packingProtocol.read(section, 0, 'section', {});
+      return Chunk.packingProtocol.read(section, 0, skyLightSent ? 'section' : 'sectionNoSkylight', {});
     } catch (e) {
       e.message = `Read error for ${e.field} : ${e.message}`;
       throw e;
