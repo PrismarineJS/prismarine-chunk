@@ -102,7 +102,7 @@ Set the block `biomeColor` at `pos`. Does nothing for PC.
 
 Returns the chunk raw data
 
-#### Chunk.load(data,bitmap=0xFFFF)
+#### Chunk.load(data,bitmap=0xFFFF,skyLightSent = true)
 
 Load raw `data` into the chunk
 
