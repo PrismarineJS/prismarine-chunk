@@ -108,6 +108,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 1.6.0
+
+* add skyLightSent to load
+
 ### 1.5.1
 
 * use last protodef, fix longToByte (no countTypeArgs), and remove gulp
