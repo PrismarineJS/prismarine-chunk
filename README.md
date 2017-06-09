@@ -5,7 +5,7 @@
 [![Join the chat at https://gitter.im/PrismarineJS/prismarine-chunk](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/PrismarineJS/prismarine-chunk)
 [![Greenkeeper badge](https://badges.greenkeeper.io/PrismarineJS/prismarine-chunk.svg)](https://greenkeeper.io/)
 
-A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10 and 1.11 and Pocket Edition 0.14 and 1.0
+A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10, 1.11 and 1.12 and Pocket Edition 0.14 and 1.0
 
 ## Usage
 
@@ -107,6 +107,10 @@ Returns the chunk raw data
 Load raw `data` into the chunk
 
 ## History
+
+### NEXT
+
+* supports mcpc 1.12 (same as 1.9)
 
 ### 1.6.0
 
