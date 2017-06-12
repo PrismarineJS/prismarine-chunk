@@ -108,7 +108,7 @@ Load raw `data` into the chunk
 
 ## History
 
-### NEXT
+### 1.7.0
 
 * supports mcpc 1.12 (same as 1.9)
 
