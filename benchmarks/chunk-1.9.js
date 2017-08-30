@@ -10,7 +10,7 @@ const Chunk = chunk('1.12.1')
 const blockCache = {}
 
 function benchmark() {
-  for (let i = 0; i<100; i++) {
+  for (let i = 0; i<1000; i++) {
     const c = new Chunk()
 
     c.initialize((x,y,z) => {
