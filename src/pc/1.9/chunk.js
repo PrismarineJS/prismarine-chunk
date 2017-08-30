@@ -253,30 +253,38 @@ class Chunk {
     //Next, the first w*l*h*0.5 bytes are sky-light-levels, each half-bytes.
     //Finally, the next w*l bytes are biomes.
 
-    let outputBuffer = Buffer.alloc(0);
-    let chunkBlocks = Chunk.l * Chunk.w * 16;
-    let blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2;
-    let skyLightStart = blockLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
-    let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
+    const chunkBlocks = Chunk.l * Chunk.w * 16;
+    const twiceChunkBlocks = 2 * chunkBlocks;
+    const halfChunkBlocks = chunkBlocks / 2;
 
-	
 
+    let outputBuffers = [];
+
+    let currentDataIndex = 0;
+    let currentBlockLightIndex = Chunk.l * Chunk.w * Chunk.h * 2;
+    let currentSkyLightIndex = currentBlockLightIndex + Chunk.l * Chunk.w * Chunk.h / 2;
+    let biomeStart = currentSkyLightIndex + Chunk.l * Chunk.w * Chunk.h / 2;
 
     for (let y = 0; y < 16; y++) {
-      let chunkapp = Chunk.packingProtocol.createPacketBuffer('section', {
+      outputBuffers.push(Chunk.packingProtocol.createPacketBuffer('section', {
         bitsPerBlock: 13,
         palette: [],
-        dataArray: this.packBlockData(this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2), 13),
-        blockLight: this.data.slice(blockLightStart + y * chunkBlocks / 2, blockLightStart + (y + 1) * chunkBlocks / 2),
-        skyLight: this.data.slice(skyLightStart + y * chunkBlocks / 2, skyLightStart + (y + 1) * chunkBlocks / 2),
-      });
-      outputBuffer = Buffer.concat([outputBuffer, chunkapp]);
+        dataArray: this.packBlockData(this.data.slice(currentDataIndex, currentDataIndex + twiceChunkBlocks), 13),
+        blockLight: this.data.slice(currentBlockLightIndex, currentBlockLightIndex + halfChunkBlocks),
+        skyLight: this.data.slice(currentSkyLightIndex, currentSkyLightIndex + halfChunkBlocks)
+      }));
+
+      currentDataIndex += twiceChunkBlocks;
+      currentBlockLightIndex += halfChunkBlocks;
+      currentSkyLightIndex += halfChunkBlocks;
     }
 
-    let ret = Buffer.concat([outputBuffer, this.data.slice(biomestart, biomestart + Chunk.l * Chunk.w)]);
-    //console.log(ret.length);
-    return ret;
+
+    outputBuffers.push(this.data.slice(biomeStart, biomeStart + Chunk.l * Chunk.w));
+
+    return Buffer.concat(outputBuffers)
   }
+
   packBlockData(rawdata, bitsPerBlock) {
     let blockCount = Chunk.l * Chunk.w * 16;
     let resultantBuffer = Buffer.alloc(blockCount * bitsPerBlock / 8 + 4);
@@ -317,7 +325,7 @@ class Chunk {
     }
     return jumbledBuffer;
   }
-  
+
   reverseBits(data, n) {
    let datau = data >>> 0;//Coerce unsigned.
    let storage = 0;
@@ -355,7 +363,7 @@ class Chunk {
     let skyLightSize = Chunk.l * Chunk.w * Chunk.h / 2;
     let skyLightStart = blockLightStart + skyLightSize;
     let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2;
-    
+
     let newBuffer = Buffer.alloc(BUFFER_SIZE);
 
     for (let y = 0; y < 16; y++) {
@@ -402,7 +410,7 @@ class Chunk {
     }
   }
 
-  
+
   //Simplified eatPackedBlockLongs Algorithm
   eatPackedBlockLongs(rawBuffer, palette, bitsPerBlock) {
     //The critical problem is that the internal order of each long is opposite to the organizational order of the longs
@@ -413,11 +421,11 @@ class Chunk {
     let unjumbledBuffer = Buffer.alloc(rawBuffer.length);
     for (let l = 0; l < rawBuffer.length; l += 8) {
       //Load the long
-      
+
       let longleftjumbled = rawBuffer.readUInt32BE(l);
       let longrightjumbled = rawBuffer.readUInt32BE(l + 4);
       //Write in reverse order
-      
+
       unjumbledBuffer.writeInt32BE(this.reverseBits(longrightjumbled, 32), l);
       unjumbledBuffer.writeInt32BE(this.reverseBits(longleftjumbled, 32), l + 4);
     }
@@ -443,9 +451,9 @@ class Chunk {
       let localbit = bit % 8;
 
       //Chop off uninteresting bits, then shift interesting region to the end of the bit-buffer. Reverse the bits when done
-      
+
       let paletteid = this.reverseBits((datatarget << localbit) >>> (32 - bitsPerBlock), bitsPerBlock);
-	  
+
       //console.log(this.padbin(paletteid, 32));
 
 
