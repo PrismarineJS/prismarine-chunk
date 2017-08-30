@@ -4,7 +4,8 @@
   "description": "A class to hold chunk data for prismarine",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "benchmark": "bench-csv ./benchmarks/chunk-1.9.js -o ./benchmarks/chunk-1.9.csv --repeat 10"
   },
   "repository": {
     "type": "git",
