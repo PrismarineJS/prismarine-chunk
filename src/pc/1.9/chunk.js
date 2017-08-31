@@ -137,14 +137,14 @@ var getBiomeCursor = function(pos) {
 class Chunk {
 
   constructor() {
-    this.data = new Buffer(BUFFER_SIZE);
-    this.data.fill(0);
+    this.data = Buffer.alloc(BUFFER_SIZE);
   }
 
   initialize(iniFunc) {
     const skylight = (CHUNK_VOLUME >>> 1) * 5;
     const light = CHUNK_VOLUME << 1;
     let biome = CHUNK_VOLUME * 3 - 1;
+
     let n = 0;
     const data = this.data
     for (let y = 0; y < h; y++) {
@@ -156,8 +156,8 @@ class Chunk {
           if (block == null)
             continue;
           data.writeUInt16LE(block.type << 4 | block.metadata, n << 1);
-          writeUInt4LE(data, block.light, n >>> 1 + light);
-          writeUInt4LE(data, block.skyLight, n >>> 1 + skylight);
+          writeUInt4LE(data, block.light, (n >>> 3) + light);
+          writeUInt4LE(data, block.skyLight, (n >>> 3 ) + skylight);
           if (y == 0) {
             data.writeUInt8(block.biome.id || 0, biome);
           }
@@ -265,9 +265,9 @@ class Chunk {
 
 
     let currentDataIndex = 0;
-    let currentBlockLightIndex = Chunk.l * Chunk.w * Chunk.h << 1;
-    let currentSkyLightIndex = currentBlockLightIndex + Chunk.l * Chunk.w * Chunk.h >>> 1;
-    let biomeStart = currentSkyLightIndex + Chunk.l * Chunk.w * Chunk.h >>> 1;
+    let currentBlockLightIndex = CHUNK_VOLUME << 1;
+    let currentSkyLightIndex = currentBlockLightIndex + (CHUNK_VOLUME >>> 1);
+    let biomeStart = currentSkyLightIndex + (CHUNK_VOLUME >>> 1);
 
     let outputBuffers = [];
 
@@ -397,13 +397,13 @@ class Chunk {
             skylightsAddition[i] = 0;
         }
       } else { //If a chunk is skipped, we'll just fill with existing data.
-        blocksAddition = this.data.slice(y * chunkBlocks * 2, (y + 1) * chunkBlocks * 2);
-        blocklightsAddition = this.data.slice(blockLightStart + y * chunkBlocks / 2, blockLightStart + (y + 1) * chunkBlocks / 2);
-        skylightsAddition = this.data.slice(skyLightStart + y * chunkBlocks / 2, skyLightStart + (y + 1) * chunkBlocks / 2);
+        blocksAddition = this.data.slice(y * chunkBlocks << 1, (y + 1) * chunkBlocks << 1);
+        blocklightsAddition = this.data.slice(blockLightStart + ((y * chunkBlocks) >>> 1), blockLightStart + (((y + 1) * chunkBlocks) >>> 1));
+        skylightsAddition = this.data.slice(skyLightStart + ((y * chunkBlocks) >>> 1), skyLightStart + (((y + 1) * chunkBlocks) >>> 1));
       }
-      blocksAddition.copy(newBuffer, y * chunkBlocks*2);
-      blocklightsAddition.copy(newBuffer, blockLightStart + y * chunkBlocks/2);
-      skylightsAddition.copy(newBuffer, skyLightStart + y * chunkBlocks/2);
+      blocksAddition.copy(newBuffer, y * chunkBlocks << 1);
+      blocklightsAddition.copy(newBuffer, blockLightStart + ((y * chunkBlocks) >>> 1));
+      skylightsAddition.copy(newBuffer, skyLightStart + ((y * chunkBlocks) >>> 1));
     }
     if (bitMap == 0xFFFF){
       chunk.slice(chunk.length - 256).copy(newBuffer, biomestart);
