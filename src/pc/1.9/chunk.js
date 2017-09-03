@@ -7,36 +7,12 @@ const CHUNK_CROSS_SECTION= w * l;
 
 const X3_CHUNK_VOLUME = 3 * CHUNK_VOLUME;
 
-// Taken from bit-twiddle library
-const REVERSE_TABLE = new Array(256);
-
-(function(tab) {
-  for(let i=0; i<256; ++i) {
-    let v = i, r = i, s = 7;
-    for (v >>>= 1; v; v >>>= 1) {
-      r <<= 1;
-      r |= v & 1;
-      --s;
-    }
-    tab[i] = (r << s) & 0xff;
-  }
-})(REVERSE_TABLE);
-
-const reverseBits32 = (v) =>
-  (REVERSE_TABLE[ v         & 0xff] << 24) |
-  (REVERSE_TABLE[(v >>> 8)  & 0xff] << 16) |
-  (REVERSE_TABLE[(v >>> 16) & 0xff] << 8)  |
-  REVERSE_TABLE[(v >>> 24) & 0xff];
-
-const reverseBits16 = (v) =>
-  (REVERSE_TABLE[ v         & 0xff] << 8) |
-  REVERSE_TABLE[(v >>> 8)  & 0xff];
-
 
 const BUFFER_SIZE = (CHUNK_VOLUME * 3) + CHUNK_CROSS_SECTION;
 
 const ProtoDef = require('protodef').ProtoDef;
 const { readUInt4LE, writeUInt4LE } = require('uint4');
+const { reverseBits16, reverseBits32, reverseBits} = require('../../reverse-bits')
 
 module.exports = loader;
 
@@ -323,37 +299,20 @@ class Chunk {
       resultantBuffer.writeUInt32BE(newdata>>>0, startbyte);
     }
 
-    // drop the last 4 bytes, and then reverse all bits in the buffer in 64 bit chunks
-    return this.reverseAllBits64InBuffer(resultantBuffer.slice(0, resultantBuffer.length - 4));
-  }
-
-  reverseAllBits64InBuffer(buffer) {
     // Reverses all bits in the buffer in 64 bit chunks
     //Pretty sure this can be done by using a smaller buffer in the loop above that flushes whenever more than 8 bytes are pushed into it
-    for (let l = 0; l < buffer.length; l += 8) {
+    for (let l = 0; l < resultantBuffer.length - 4; l += 8) {
       //Load the long
-      let longleftjumbled = buffer.readUInt32BE(l);
-      let longrightjumbled = buffer.readUInt32BE(l + 4);
+      let longleftjumbled = resultantBuffer.readUInt32BE(l);
+      let longrightjumbled = resultantBuffer.readUInt32BE(l + 4);
       //Write in reverse order -- flip bits by using little endian.
-      buffer.writeInt32BE(reverseBits32(longrightjumbled), l);
-      buffer.writeInt32BE(reverseBits32(longleftjumbled), l + 4);
+      resultantBuffer.writeInt32BE(reverseBits32(longrightjumbled), l);
+      resultantBuffer.writeInt32BE(reverseBits32(longleftjumbled), l + 4);
     }
 
-    return buffer
+    // drop the last 4 bytes (memory is shared)
+    return resultantBuffer.slice(0, resultantBuffer.length - 4);
   }
-
-  reverseBits(data, n) {
-   let datau = data >>> 0;//Coerce unsigned.
-   let storage = 0;
-   for (let i = 0; i < n; i++) {
-     storage = storage | (datau & 1);
-     if (i != n - 1) {
-       storage = storage << 1;
-       datau = datau >>> 1;
-     }
-   }
-   return storage;
- }
 
   /*Debuggery
   padbin(num, len=32) {
@@ -465,7 +424,7 @@ class Chunk {
 
       //Chop off uninteresting bits, then shift interesting region to the end of the bit-buffer. Reverse the bits when done
 
-      let paletteid = this.reverseBits((datatarget << localbit) >>> (32 - bitsPerBlock), bitsPerBlock);
+      let paletteid = reverseBits((datatarget << localbit) >>> (32 - bitsPerBlock), bitsPerBlock);
 
       //Grab the data from the palette
       let palettedata = paletteid;
