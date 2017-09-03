@@ -323,20 +323,23 @@ class Chunk {
       resultantBuffer.writeUInt32BE(newdata>>>0, startbyte);
     }
 
-    //now, we jumble: (and we're sure to drop those extra 4 bytes!)
+    // drop the last 4 bytes, and then reverse all bits in the buffer in 64 bit chunks
+    return this.reverseAllBits64InBuffer(resultantBuffer.slice(0, resultantBuffer.length - 4));
+  }
+
+  reverseAllBits64InBuffer(buffer) {
+    // Reverses all bits in the buffer in 64 bit chunks
     //Pretty sure this can be done by using a smaller buffer in the loop above that flushes whenever more than 8 bytes are pushed into it
-    for (let l = 0; l < resultantBuffer.length - 4; l += 8) {
+    for (let l = 0; l < buffer.length; l += 8) {
       //Load the long
-      let longleftjumbled = resultantBuffer.readUInt32BE(l);
-      let longrightjumbled = resultantBuffer.readUInt32BE(l + 4);
+      let longleftjumbled = buffer.readUInt32BE(l);
+      let longrightjumbled = buffer.readUInt32BE(l + 4);
       //Write in reverse order -- flip bits by using little endian.
-      resultantBuffer.writeInt32BE(reverseBits32(longrightjumbled), l);
-      resultantBuffer.writeInt32BE(reverseBits32(longleftjumbled), l + 4);
+      buffer.writeInt32BE(reverseBits32(longrightjumbled), l);
+      buffer.writeInt32BE(reverseBits32(longleftjumbled), l + 4);
     }
 
-    // drop the last 4 bytes
-    // slicing reuses the same memory
-    return resultantBuffer.slice(0, resultantBuffer.length - 4);
+    return buffer
   }
 
   reverseBits(data, n) {
