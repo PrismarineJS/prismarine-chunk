@@ -101,7 +101,6 @@ function loader(mcVersion) {
   Chunk.packingProtocol.addType('section', p);
   Chunk.packingProtocol.addType('sectionNoSkylight', pns);
 
-
   Chunk.w = w;
   Chunk.l = l;
   Chunk.h = h;
@@ -129,7 +128,7 @@ class Chunk {
     const light = CHUNK_VOLUME << 1;
 
     let biome = X3_CHUNK_VOLUME - 1;
-    let n = 0;
+
     const data = this.data
     let y
     for (let n=0; n< CHUNK_VOLUME; n++) {
@@ -345,34 +344,32 @@ class Chunk {
       let blocksAddition;
       let blocklightsAddition;
       let skylightsAddition;
-      if (((bitMap >> y) & 1) == 1) {
+      if ((bitMap >> y) & 1) {
         const {
           size,
           value
         } = this.readSection(chunk.slice(offset), skyLightSent);
+
         offset += size;
         blocksAddition = this.eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock);
         blocklightsAddition = value.blockLight;
 
-        if (skyLightSent) {
-          skylightsAddition = value.skyLight;
-        } else {
-          skylightsAddition = new Buffer(skyLightSize);
-          for (let i = 0; i < skyLightSize; ++i)
-            skylightsAddition[i] = 0;
-        }
+        skylightsAddition = skyLightSent ? value.skyLight : Buffer.alloc(skyLightSize)
       } else { //If a chunk is skipped, we'll just fill with existing data.
         blocksAddition = this.data.slice(y * chunkBlocks << 1, (y + 1) * chunkBlocks << 1);
         blocklightsAddition = this.data.slice(blockLightStart + ((y * chunkBlocks) >>> 1), blockLightStart + (((y + 1) * chunkBlocks) >>> 1));
         skylightsAddition = this.data.slice(skyLightStart + ((y * chunkBlocks) >>> 1), skyLightStart + (((y + 1) * chunkBlocks) >>> 1));
       }
+
       blocksAddition.copy(newBuffer, y * chunkBlocks << 1);
       blocklightsAddition.copy(newBuffer, blockLightStart + ((y * chunkBlocks) >>> 1));
       skylightsAddition.copy(newBuffer, skyLightStart + ((y * chunkBlocks) >>> 1));
     }
+
     if (bitMap == 0xFFFF){
       chunk.slice(chunk.length - 256).copy(newBuffer, biomestart);
     }
+
     return newBuffer;
   }
 
@@ -396,44 +393,38 @@ class Chunk {
     let unjumbledBuffer = Buffer.alloc(rawBuffer.length);
     for (let l = 0; l < rawBuffer.length; l += 8) {
       //Load the long
-
       let longleftjumbled = rawBuffer.readUInt32BE(l);
       let longrightjumbled = rawBuffer.readUInt32BE(l + 4);
-      //Write in reverse order
 
+      //Write in reverse order
       unjumbledBuffer.writeInt32BE(reverseBits32(longrightjumbled), l);
       unjumbledBuffer.writeInt32BE(reverseBits32(longleftjumbled), l + 4);
     }
 
-
-    let blockCount = (unjumbledBuffer.length << 3) / bitsPerBlock;
-    let resultantBuffer = Buffer.alloc(blockCount << 1);
-    let localBit = 0;
+    const blockCount = (unjumbledBuffer.length << 3) / bitsPerBlock;
+    const resultantBuffer = Buffer.alloc(blockCount << 1);
 
     for (let block = 0; block < blockCount; block++) {
       //Determine the start-bit for the block.
       let bit = block * bitsPerBlock;
       //Determine the start-byte for that bit.
-      let targetbyte = bit >>> 3;
+      let targetByte = bit >>> 3;
 
       //Read a 32-bit section surrounding the targeted block
-      let datatarget = unjumbledBuffer.readUInt32BE(targetbyte, true);
+      let datatarget = unjumbledBuffer.readUInt32BE(targetByte, true);
 
       //Determine the start bit local to the datatarget.
-      let localbit = bit % 8;
+      let localbit = bit & 0b111;
 
       //Chop off uninteresting bits, then shift interesting region to the end of the bit-buffer. Reverse the bits when done
-
-      let paletteid = reverseBits((datatarget << localbit) >>> (32 - bitsPerBlock), bitsPerBlock);
+      let paletteId = reverseBits((datatarget << localbit) >>> (32 - bitsPerBlock), bitsPerBlock);
 
       //Grab the data from the palette
-      let palettedata = paletteid;
-      if (palette.length != 0)
-        palettedata = palette[paletteid];
-      let data = palettedata & 0b1111;
-      let id = palettedata >>> 4;
-      resultantBuffer.writeUInt16LE((id << 4) | data, block << 1);
+      let paletteData = palette.length ? palette[paletteId] : paletteId;
+
+      resultantBuffer.writeUInt16LE(paletteData, block << 1);
     }
+
     return resultantBuffer;
   }
 }
