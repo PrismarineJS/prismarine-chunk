@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/PrismarineJS/prismarine-chunk",
   "devDependencies": {
-    "mocha": "^3.2.0",
+    "mocha": "^4.0.0",
     "vec3": "~0.1.3",
     "minecraft-data": "^2.8.0"
   },
