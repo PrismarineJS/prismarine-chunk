@@ -108,6 +108,11 @@ Load raw `data` into the chunk
 
 ## History
 
+## 1.9.0
+
+* small 1.9 fix (thanks @Flynnn)
+* handle skylightsent in 1.8
+
 ## 1.8.2
 
 * fix initialize in 1.8 + test
