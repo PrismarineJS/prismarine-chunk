@@ -1,7 +1,7 @@
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
-const blocks = require("minecraft-data")('1.12.1').blocks;
+const blocks = require("minecraft-data")('1.12.2').blocks;
 const chunk = require('../src/pc/1.9/chunk.js')
-const Block = require('prismarine-block')('1.12.1');
+const Block = require('prismarine-block')('1.12.2');
 const Vec3 = require('vec3');
 
 const blockCounts = Object.keys(blocks).length

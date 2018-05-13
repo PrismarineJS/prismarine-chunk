@@ -26,9 +26,9 @@ const ProtoDef = require('protodef').ProtoDef;
   ];
 
   let p = ["container", [{
-      "name": "bitsPerBlock",
-      "type": "u8"
-    },
+    "name": "bitsPerBlock",
+    "type": "u8"
+  },
     {
       "name": "palette",
       "type": ["array", {
@@ -39,10 +39,9 @@ const ProtoDef = require('protodef').ProtoDef;
     {
       "name": "dataArray",
       "type": ["buffer", {
-        "countType": "longToByte",
-        "countTypeArgs": {
+        "countType": ["longToByte",{
           "type": "varint"
-        }
+        }]
       }]
     },
     {

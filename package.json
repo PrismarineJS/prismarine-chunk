@@ -30,7 +30,7 @@
   "homepage": "https://github.com/PrismarineJS/prismarine-chunk",
   "devDependencies": {
     "bench-csv": "^2.2.3",
-    "minecraft-data": "^2.8.0",
+    "minecraft-data": "^2.26.0",
     "mocha": "^4.0.0"
   },
   "dependencies": {
