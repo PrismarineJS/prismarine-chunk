@@ -31,7 +31,7 @@
   "devDependencies": {
     "bench-csv": "^2.2.3",
     "minecraft-data": "^2.8.0",
-    "mocha": "^3.2.0"
+    "mocha": "^4.0.0"
   },
   "dependencies": {
     "prismarine-block": "^1.0.0",
