@@ -7,9 +7,7 @@ const sh=Section.sh;//section height
 const sectionCount=16;
 const h=sh*sectionCount;
 
-const SECTION_SIZE=Section.SECTION_SIZE;
 const BIOME_SIZE=w*l;
-const BUFFER_SIZE = SECTION_SIZE*sectionCount + BIOME_SIZE; // max
 
 module.exports = loader;
 
@@ -18,7 +16,6 @@ function loader(mcVersion) {
   Chunk.w=w;
   Chunk.l=l;
   Chunk.h=h;
-  Chunk.BUFFER_SIZE=BUFFER_SIZE;
   return Chunk;
 }
 
@@ -149,7 +146,9 @@ class Chunk {
     this.biome.writeUInt8(biome, cursor);
   }
 
-  dump(bitMap=0xFFFF) {
+  dump(bitMap=0xFFFF, skyLightSent = true) {
+    const SECTION_SIZE=Section.sectionSize(skyLightSent);
+
     const {chunkIncluded,chunkCount}=parseBitMap(bitMap);
     const bufferLength=chunkCount*SECTION_SIZE+BIOME_SIZE;
     const buffer=new Buffer(bufferLength);
@@ -169,9 +168,13 @@ class Chunk {
   }
 
 
-  load(data,bitMap=0xFFFF) {
+  load(data, bitMap=0xFFFF, skyLightSent = true) {
     if (!Buffer.isBuffer(data))
       throw(new Error('Data must be a buffer'));
+
+    const SECTION_SIZE=Section.sectionSize(skyLightSent);
+    const BUFFER_SIZE = SECTION_SIZE*sectionCount + BIOME_SIZE;
+
     const {chunkIncluded,chunkCount}=parseBitMap(bitMap);
     let offset=0;
     let offsetLight=w*l*sectionCount*chunkCount*2;
@@ -181,14 +184,14 @@ class Chunk {
         const sectionBuffer=new Buffer(SECTION_SIZE);
         offset+=data.copy(sectionBuffer,0,offset,offset+w*l*sh*2);
         offsetLight+=data.copy(sectionBuffer,w*l*sh*2,offsetLight,offsetLight+w*l*sh/2);
-        offsetSkyLight+=data.copy(sectionBuffer,w*l*sh*5/2,offsetLight,offsetSkyLight+w*l*sh/2);
-        this.sections[i].load(sectionBuffer);
+        if(skyLightSent)
+          offsetSkyLight+=data.copy(sectionBuffer,w*l*sh*5/2,offsetLight,offsetSkyLight+w*l*sh/2);
+        this.sections[i].load(sectionBuffer, skyLightSent);
       }
     }
     data.copy(this.biome,w*l*sectionCount*chunkCount*3);
 
-
-    if (data.length != SECTION_SIZE*chunkCount+w*l)
+    if (data.length !== SECTION_SIZE*chunkCount+w*l)
       throw(new Error(`Data buffer not correct size \(was ${data.length}, expected ${BUFFER_SIZE}\)`));
   }
 }

@@ -2,6 +2,23 @@ const assert = require('assert');
 const Vec3 = require("vec3");
 
 const versions=['pe_0.14', 'pe_1.0', '1.8', '1.9'];
+
+describe('chunk 1.8', () => {
+  const Chunk = require('../index.js')("1.8");
+  it('should handle skylightSent = false', () => {
+    const chunk = new Chunk();
+
+    chunk.load(Buffer.alloc(164096), 0xFFFF, false);
+  })
+
+  it('should handle skylightSent = true', () => {
+    const chunk = new Chunk();
+
+    chunk.load(Buffer.alloc(196864), 0xFFFF, true);
+  })
+})
+
+
 versions.forEach(function(version) {
   const Chunk = require('../index.js')(version);
   const Block = require('prismarine-block')(version);

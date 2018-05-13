@@ -4,9 +4,6 @@ const w=16;
 const l=16;
 const sh=16;//section height
 
-const SECTION_SIZE=(w * l * sh * 3);
-
-
 const getArrayPosition = function (pos) {
   return pos.x+w*(pos.z+l*pos.y);
 };
@@ -26,9 +23,15 @@ const getSkyLightCursor = function(pos) {
 
 class Section {
 
-  constructor() {
+  constructor(skyLightSent = true) {
+    const SECTION_SIZE = Section.sectionSize(skyLightSent);
+
     this.data=new Buffer(SECTION_SIZE);
     this.data.fill(0);
+  }
+
+  static sectionSize(skyLightSent = true) {
+    return (w * l * sh)*(skyLightSent ? 3 : 5/2);
   }
 
   initialize(iniFunc) {
@@ -108,7 +111,9 @@ class Section {
   }
 
 
-  load(data) {
+  load(data, skyLightSent = true) {
+    const SECTION_SIZE = Section.sectionSize(skyLightSent);
+
     if (!Buffer.isBuffer(data))
       throw(new Error('Data must be a buffer'));
     if (data.length !== SECTION_SIZE)
@@ -121,6 +126,5 @@ class Section {
 Section.w=w;
 Section.l=l;
 Section.sh=sh;
-Section.SECTION_SIZE=SECTION_SIZE;
 
 module.exports=Section;
