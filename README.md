@@ -173,3 +173,16 @@ Load raw `data` into the chunk
 ### 0.1.0
 
 * First version, basic functionality
+
+## Benchmarking
+
+Benchmarks may be run by using:
+```bash
+# run benchmarks once
+npm run benchmark
+
+# run benchmarks continuously, reloading changes as they are made
+npm run benchmark -- --watch
+```
+
+The output of the benchmarking will be placed in the file `benchmarks/results/chunk-1.9.csv`
