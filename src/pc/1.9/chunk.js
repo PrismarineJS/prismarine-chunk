@@ -390,7 +390,8 @@ class Chunk {
     //Therefore, we will read 4 bytes at a time, bit-flip them, and write them into a new buffer.
     //From there, the old algorithm for reading will work just fine, we don't even have to consider the existence of the longs anymore.
     //A major side-effect, though, is that all of the internal block-datas will be flipped, so we have to flip them again before extracting data.
-    let unjumbledBuffer = Buffer.alloc(rawBuffer.length);
+    // 3 bytes added to be able to read ints (4 bytes) from the buffer, even if some bytes are missing
+    let unjumbledBuffer = Buffer.alloc(rawBuffer.length+3);
     for (let l = 0; l < rawBuffer.length; l += 8) {
       //Load the long
       let longleftjumbled = rawBuffer.readUInt32BE(l);
@@ -401,7 +402,7 @@ class Chunk {
       unjumbledBuffer.writeInt32BE(reverseBits32(longleftjumbled), l + 4);
     }
 
-    const blockCount = (unjumbledBuffer.length << 3) / bitsPerBlock;
+    const blockCount = (rawBuffer.length << 3) / bitsPerBlock;
     const resultantBuffer = Buffer.alloc(blockCount << 1);
 
     for (let block = 0; block < blockCount; block++) {
@@ -411,7 +412,7 @@ class Chunk {
       let targetByte = bit >>> 3;
 
       //Read a 32-bit section surrounding the targeted block
-      let datatarget = unjumbledBuffer.readUInt32BE(targetByte, true);
+      let datatarget = unjumbledBuffer.readUInt32BE(targetByte);
 
       //Determine the start bit local to the datatarget.
       let localbit = bit & 0b111;
