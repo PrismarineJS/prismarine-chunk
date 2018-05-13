@@ -108,6 +108,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 1.8.1
+
+* fix initialize in 1.8
+
 ### 1.8.0
 
 * optimization of 1.9 chunk done by @allain
