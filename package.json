@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "benchmark": "bench-csv ./benchmarks/chunk-1.9.js -o ./benchmarks/results/chunk-1.9.csv"
+    "benchmark": "bench-csv ./benchmarks/chunk-1.9.js -o ./benchmarks/results/chunk-1.9.csv",
+    "lint":"standard",
+    "pretest":"npm run lint"
   },
   "repository": {
     "type": "git",
@@ -31,7 +33,8 @@
   "devDependencies": {
     "bench-csv": "^2.2.3",
     "minecraft-data": "^2.26.0",
-    "mocha": "^4.0.0"
+    "mocha": "^4.0.0",
+    "standard": "^11.0.1"
   },
   "dependencies": {
     "prismarine-block": "^1.0.0",
