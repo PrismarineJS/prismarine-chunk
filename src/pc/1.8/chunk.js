@@ -57,15 +57,15 @@ class Chunk {
   }
 
   initialize(iniFunc) {
-    let biome=-1;
+    let biome=0;
     for(let i=0;i<sectionCount;i++) {
       this.sections[i].initialize((x,y,z,n) => {
         let block= iniFunc(x,y%sh,z,n);
-        if(block==null)
+        if(block == null)
           return;
-        if(y === 0) {
-          biome++;
+        if(y === 0 && sectionCount === 0) {
           this.biome.writeUInt8(block.biome.id || 0, biome);
+          biome++;
         }
       });
     }

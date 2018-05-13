@@ -45,6 +45,18 @@ class Chunk {
     }
   }
 
+  initialize(iniFunc) {
+    const p=new Vec3(0,0,0);
+    for(p.y=0; p.y<Chunk.h; p.y++) {
+      for(p.z=0; p.z<Chunk.w; p.z++) {
+        for(p.x=0; p.x<Chunk.l; p.x++) {
+          const block=iniFunc(p.x, p.y, p.z);
+          this.setBlock(p,block);
+        }
+      }
+    }
+  }
+
   getBlock(pos)  {
     var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos));
     block.light = this.getBlockLight(pos);

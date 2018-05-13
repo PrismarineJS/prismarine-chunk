@@ -1,5 +1,6 @@
 'use strict';
 
+const Vec3 = require('vec3').Vec3;
 const w=16;
 const l=16;
 const h=128;
@@ -74,7 +75,7 @@ class Chunk {
       for(p.z=0; p.z<w; p.z++) {
         for(p.x=0; p.x<l; p.x++) {
           const block=iniFunc(p.x, p.y, p.z);
-          this.setBlock(pos,block);
+          this.setBlock(p,block);
         }
       }
     }
