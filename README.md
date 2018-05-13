@@ -108,6 +108,10 @@ Load raw `data` into the chunk
 
 ## History
 
+### 1.8.0
+
+* optimization of 1.9 chunk done by @allain
+
 ### 1.7.0
 
 * supports mcpc 1.12 (same as 1.9)
