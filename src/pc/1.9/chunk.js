@@ -9,96 +9,116 @@ const X3_CHUNK_VOLUME = 3 * CHUNK_VOLUME
 
 const BUFFER_SIZE = (CHUNK_VOLUME * 3) + CHUNK_CROSS_SECTION
 
-const ProtoDef = require('protodef').ProtoDef
+const { ProtoDef, PartialReadError } = require('protodefc')
 const { readUInt4LE, writeUInt4LE } = require('uint4')
-const {reverseBits16, reverseBits32, reverseBits} = require('../../reverse-bits')
+const { reverseBits16, reverseBits32, reverseBits } = require('../../reverse-bits')
+const assert = require('assert')
 
 module.exports = loader
 
 function loader (mcVersion) {
   Block = require('prismarine-block')(mcVersion)
 
-  // MC counts the longs, protodef wants the bytes. This is responsible for that conversion.
-  const longToByte = [
-    function (buffer, offset, typeArgs) { // readLongToByte
-      var results = this.read(buffer, offset, typeArgs.type, {})
-      return {
-        value: Math.ceil(results.value << 3),
-        size: results.size
+  // MC counts the longs, ProtoDef wants the bytes. This is responsible for that conversion.
+  const longToByte = {
+    sizeOf: function (input) {
+      let value = input >>> 3
+
+      let cursor = 0
+      while (value & ~0x7F) {
+        value >>>= 7
+        cursor++
       }
+
+      return cursor + 1
     },
-    function (value, buffer, offset, typeArgs) { // writeLongToByte
-      return this.write(value >>> 3, buffer, offset, typeArgs.type, {})
+    serialize: function (input, buffer, offset) {
+      let value = input >>> 3
+
+      let cursor = 0
+      while (value & ~0x7F) {
+        buffer.writeUInt8((value & 0xFF) | 0x80, offset + cursor)
+        cursor++
+        value >>>= 7
+      }
+      buffer.writeUInt8(value, offset + cursor)
+      return offset + cursor + 1
     },
-    function (value, typeArgs) { // sizeOfLongToByte
-      return this.sizeOf(value >>> 3, typeArgs.type, {})
+    deserialize: function (buffer, offset) {
+      let result = 0
+      let shift = 0
+      let cursor = offset
+
+      while (true) {
+        if (cursor + 1 > buffer.length) { throw new PartialReadError() }
+        const b = buffer.readUInt8(cursor)
+        result |= ((b & 0x7f) << shift) // Add the bits to our number, except MSB
+        cursor++
+        if (!(b & 0x80)) { // If the MSB is not set, we return the number
+          return { value: Math.ceil(result << 3), size: cursor - offset }
+        }
+        shift += 7 // we only have 7 bits, MSB being the return-trigger
+        assert.ok(shift < 64, 'varint is too big') // Make sure our shift don't overflow.
+      }
     }
-  ]
-
-  const p = ['container', [{
-    'name': 'bitsPerBlock',
-    'type': 'u8'
-  },
-  {
-    'name': 'palette',
-    'type': ['array', {
-      'type': 'varint',
-      'countType': 'varint'
-    }]
-  },
-  {
-    'name': 'dataArray',
-    'type': ['buffer', {
-      'countType': ['longToByte', {
-        'type': 'varint'
-      }]
-    }]
-  },
-  {
-    'name': 'blockLight',
-    'type': ['buffer', {
-      'count': 16 * 16 * 16 / 2
-    }]
-  },
-  {
-    'name': 'skyLight',
-    'type': ['buffer', {
-      'count': 16 * 16 * 16 / 2
-    }]
   }
-  ]]
 
-  const pns = ['container', [{
-    'name': 'bitsPerBlock',
-    'type': 'u8'
-  },
-  {
-    'name': 'palette',
-    'type': ['array', {
-      'type': 'varint',
-      'countType': 'varint'
-    }]
-  },
-  {
-    'name': 'dataArray',
-    'type': ['buffer', {
-      'countType': ['longToByte', {
-        'type': 'varint'
-      }]
-    }]
-  },
-  {
-    'name': 'blockLight',
-    'type': ['buffer', {
-      'count': 16 * 16 * 16 / 2
-    }]
+  const constant2048Buffer = {
+    sizeOf: function(input) {
+      return 2048;
+    },
+    serialize: function(input, buffer, offset) {
+      input.copy(buffer, offset);
+      return offset + 2048;
+    },
+    deserialize: function(buffer, offset) {
+      return { value: buffer.slice(offset, offset + 2048), size: offset + 2048 }
+    }
   }
-  ]]
+
 
   Chunk.packingProtocol = new ProtoDef()
-  Chunk.packingProtocol.addType('longToByte', longToByte)
-  Chunk.packingProtocol.addType('section', p)
-  Chunk.packingProtocol.addType('sectionNoSkylight', pns)
+  Chunk.packingProtocol.addType('::long_to_byte', longToByte)
+  Chunk.packingProtocol.addType('::constant_2048_buffer', constant2048Buffer)
+  Chunk.packingProtocol.addProtocol(`
+    @type integer("u8")
+    def_native("u8");
+
+    @type integer("u32")
+    def_native("varint");
+
+    @type integer("u32")
+    def_native("long_to_byte");
+
+    def_native("constant_2048_buffer");
+
+    @export "section"
+    def("section") => container {
+      field("bits_per_block") => ::u8;
+
+      virtual_field("palette_length", value: "palette/@length") => ::varint;
+      field("palette") => array(length: "../palette_length") => ::varint;
+
+      virtual_field("data_array_length", value: "data_array/@length") => ::long_to_byte;
+      field("data_array") => array(length: "../data_array_length") => ::u8;
+
+      field("block_light") => ::constant_2048_buffer;
+      field("sky_light") => ::constant_2048_buffer;
+    };
+
+    @export "section_no_skylight"
+    def("section_no_skylight") => container {
+      field("bits_per_block") => ::u8;
+
+      virtual_field("palette_length", value: "palette/@length") => ::varint;
+      field("palette") => array(length: "../palette_length") => ::varint;
+
+      virtual_field("data_array_length", value: "data_array/@length") => ::long_to_byte;
+      field("data_array") => array(length: "../data_array_length") => ::u8;
+
+      field("block_light") => ::constant_2048_buffer;
+    };
+  `)
 
   Chunk.w = w
   Chunk.l = l
@@ -248,11 +268,11 @@ class Chunk {
 
     for (let y = 0; y < 16; y++) {
       outputBuffers.push(Chunk.packingProtocol.createPacketBuffer('section', {
-        bitsPerBlock: 13,
+        bits_per_block: 13,
         palette: [],
-        dataArray: this.packBlockData(this.data.slice(currentDataIndex, currentDataIndex + twiceChunkBlocks), 13),
-        blockLight: this.data.slice(currentBlockLightIndex, currentBlockLightIndex + halfChunkBlocks),
-        skyLight: this.data.slice(currentSkyLightIndex, currentSkyLightIndex + halfChunkBlocks)
+        data_array: this.packBlockData(this.data.slice(currentDataIndex, currentDataIndex + twiceChunkBlocks), 13),
+        block_light: this.data.slice(currentBlockLightIndex, currentBlockLightIndex + halfChunkBlocks),
+        sky_light: this.data.slice(currentSkyLightIndex, currentSkyLightIndex + halfChunkBlocks)
       }))
 
       currentDataIndex += twiceChunkBlocks
@@ -341,10 +361,10 @@ class Chunk {
         } = this.readSection(chunk.slice(offset), skyLightSent)
 
         offset += size
-        blocksAddition = this.eatPackedBlockLongs(value.dataArray, value.palette, value.bitsPerBlock)
-        blocklightsAddition = value.blockLight
+        blocksAddition = this.eatPackedBlockLongs(value.data_array, value.palette, value.bits_per_block)
+        blocklightsAddition = value.block_light
 
-        skylightsAddition = skyLightSent ? value.skyLight : Buffer.alloc(skyLightSize)
+        skylightsAddition = skyLightSent ? value.sky_light : Buffer.alloc(skyLightSize)
       } else { // If a chunk is skipped, we'll just fill with existing data.
         blocksAddition = this.data.slice(y * chunkBlocks << 1, (y + 1) * chunkBlocks << 1)
         blocklightsAddition = this.data.slice(blockLightStart + ((y * chunkBlocks) >>> 1), blockLightStart + (((y + 1) * chunkBlocks) >>> 1))
@@ -365,7 +385,7 @@ class Chunk {
 
   readSection (section, skyLightSent) {
     try {
-      return Chunk.packingProtocol.read(section, 0, skyLightSent ? 'section' : 'sectionNoSkylight', {})
+      return Chunk.packingProtocol.read(section, 0, skyLightSent ? 'section' : 'section_no_skylight', {})
     } catch (e) {
       e.message = `Read error for ${e.field} : ${e.message}`
       throw e
