@@ -16,5 +16,9 @@ module.exports = loader
 
 function loader (mcVersion) {
   var mcData = require('minecraft-data')(mcVersion)
-  return chunkImplementations[mcData.type][mcData.version.majorVersion](mcVersion)
+  try {
+    return chunkImplementations[mcData.type][mcData.version.majorVersion](mcVersion)
+  } catch (e) {
+    throw new Error(`[Prismarine-chunk] No chunk implementation for ${mcVersion} found`)
+  }
 }
