@@ -11,7 +11,7 @@ const BUFFER_SIZE = (CHUNK_VOLUME * 3) + CHUNK_CROSS_SECTION
 
 const ProtoDef = require('protodef').ProtoDef
 const { readUInt4LE, writeUInt4LE } = require('uint4')
-const {reverseBits16, reverseBits32, reverseBits} = require('../../reverse-bits')
+const { reverseBits16, reverseBits32, reverseBits } = require('../../reverse-bits')
 
 module.exports = loader
 

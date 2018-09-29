@@ -40,7 +40,7 @@ function parseBitMap (bitMap) {
     chunkIncluded[y] = bitMap & (1 << y)
     if (chunkIncluded[y]) chunkCount++
   }
-  return {chunkIncluded, chunkCount}
+  return { chunkIncluded, chunkCount }
 }
 
 class Chunk {
@@ -141,7 +141,7 @@ class Chunk {
   dump (bitMap = 0xFFFF, skyLightSent = true) {
     const SECTION_SIZE = Section.sectionSize(skyLightSent)
 
-    const {chunkIncluded, chunkCount} = parseBitMap(bitMap)
+    const { chunkIncluded, chunkCount } = parseBitMap(bitMap)
     const bufferLength = chunkCount * SECTION_SIZE + BIOME_SIZE
     const buffer = Buffer.alloc(bufferLength)
     let offset = 0
@@ -164,7 +164,7 @@ class Chunk {
     const SECTION_SIZE = Section.sectionSize(skyLightSent)
     const BUFFER_SIZE = SECTION_SIZE * sectionCount + BIOME_SIZE
 
-    const {chunkIncluded, chunkCount} = parseBitMap(bitMap)
+    const { chunkIncluded, chunkCount } = parseBitMap(bitMap)
     let offset = 0
     let offsetLight = w * l * sectionCount * chunkCount * 2
     let offsetSkyLight = w * l * sectionCount * chunkCount / 2 * 5
