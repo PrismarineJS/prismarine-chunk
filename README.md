@@ -108,6 +108,12 @@ Load raw `data` into the chunk
 
 ## History
 
+## 1.9.1
+
+* standardjs
+* circleci 2
+* better no chunk implementation exception
+
 ## 1.9.0
 
 * small 1.9 fix (thanks @Flynnn)
