@@ -6,8 +6,8 @@
   "scripts": {
     "test": "mocha",
     "benchmark": "bench-csv ./benchmarks/chunk-1.9.js -o ./benchmarks/results/chunk-1.9.csv",
-    "lint":"standard",
-    "pretest":"npm run lint"
+    "lint": "standard",
+    "pretest": "npm run lint"
   },
   "repository": {
     "type": "git",
