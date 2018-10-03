@@ -4,7 +4,7 @@ jobs:
   build:
     parallelism: 1
     docker:
-      - image: circleci/node:10
+      - image: circleci/openjdk:8-node
     steps:
       - checkout
       - restore_cache:
