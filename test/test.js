@@ -1,43 +1,46 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
-const Vec3 = require('vec3')
+const Vec3 = require('vec3').Vec3
+const fs = require('fs')
+const path = require('path')
 
 const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9']
-
-describe('chunk 1.8', () => {
-  const Chunk = require('../index.js')('1.8')
-  it('should handle skylightSent = false', () => {
-    const chunk = new Chunk()
-
-    chunk.load(Buffer.alloc(164096), 0xFFFF, false)
-  })
-
-  it('should handle skylightSent = true', () => {
-    const chunk = new Chunk()
-
-    chunk.load(Buffer.alloc(196864), 0xFFFF, true)
-  })
-})
+const cycleTests = ['1.9']
 
 versions.forEach(function (version) {
   const Chunk = require('../index.js')(version)
   const Block = require('prismarine-block')(version)
 
-  describe('chunk ' + version, function () {
-    it("shouldn't break initialize", () => {
+  describe(`Chunk implementation for minecraft ${version}`, () => {
+    if (version === '1.8') {
+      it('Handles {skylightSent: false}', () => {
+        const chunk = new Chunk()
+
+        chunk.load(Buffer.alloc(164096), 0xFFFF, false)
+      })
+
+      it('handles {skylightSent: true}', () => {
+        const chunk = new Chunk()
+
+        chunk.load(Buffer.alloc(196864), 0xFFFF, true)
+      })
+    }
+
+    it('Initializes correctly', () => {
       const chunk = new Chunk()
 
       chunk.initialize((x, y, z, n) => new Block(0, 0, 0))
     })
 
-    it('should default to having all blocks be air', function () {
+    it('Defaults to all blocks being air', function () {
       const chunk = new Chunk()
 
       assert.strictEqual(0, chunk.getBlock(new Vec3(0, 0, 0)).type)
       assert.strictEqual(0, chunk.getBlock(new Vec3(15, Chunk.h - 1, 15)).type)
     })
-    it('should set a block at the given position', function () {
+
+    it('Should set a block at the given position', function () {
       const chunk = new Chunk()
 
       chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
@@ -52,7 +55,8 @@ versions.forEach(function (version) {
       assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
       assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
     })
-    it('should overwrite blocks in place', function () {
+
+    it('Overwrites blocks in place', function () {
       const chunk = new Chunk()
 
       chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
@@ -65,8 +69,9 @@ versions.forEach(function (version) {
       assert.strictEqual(35, chunk.getBlock(new Vec3(5, 5, 5)).type)
       assert.strictEqual(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata)
     })
+
     if (version !== 'pe_1.0' && version !== '1.9') {
-      it('should fail safely when load is given bad input', function () {
+      it('Fails safely when loading bad input', function () {
         const chunk = new Chunk()
 
         const tooShort = Buffer.alloc(3)
@@ -83,10 +88,10 @@ versions.forEach(function (version) {
     }
 
     if (version !== 'pe_1.0') {
-      it('should load/dump consistently', function () {
+      it('Loads and dumps fake data consistently', function () {
         const chunk = new Chunk()
 
-        chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
+        chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0))
         assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
         assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
         const buf = chunk.dump()
@@ -103,6 +108,37 @@ versions.forEach(function (version) {
         }
 
         assert(buf.equals(buf2))
+      })
+    }
+
+    if (cycleTests.includes(version)) {
+      const folder = path.join(__dirname, version)
+      const chunkDump = path.join(folder, 'chunk.dump')
+      const packetData = path.join(folder, 'chunk.meta')
+      const dump = fs.readFileSync(chunkDump)
+      const data = JSON.parse(fs.readFileSync(packetData).toString())
+      it('Loads chunk buffers', () => {
+        const chunk = new Chunk()
+        chunk.load(dump, data.bitMap)
+      })
+
+      it('Correctly cycles through chunks', () => {
+        const chunk = new Chunk()
+        chunk.load(dump, data.bitMap)
+        const buffer = chunk.dump()
+        const chunk2 = new Chunk()
+        chunk2.load(buffer, 0xFFFF)
+
+        const p = new Vec3(0, 0, 0)
+        for (p.y = 0; p.y < 256; p.y++) {
+          for (p.z = 0; p.z < 16; p.z++) {
+            for (p.x = 0; p.x < 16; p.x++) {
+              const b = chunk.getBlock(p)
+              const b2 = chunk2.getBlock(p)
+              assert.deepStrictEqual(b, b2)
+            }
+          }
+        }
       })
     }
   })
