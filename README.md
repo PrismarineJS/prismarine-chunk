@@ -106,6 +106,14 @@ Returns the chunk raw data
 
 Load raw `data` into the chunk
 
+## Test data
+
+Test data can be generated with [minecraftChunkDumper](https://github.com/PrismarineJS/minecraft-chunk-dumper).
+
+Install it globally with `npm install minecraft-chunk-dumper -g` then run :
+
+`minecraftChunkDumper saveChunk 1.8.8 1.8/chunk.dump 1.8/chunk.meta`
+
 ## History
 
 ## 1.9.1

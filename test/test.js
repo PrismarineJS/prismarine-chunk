@@ -5,8 +5,8 @@ const Vec3 = require('vec3').Vec3
 const fs = require('fs')
 const path = require('path')
 
-const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9']
-const cycleTests = ['1.9']
+const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12']
+const cycleTests = ['1.9', '1.10', '1.11', '1.12']
 
 versions.forEach(function (version) {
   const Chunk = require('../index.js')(version)
