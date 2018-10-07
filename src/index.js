@@ -1,4 +1,4 @@
-var chunkImplementations = {
+const chunkImplementations = {
   'pc': {
     '1.8': require('./pc/1.8/chunk'),
     '1.9': require('./pc/1.9/chunk'),
@@ -15,10 +15,15 @@ var chunkImplementations = {
 module.exports = loader
 
 function loader (mcVersion) {
-  var mcData = require('minecraft-data')(mcVersion)
+  const mcData = require('minecraft-data')(mcVersion)
   try {
     return chunkImplementations[mcData.type][mcData.version.majorVersion](mcVersion)
   } catch (e) {
-    throw new Error(`[Prismarine-chunk] No chunk implementation for ${mcVersion} found`)
+    if (e instanceof TypeError) {
+      throw new Error(`[Prismarine-chunk] No chunk implementation for  found`)
+    } else {
+      console.log(`Error found while loading ${mcData.type} - ${mcData.version.majorVersion} - ${mcVersion}`)
+      throw e
+    }
   }
 }
