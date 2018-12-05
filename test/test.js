@@ -123,32 +123,37 @@ versions.forEach(function (version) {
 
     if (cycleTests.includes(version)) {
       const folder = path.join(__dirname, version)
-      const chunkDump = path.join(folder, 'chunk.dump')
-      const packetData = path.join(folder, 'chunk.meta')
-      const dump = fs.readFileSync(chunkDump)
-      const data = JSON.parse(fs.readFileSync(packetData).toString())
-      it('Loads chunk buffers', () => {
-        const chunk = new Chunk()
-        chunk.load(dump, data.bitMap)
-      })
+      const files = fs.readdirSync(folder)
+      const chunkFiles = files.filter(file => file.includes('.dump'))
+      const dataFiles = files.filter(file => file.includes('.meta'))
 
-      it('Correctly cycles through chunks', () => {
-        const chunk = new Chunk()
-        chunk.load(dump, data.bitMap)
-        const buffer = chunk.dump()
-        const chunk2 = new Chunk()
-        chunk2.load(buffer, 0xFFFF)
+      chunkFiles.forEach(chunkDump => {
+        const packetData = dataFiles.find(dataFile => dataFile.includes(chunkDump.substr(0, chunkDump.length - 5)))
+        const dump = fs.readFileSync(path.join(folder, chunkDump))
+        const data = JSON.parse(fs.readFileSync(path.join(folder, packetData)).toString())
+        it('Loads chunk buffers ' + chunkDump, () => {
+          const chunk = new Chunk()
+          chunk.load(dump, data.bitMap)
+        })
 
-        const p = new Vec3(0, 0, 0)
-        for (p.y = 0; p.y < 256; p.y++) {
-          for (p.z = 0; p.z < 16; p.z++) {
-            for (p.x = 0; p.x < 16; p.x++) {
-              const b = chunk.getBlock(p)
-              const b2 = chunk2.getBlock(p)
-              assert.deepStrictEqual(b, b2)
+        it('Correctly cycles through chunks ' + chunkDump, () => {
+          const chunk = new Chunk()
+          chunk.load(dump, data.bitMap)
+          const buffer = chunk.dump()
+          const chunk2 = new Chunk()
+          chunk2.load(buffer, 0xFFFF)
+
+          const p = new Vec3(0, 0, 0)
+          for (p.y = 0; p.y < 256; p.y++) {
+            for (p.z = 0; p.z < 16; p.z++) {
+              for (p.x = 0; p.x < 16; p.x++) {
+                const b = chunk.getBlock(p)
+                const b2 = chunk2.getBlock(p)
+                assert.deepStrictEqual(b, b2)
+              }
             }
           }
-        }
+        })
       })
     }
   })
