@@ -149,6 +149,7 @@ versions.forEach(function (version) {
               for (p.x = 0; p.x < 16; p.x++) {
                 const b = chunk.getBlock(p)
                 const b2 = chunk2.getBlock(p)
+                assert.notStrictEqual(b.name, '', ' block type n°' + b.type + ' read, which doesn\'t exist')
                 assert.deepStrictEqual(b, b2)
               }
             }
