@@ -181,7 +181,7 @@ class Chunk {
   }
 
   getBlock (pos) {
-    var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos))
+    var block = new Block(this.getBlockType(pos), this.getBiome(pos), 0)
     block.light = this.getBlockLight(pos)
     block.skyLight = this.getSkyLight(pos)
     return block
@@ -189,7 +189,6 @@ class Chunk {
 
   setBlock (pos, block) {
     if (exists(block.type)) { this.setBlockType(pos, block.type) }
-    if (exists(block.metadata)) { this.setBlockData(pos, block.metadata) }
     if (exists(block.biome)) { this.setBiome(pos, block.biome.id) }
     if (exists(block.skyLight)) { this.setSkyLight(pos, block.skyLight) }
     if (exists(block.light)) { this.setBlockLight(pos, block.light) }
@@ -212,12 +211,11 @@ class Chunk {
     var cursor = getBlockCursor(pos)
     let a = this.data.readUInt16LE(cursor)
     if (a === 8575) a = 383 // Some fix with the chunk 23..
-    return a >> 4
+    return a
   }
 
   getBlockData (pos) {
-    var cursor = getBlockCursor(pos)
-    return this.data.readUInt16LE(cursor) & 15
+    return 0
   }
 
   getBlockLight (pos) {
@@ -237,14 +235,11 @@ class Chunk {
 
   setBlockType (pos, id) {
     var cursor = getBlockCursor(pos)
-    var data = this.getBlockData(pos)
-    this.data.writeUInt16LE((id << 4) | data, cursor)
+    this.data.writeUInt16LE(id, cursor)
   }
 
   setBlockData (pos, data) {
-    var cursor = getBlockCursor(pos)
-    var id = this.getBlockType(pos)
-    this.data.writeUInt16LE((id << 4) | data, cursor)
+
   }
 
   setBlockLight (pos, light) {
