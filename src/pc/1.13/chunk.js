@@ -210,8 +210,7 @@ class Chunk {
   getBlockType (pos) {
     var cursor = getBlockCursor(pos)
     let a = this.data.readUInt16LE(cursor)
-    if (a === 8575) a = 383 // Some fix with the chunk 23..
-    return a
+    return a % 8192
   }
 
   getBlockData (pos) {
