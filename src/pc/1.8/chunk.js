@@ -162,7 +162,6 @@ class Chunk {
     if (!Buffer.isBuffer(data)) { throw (new Error('Data must be a buffer')) }
 
     const SECTION_SIZE = Section.sectionSize(skyLightSent)
-    const BUFFER_SIZE = SECTION_SIZE * sectionCount + BIOME_SIZE
 
     const { chunkIncluded, chunkCount } = parseBitMap(bitMap)
     let offset = 0
