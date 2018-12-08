@@ -179,6 +179,6 @@ class Chunk {
     }
     data.copy(this.biome, w * l * sectionCount * chunkCount * 3)
 
-    if (data.length !== SECTION_SIZE * chunkCount + w * l) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${BUFFER_SIZE})`)) }
+    if (data.length !== SECTION_SIZE * chunkCount + w * l) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${SECTION_SIZE * chunkCount + w * l})`)) }
   }
 }
