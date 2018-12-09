@@ -1,5 +1,10 @@
 ## History
 
+## 1.10.0
+
+* support 1.13
+* better tests
+
 ## 1.9.1
 
 * standardjs
