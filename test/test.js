@@ -5,8 +5,8 @@ const Vec3 = require('vec3').Vec3
 const fs = require('fs')
 const path = require('path')
 
-const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12']
-const cycleTests = ['1.9', '1.10', '1.11', '1.12']
+const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2']
+const cycleTests = ['1.9', '1.10', '1.11', '1.12', '1.13.2']
 
 versions.forEach(function (version) {
   const Chunk = require('../index.js')(version)
@@ -45,15 +45,21 @@ versions.forEach(function (version) {
 
       chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
       assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
-      assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
+      if (!version.startsWith('1.13')) {
+        assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
+      }
 
       chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
       assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
-      assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
+      if (!version.startsWith('1.13')) {
+        assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
+      }
 
       chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
       assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
-      assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
+      if (!version.startsWith('1.13')) {
+        assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
+      }
     })
 
     it('Overwrites blocks in place', function () {
@@ -62,12 +68,16 @@ versions.forEach(function (version) {
       chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
       chunk.setBlock(new Vec3(0, 1, 0), new Block(41, 0, 0)) // Gold block
       assert.strictEqual(41, chunk.getBlock(new Vec3(0, 1, 0)).type)
-      assert.strictEqual(0, chunk.getBlock(new Vec3(0, 1, 0)).metadata)
+      if (!version.startsWith('1.13')) {
+        assert.strictEqual(0, chunk.getBlock(new Vec3(0, 1, 0)).metadata)
+      }
 
       chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 1)) // Orange wool
       chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 14)) // Red wool
       assert.strictEqual(35, chunk.getBlock(new Vec3(5, 5, 5)).type)
-      assert.strictEqual(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata)
+      if (!version.startsWith('1.13')) {
+        assert.strictEqual(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata)
+      }
     })
 
     if (version !== 'pe_1.0' && version !== '1.9') {
@@ -113,32 +123,38 @@ versions.forEach(function (version) {
 
     if (cycleTests.includes(version)) {
       const folder = path.join(__dirname, version)
-      const chunkDump = path.join(folder, 'chunk.dump')
-      const packetData = path.join(folder, 'chunk.meta')
-      const dump = fs.readFileSync(chunkDump)
-      const data = JSON.parse(fs.readFileSync(packetData).toString())
-      it('Loads chunk buffers', () => {
-        const chunk = new Chunk()
-        chunk.load(dump, data.bitMap)
-      })
+      const files = fs.readdirSync(folder)
+      const chunkFiles = files.filter(file => file.includes('.dump'))
+      const dataFiles = files.filter(file => file.includes('.meta'))
 
-      it('Correctly cycles through chunks', () => {
-        const chunk = new Chunk()
-        chunk.load(dump, data.bitMap)
-        const buffer = chunk.dump()
-        const chunk2 = new Chunk()
-        chunk2.load(buffer, 0xFFFF)
+      chunkFiles.forEach(chunkDump => {
+        const packetData = dataFiles.find(dataFile => dataFile.includes(chunkDump.substr(0, chunkDump.length - 5)))
+        const dump = fs.readFileSync(path.join(folder, chunkDump))
+        const data = JSON.parse(fs.readFileSync(path.join(folder, packetData)).toString())
+        it('Loads chunk buffers ' + chunkDump, () => {
+          const chunk = new Chunk()
+          chunk.load(dump, data.bitMap)
+        })
 
-        const p = new Vec3(0, 0, 0)
-        for (p.y = 0; p.y < 256; p.y++) {
-          for (p.z = 0; p.z < 16; p.z++) {
-            for (p.x = 0; p.x < 16; p.x++) {
-              const b = chunk.getBlock(p)
-              const b2 = chunk2.getBlock(p)
-              assert.deepStrictEqual(b, b2)
+        it('Correctly cycles through chunks ' + chunkDump, () => {
+          const chunk = new Chunk()
+          chunk.load(dump, data.bitMap)
+          const buffer = chunk.dump()
+          const chunk2 = new Chunk()
+          chunk2.load(buffer, 0xFFFF)
+
+          const p = new Vec3(0, 0, 0)
+          for (p.y = 0; p.y < 256; p.y++) {
+            for (p.z = 0; p.z < 16; p.z++) {
+              for (p.x = 0; p.x < 16; p.x++) {
+                const b = chunk.getBlock(p)
+                const b2 = chunk2.getBlock(p)
+                assert.notStrictEqual(b.name, '', ' block state n° ' + b.stateId + ' type n°' + b.type + ' read, which doesn\'t exist')
+                assert.deepStrictEqual(b, b2)
+              }
             }
           }
-        }
+        })
       })
     }
   })

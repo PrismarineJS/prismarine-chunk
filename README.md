@@ -7,7 +7,7 @@
 [![Irc](https://img.shields.io/badge/chat-on%20irc-brightgreen.svg)](https://irc.gitter.im/)
 [![Greenkeeper badge](https://badges.greenkeeper.io/PrismarineJS/prismarine-chunk.svg)](https://greenkeeper.io/)
 
-A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10, 1.11 and 1.12 and Pocket Edition 0.14 and 1.0
+A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10, 1.11, 1.12 and 1.13 and Pocket Edition 0.14 and 1.0
 
 ## Usage
 
@@ -77,6 +77,10 @@ Set the [Block](https://github.com/PrismarineJS/prismarine-block) at [pos](https
 
 Get the block type at `pos`
 
+#### Chunk.getBlockStateId(pos)
+
+Get the block state id at `pos`
+
 #### Chunk.getBlockData(pos)
 
 Get the block data (metadata) at `pos`
@@ -96,6 +100,10 @@ Get the block biome id at `pos`
 #### Chunk.getBiomeColor(pos)
 
 Get the block biome color at `pos`. Does nothing for PC.
+
+#### Chunk.setBlockStateId(pos, stateId)
+
+Set the block type `stateId` at `pos`
 
 #### Chunk.setBlockType(pos, id)
 

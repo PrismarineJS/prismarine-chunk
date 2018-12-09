@@ -4,7 +4,8 @@ const chunkImplementations = {
     '1.9': require('./pc/1.9/chunk'),
     '1.10': require('./pc/1.9/chunk'),
     '1.11': require('./pc/1.9/chunk'),
-    '1.12': require('./pc/1.9/chunk')
+    '1.12': require('./pc/1.9/chunk'),
+    '1.13': require('./pc/1.13/chunk')
   },
   'pe': {
     '0.14': require('./pe/0.14/chunk'),
@@ -20,7 +21,7 @@ function loader (mcVersion) {
     return chunkImplementations[mcData.type][mcData.version.majorVersion](mcVersion)
   } catch (e) {
     if (e instanceof TypeError) {
-      throw new Error(`[Prismarine-chunk] No chunk implementation for  found`)
+      throw new Error(`[Prismarine-chunk] No chunk implementation for ${mcVersion} found`)
     } else {
       console.log(`Error found while loading ${mcData.type} - ${mcData.version.majorVersion} - ${mcVersion}`)
       throw e
