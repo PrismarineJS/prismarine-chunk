@@ -162,7 +162,6 @@ class Chunk {
     if (!Buffer.isBuffer(data)) { throw (new Error('Data must be a buffer')) }
 
     const SECTION_SIZE = Section.sectionSize(skyLightSent)
-    const BUFFER_SIZE = SECTION_SIZE * sectionCount + BIOME_SIZE
 
     const { chunkIncluded, chunkCount } = parseBitMap(bitMap)
     let offset = 0
@@ -179,6 +178,6 @@ class Chunk {
     }
     data.copy(this.biome, w * l * sectionCount * chunkCount * 3)
 
-    if (data.length !== SECTION_SIZE * chunkCount + w * l) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${BUFFER_SIZE})`)) }
+    if (data.length !== SECTION_SIZE * chunkCount + w * l) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${SECTION_SIZE * chunkCount + w * l})`)) }
   }
 }
