@@ -17,7 +17,7 @@ module.exports = loader
 
 function loader (mcVersion) {
   Block = require('prismarine-block')(mcVersion)
-  mcData = require('minecraft-data')('1.13.2')
+  mcData = require('minecraft-data')(mcVersion)
 
   // MC counts the longs, protodef wants the bytes. This is responsible for that conversion.
   const longToByte = [
@@ -168,7 +168,7 @@ class Chunk {
       y = n >>> 8
       const block = iniFunc(n & 15, y, (n & 255) >>> 4, n)
       if (block !== null) {
-        data.writeUInt16LE(block.type << 4 | block.metadata, n << 1)
+        data.writeUInt16LE(block.stateId, n << 1)
         writeUInt4LE(data, block.light, (n >>> 3) + light)
         writeUInt4LE(data, block.skyLight, (n >>> 3) + skylight)
         if (y === 0) {
