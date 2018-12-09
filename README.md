@@ -77,6 +77,10 @@ Set the [Block](https://github.com/PrismarineJS/prismarine-block) at [pos](https
 
 Get the block type at `pos`
 
+#### Chunk.getBlockStateId(pos)
+
+Get the block state id at `pos`
+
 #### Chunk.getBlockData(pos)
 
 Get the block data (metadata) at `pos`
@@ -96,6 +100,10 @@ Get the block biome id at `pos`
 #### Chunk.getBiomeColor(pos)
 
 Get the block biome color at `pos`. Does nothing for PC.
+
+#### Chunk.setBlockStateId(pos, stateId)
+
+Set the block type `stateId` at `pos`
 
 #### Chunk.setBlockType(pos, id)
 

@@ -5,8 +5,8 @@ const Vec3 = require('vec3').Vec3
 const fs = require('fs')
 const path = require('path')
 
-const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13']
-const cycleTests = ['1.9', '1.10', '1.11', '1.12', '1.13']
+const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2']
+const cycleTests = ['1.9', '1.10', '1.11', '1.12', '1.13.2']
 
 versions.forEach(function (version) {
   const Chunk = require('../index.js')(version)
@@ -45,19 +45,19 @@ versions.forEach(function (version) {
 
       chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
       assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
-      if (version !== '1.13') {
+      if (!version.startsWith('1.13')) {
         assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
       }
 
       chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
       assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
-      if (version !== '1.13') {
+      if (!version.startsWith('1.13')) {
         assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
       }
 
       chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
       assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
-      if (version !== '1.13') {
+      if (!version.startsWith('1.13')) {
         assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
       }
     })
@@ -68,14 +68,14 @@ versions.forEach(function (version) {
       chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
       chunk.setBlock(new Vec3(0, 1, 0), new Block(41, 0, 0)) // Gold block
       assert.strictEqual(41, chunk.getBlock(new Vec3(0, 1, 0)).type)
-      if (version !== '1.13') {
+      if (!version.startsWith('1.13')) {
         assert.strictEqual(0, chunk.getBlock(new Vec3(0, 1, 0)).metadata)
       }
 
       chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 1)) // Orange wool
       chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 14)) // Red wool
       assert.strictEqual(35, chunk.getBlock(new Vec3(5, 5, 5)).type)
-      if (version !== '1.13') {
+      if (!version.startsWith('1.13')) {
         assert.strictEqual(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata)
       }
     })
@@ -149,7 +149,7 @@ versions.forEach(function (version) {
               for (p.x = 0; p.x < 16; p.x++) {
                 const b = chunk.getBlock(p)
                 const b2 = chunk2.getBlock(p)
-                assert.notStrictEqual(b.name, '', ' block type n°' + b.type + ' read, which doesn\'t exist')
+                assert.notStrictEqual(b.name, '', ' block state n° ' + b.stateId + ' type n°' + b.type + ' read, which doesn\'t exist')
                 assert.deepStrictEqual(b, b2)
               }
             }

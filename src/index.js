@@ -21,7 +21,7 @@ function loader (mcVersion) {
     return chunkImplementations[mcData.type][mcData.version.majorVersion](mcVersion)
   } catch (e) {
     if (e instanceof TypeError) {
-      throw new Error(`[Prismarine-chunk] No chunk implementation for  found`)
+      throw new Error(`[Prismarine-chunk] No chunk implementation for ${mcVersion} found`)
     } else {
       console.log(`Error found while loading ${mcData.type} - ${mcData.version.majorVersion} - ${mcVersion}`)
       throw e

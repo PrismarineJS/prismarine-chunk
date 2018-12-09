@@ -17,11 +17,12 @@ module.exports = loader
 
 function loader (mcVersion) {
   Block = require('prismarine-block')(mcVersion)
+  mcData = require('minecraft-data')('1.13.2')
 
   // MC counts the longs, protodef wants the bytes. This is responsible for that conversion.
   const longToByte = [
     function (buffer, offset, typeArgs) { // readLongToByte
-      var results = this.read(buffer, offset, typeArgs.type, {})
+      const results = this.read(buffer, offset, typeArgs.type, {})
       return {
         value: Math.ceil(results.value << 3),
         size: results.size
@@ -139,7 +140,7 @@ function loader (mcVersion) {
   return Chunk
 }
 
-var Block
+let Block, mcData
 
 const exists = val => val !== undefined
 const getArrayPosition = (pos) => pos.x + w * (pos.z + l * pos.y)
@@ -181,14 +182,14 @@ class Chunk {
   }
 
   getBlock (pos) {
-    var block = new Block(this.getBlockType(pos), this.getBiome(pos), 0)
+    const block = Block.fromStateId(this.getBlockStateId(pos), this.getBiome(pos))
     block.light = this.getBlockLight(pos)
     block.skyLight = this.getSkyLight(pos)
     return block
   }
 
   setBlock (pos, block) {
-    if (exists(block.type)) { this.setBlockType(pos, block.type) }
+    if (exists(block.stateId)) { this.setBlockStateId(pos, block.stateId) }
     if (exists(block.biome)) { this.setBiome(pos, block.biome.id) }
     if (exists(block.skyLight)) { this.setSkyLight(pos, block.skyLight) }
     if (exists(block.light)) { this.setBlockLight(pos, block.light) }
@@ -208,9 +209,13 @@ class Chunk {
   }
 
   getBlockType (pos) {
-    var cursor = getBlockCursor(pos)
-    let a = this.data.readUInt16LE(cursor)
-    return a % 8192
+    const blockStateId = this.getBlockStateId(pos)
+    return mcData.blocksByStateId[blockStateId].id
+  }
+
+  getBlockStateId (pos) {
+    const cursor = getBlockCursor(pos)
+    return this.data.readUInt16LE(cursor) % 8192
   }
 
   getBlockData (pos) {
@@ -218,22 +223,28 @@ class Chunk {
   }
 
   getBlockLight (pos) {
-    var cursor = getBlockLightCursor(pos)
+    const cursor = getBlockLightCursor(pos)
     return readUInt4LE(this.data, cursor)
   }
 
   getSkyLight (pos) {
-    var cursor = getSkyLightCursor(pos)
+    const cursor = getSkyLightCursor(pos)
     return readUInt4LE(this.data, cursor)
   }
 
   getBiome (pos) {
-    var cursor = getBiomeCursor(pos)
+    const cursor = getBiomeCursor(pos)
     return this.data.readUInt8(cursor)
   }
 
   setBlockType (pos, id) {
-    var cursor = getBlockCursor(pos)
+    const cursor = getBlockCursor(pos)
+    this.data.writeUInt16LE(id, cursor)
+    this.setBlockStateId(pos, mcData.blocks[id].minStateId)
+  }
+
+  setBlockStateId (pos, id) {
+    const cursor = getBlockCursor(pos)
     this.data.writeUInt16LE(id, cursor)
   }
 
@@ -242,17 +253,17 @@ class Chunk {
   }
 
   setBlockLight (pos, light) {
-    var cursor = getBlockLightCursor(pos)
+    const cursor = getBlockLightCursor(pos)
     writeUInt4LE(this.data, light, cursor)
   }
 
   setSkyLight (pos, light) {
-    var cursor = getSkyLightCursor(pos)
+    const cursor = getSkyLightCursor(pos)
     writeUInt4LE(this.data, light, cursor)
   }
 
   setBiome (pos, biome) {
-    var cursor = getBiomeCursor(pos)
+    const cursor = getBiomeCursor(pos)
     this.data.writeUInt8(biome, cursor)
   }
 
@@ -332,14 +343,6 @@ class Chunk {
     // drop the last 4 bytes (memory is shared)
     return resultantBuffer.slice(0, resultantBuffer.length - 4)
   }
-
-  /* Debuggery
-  padbin(num, len=32) {
-    var s = (num >>> 0).toString(2);
-    while (s.length < len) s = "0" + s;
-    return s;
-   }
-   */
 
   load (data, bitMap = 0xFFFF, skyLightSent = true) {
     let unpackeddata = this.unpackChunkData(data, bitMap, skyLightSent)
