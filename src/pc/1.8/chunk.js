@@ -155,7 +155,7 @@ class Chunk {
         if (this.skyLightSent && skyLightSent) offsetSkyLight += this.sections[i].dump().copy(buffer, offsetSkyLight, w * l * sh / 2 * 5, w * l * sh / 2 * 5 + w * l * sh / 2)
       }
     }
-    this.biome.copy(buffer, w * l * sectionCount * chunkCount * 3)
+    this.biome.copy(buffer, w * l * sectionCount * chunkCount * ((this.skyLightSent && skyLightSent) ? 3 : 5 / 2))
     return buffer
   }
 
@@ -180,7 +180,7 @@ class Chunk {
         this.sections[i].load(sectionBuffer, skyLightSent)
       }
     }
-    data.copy(this.biome, w * l * sectionCount * chunkCount * 3)
+    data.copy(this.biome, w * l * sectionCount * chunkCount * (skyLightSent ? 3 : 5 / 2))
 
     if (data.length !== SECTION_SIZE * chunkCount + w * l) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${SECTION_SIZE * chunkCount + w * l})`)) }
   }
