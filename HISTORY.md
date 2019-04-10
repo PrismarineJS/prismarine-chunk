@@ -1,5 +1,9 @@
 ## History
 
+## 1.11.0
+
+* add chunk handling for chunks without skylight data in 1.8 (thanks @skullteria)
+
 ## 1.10.0
 
 * support 1.13
