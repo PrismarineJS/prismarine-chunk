@@ -6,7 +6,7 @@ const fs = require('fs')
 const path = require('path')
 
 const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2']
-const cycleTests = ['1.9', '1.10', '1.11', '1.12', '1.13.2']
+const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2']
 
 versions.forEach(function (version) {
   const Chunk = require('../index.js')(version)
@@ -133,15 +133,15 @@ versions.forEach(function (version) {
         const data = JSON.parse(fs.readFileSync(path.join(folder, packetData)).toString())
         it('Loads chunk buffers ' + chunkDump, () => {
           const chunk = new Chunk()
-          chunk.load(dump, data.bitMap)
+          chunk.load(dump, data.bitMap, data.skyLightSent)
         })
 
         it('Correctly cycles through chunks ' + chunkDump, () => {
           const chunk = new Chunk()
-          chunk.load(dump, data.bitMap)
+          chunk.load(dump, data.bitMap, data.skyLightSent)
           const buffer = chunk.dump()
           const chunk2 = new Chunk()
-          chunk2.load(buffer, 0xFFFF)
+          chunk2.load(buffer, 0xFFFF, data.skyLightSent)
 
           const p = new Vec3(0, 0, 0)
           for (p.y = 0; p.y < 256; p.y++) {

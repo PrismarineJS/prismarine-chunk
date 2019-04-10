@@ -45,6 +45,7 @@ function parseBitMap (bitMap) {
 
 class Chunk {
   constructor () {
+    this.skyLightSent = true
     this.sections = new Array(sectionCount)
     for (let i = 0; i < sectionCount; i++) { this.sections[i] = new Section() }
     this.biome = Buffer.alloc(BIOME_SIZE)
@@ -109,7 +110,7 @@ class Chunk {
   }
 
   getSkyLight (pos) {
-    return this._getSection(pos).getSkyLight(posInSection(pos))
+    return (this.skyLightSent) ? this._getSection(pos).getSkyLight(posInSection(pos)) : 0
   }
 
   getBiome (pos) {
@@ -139,44 +140,46 @@ class Chunk {
   }
 
   dump (bitMap = 0xFFFF, skyLightSent = true) {
-    const SECTION_SIZE = Section.sectionSize(skyLightSent)
+    const SECTION_SIZE = Section.sectionSize(this.skyLightSent && skyLightSent)
 
     const { chunkIncluded, chunkCount } = parseBitMap(bitMap)
     const bufferLength = chunkCount * SECTION_SIZE + BIOME_SIZE
     const buffer = Buffer.alloc(bufferLength)
     let offset = 0
     let offsetLight = w * l * sectionCount * chunkCount * 2
-    let offsetSkyLight = w * l * sectionCount * chunkCount / 2 * 5
+    let offsetSkyLight = (this.skyLightSent && skyLightSent) ? w * l * sectionCount * chunkCount / 2 * 5 : undefined
     for (let i = 0; i < sectionCount; i++) {
       if (chunkIncluded[i]) {
         offset += this.sections[i].dump().copy(buffer, offset, 0, w * l * sh * 2)
         offsetLight += this.sections[i].dump().copy(buffer, offsetLight, w * l * sh * 2, w * l * sh * 2 + w * l * sh / 2)
-        offsetSkyLight += this.sections[i].dump().copy(buffer, offsetSkyLight, w * l * sh / 2 * 5, w * l * sh / 2 * 5 + w * l * sh / 2)
+        if (this.skyLightSent && skyLightSent) offsetSkyLight += this.sections[i].dump().copy(buffer, offsetSkyLight, w * l * sh / 2 * 5, w * l * sh / 2 * 5 + w * l * sh / 2)
       }
     }
-    this.biome.copy(buffer, w * l * sectionCount * chunkCount * 3)
+    this.biome.copy(buffer, w * l * sectionCount * chunkCount * ((this.skyLightSent && skyLightSent) ? 3 : 5 / 2))
     return buffer
   }
 
   load (data, bitMap = 0xFFFF, skyLightSent = true) {
     if (!Buffer.isBuffer(data)) { throw (new Error('Data must be a buffer')) }
 
+    this.skyLightSent = skyLightSent
+
     const SECTION_SIZE = Section.sectionSize(skyLightSent)
 
     const { chunkIncluded, chunkCount } = parseBitMap(bitMap)
     let offset = 0
     let offsetLight = w * l * sectionCount * chunkCount * 2
-    let offsetSkyLight = w * l * sectionCount * chunkCount / 2 * 5
+    let offsetSkyLight = (this.skyLightSent) ? w * l * sectionCount * chunkCount / 2 * 5 : undefined
     for (let i = 0; i < sectionCount; i++) {
       if (chunkIncluded[i]) {
         const sectionBuffer = Buffer.alloc(SECTION_SIZE)
         offset += data.copy(sectionBuffer, 0, offset, offset + w * l * sh * 2)
         offsetLight += data.copy(sectionBuffer, w * l * sh * 2, offsetLight, offsetLight + w * l * sh / 2)
-        if (skyLightSent) { offsetSkyLight += data.copy(sectionBuffer, w * l * sh * 5 / 2, offsetLight, offsetSkyLight + w * l * sh / 2) }
+        if (this.skyLightSent) offsetSkyLight += data.copy(sectionBuffer, w * l * sh * 5 / 2, offsetLight, offsetSkyLight + w * l * sh / 2)
         this.sections[i].load(sectionBuffer, skyLightSent)
       }
     }
-    data.copy(this.biome, w * l * sectionCount * chunkCount * 3)
+    data.copy(this.biome, w * l * sectionCount * chunkCount * (skyLightSent ? 3 : 5 / 2))
 
     if (data.length !== SECTION_SIZE * chunkCount + w * l) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${SECTION_SIZE * chunkCount + w * l})`)) }
   }
