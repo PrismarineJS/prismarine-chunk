@@ -167,7 +167,6 @@ class Chunk {
     const SECTION_SIZE = Section.sectionSize(skyLightSent)
 
     const { chunkIncluded, chunkCount } = parseBitMap(bitMap)
-    console.log('cc: ' + chunkCount)
     let offset = 0
     let offsetLight = w * l * sectionCount * chunkCount * 2
     let offsetSkyLight = (this.skyLightSent) ? w * l * sectionCount * chunkCount / 2 * 5 : undefined
