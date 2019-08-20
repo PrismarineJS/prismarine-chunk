@@ -37,94 +37,94 @@ function loader (mcVersion) {
   ]
 
   const p = ['container', [{
-    'name': 'bitsPerBlock',
-    'type': 'u8'
+    name: 'bitsPerBlock',
+    type: 'u8'
   },
   {
-    'name': 'palette',
-    'type': ['switch', {
-      'compareTo': 'bitsPerBlock',
-      'fields': {
-        '0': 'indirectPalette',
-        '1': 'indirectPalette',
-        '2': 'indirectPalette',
-        '3': 'indirectPalette',
-        '4': 'indirectPalette',
-        '5': 'indirectPalette',
-        '6': 'indirectPalette',
-        '7': 'indirectPalette',
-        '8': 'indirectPalette'
+    name: 'palette',
+    type: ['switch', {
+      compareTo: 'bitsPerBlock',
+      fields: {
+        0: 'indirectPalette',
+        1: 'indirectPalette',
+        2: 'indirectPalette',
+        3: 'indirectPalette',
+        4: 'indirectPalette',
+        5: 'indirectPalette',
+        6: 'indirectPalette',
+        7: 'indirectPalette',
+        8: 'indirectPalette'
       },
-      'default': 'void'
+      default: 'void'
     }
     ]
   },
   {
-    'name': 'dataArray',
-    'type': ['buffer', {
-      'countType': ['longToByte', {
-        'type': 'varint'
+    name: 'dataArray',
+    type: ['buffer', {
+      countType: ['longToByte', {
+        type: 'varint'
       }]
     }]
   },
   {
-    'name': 'blockLight',
-    'type': ['buffer', {
-      'count': 16 * 16 * 16 / 2
+    name: 'blockLight',
+    type: ['buffer', {
+      count: 16 * 16 * 16 / 2
     }]
   },
   {
-    'name': 'skyLight',
-    'type': ['buffer', {
-      'count': 16 * 16 * 16 / 2
+    name: 'skyLight',
+    type: ['buffer', {
+      count: 16 * 16 * 16 / 2
     }]
   }
   ]]
 
   const pns = ['container', [{
-    'name': 'bitsPerBlock',
-    'type': 'u8'
+    name: 'bitsPerBlock',
+    type: 'u8'
   },
   {
-    'name': 'palette',
-    'type': [
+    name: 'palette',
+    type: [
       'switch',
       {
-        'compareTo': 'bitsPerBlock',
-        'fields': {
-          '0': 'indirectPalette',
-          '1': 'indirectPalette',
-          '2': 'indirectPalette',
-          '3': 'indirectPalette',
-          '4': 'indirectPalette',
-          '5': 'indirectPalette',
-          '6': 'indirectPalette',
-          '7': 'indirectPalette',
-          '8': 'indirectPalette'
+        compareTo: 'bitsPerBlock',
+        fields: {
+          0: 'indirectPalette',
+          1: 'indirectPalette',
+          2: 'indirectPalette',
+          3: 'indirectPalette',
+          4: 'indirectPalette',
+          5: 'indirectPalette',
+          6: 'indirectPalette',
+          7: 'indirectPalette',
+          8: 'indirectPalette'
         },
-        'default': 'void'
+        default: 'void'
       }
     ]
   },
   {
-    'name': 'dataArray',
-    'type': ['buffer', {
-      'countType': ['longToByte', {
-        'type': 'varint'
+    name: 'dataArray',
+    type: ['buffer', {
+      countType: ['longToByte', {
+        type: 'varint'
       }]
     }]
   },
   {
-    'name': 'blockLight',
-    'type': ['buffer', {
-      'count': 16 * 16 * 16 / 2
+    name: 'blockLight',
+    type: ['buffer', {
+      count: 16 * 16 * 16 / 2
     }]
   }
   ]]
 
   const indirectPalette = ['array', {
-    'type': 'varint',
-    'countType': 'varint'
+    type: 'varint',
+    countType: 'varint'
   }]
 
   Chunk.packingProtocol = new ProtoDef()
@@ -281,9 +281,9 @@ class Chunk {
     let currentDataIndex = 0
     let currentBlockLightIndex = CHUNK_VOLUME << 1
     let currentSkyLightIndex = currentBlockLightIndex + (CHUNK_VOLUME >>> 1)
-    let biomeStart = currentSkyLightIndex + (CHUNK_VOLUME >>> 1)
+    const biomeStart = currentSkyLightIndex + (CHUNK_VOLUME >>> 1)
 
-    let outputBuffers = []
+    const outputBuffers = []
 
     for (let y = 0; y < 16; y++) {
       outputBuffers.push(Chunk.packingProtocol.createPacketBuffer('section', {
@@ -305,26 +305,26 @@ class Chunk {
   }
 
   packBlockData (rawdata, bitsPerBlock) {
-    let blockCount = l * w << 4
-    let resultantBuffer = Buffer.alloc((blockCount * bitsPerBlock >>> 3) + 4)
+    const blockCount = l * w << 4
+    const resultantBuffer = Buffer.alloc((blockCount * bitsPerBlock >>> 3) + 4)
 
     // We have to write very slightly past the end of the file, so we tack on 4 bytes.
     // We'll drop them at the end.
     for (let block = 0; block < blockCount; block++) {
       // Gather and reverse the block data
-      let reversedblockdata = reverseBits16(rawdata.readUInt16LE(block << 1)) >>> 3
+      const reversedblockdata = reverseBits16(rawdata.readUInt16LE(block << 1)) >>> 3
       // Determine the start-bit for the block.
-      let startbit = block * bitsPerBlock
+      const startbit = block * bitsPerBlock
       // Determine the start-byte for that bit.
-      let startbyte = Math.floor(startbit >>> 3)
+      const startbyte = Math.floor(startbit >>> 3)
       // Read 4 bytes after that start byte.
-      let existingdata = resultantBuffer.readUInt32BE(startbyte)
+      const existingdata = resultantBuffer.readUInt32BE(startbyte)
       // Where are we writing to, in the current bit?
-      let localbit = startbit % 8
+      const localbit = startbit % 8
       // Bit-shift the raw data into alignment:
-      let aligneddata = reversedblockdata << (32 - bitsPerBlock - localbit)
+      const aligneddata = reversedblockdata << (32 - bitsPerBlock - localbit)
       // Paste aligned data onto existing data
-      let newdata = existingdata | aligneddata
+      const newdata = existingdata | aligneddata
       // Write data back into buffer:
       resultantBuffer.writeUInt32BE(newdata >>> 0, startbyte)
     }
@@ -333,8 +333,8 @@ class Chunk {
     // Pretty sure this can be done by using a smaller buffer in the loop above that flushes whenever more than 8 bytes are pushed into it
     for (let l = 0; l < resultantBuffer.length - 4; l += 8) {
       // Load the long
-      let longleftjumbled = resultantBuffer.readUInt32BE(l)
-      let longrightjumbled = resultantBuffer.readUInt32BE(l + 4)
+      const longleftjumbled = resultantBuffer.readUInt32BE(l)
+      const longrightjumbled = resultantBuffer.readUInt32BE(l + 4)
       // Write in reverse order -- flip bits by using little endian.
       resultantBuffer.writeInt32BE(reverseBits32(longrightjumbled), l)
       resultantBuffer.writeInt32BE(reverseBits32(longleftjumbled), l + 4)
@@ -345,7 +345,7 @@ class Chunk {
   }
 
   load (data, bitMap = 0xFFFF, skyLightSent = true) {
-    let unpackeddata = this.unpackChunkData(data, bitMap, skyLightSent)
+    const unpackeddata = this.unpackChunkData(data, bitMap, skyLightSent)
     if (!Buffer.isBuffer(unpackeddata)) { throw (new Error('Data must be a buffer')) }
     if (unpackeddata.length !== BUFFER_SIZE) { throw (new Error('Data buffer not correct size (was ' + unpackeddata.length + ', expected ' + BUFFER_SIZE + ')')) }
     this.data = unpackeddata
@@ -353,13 +353,13 @@ class Chunk {
 
   unpackChunkData (chunk, bitMap, skyLightSent) {
     let offset = 0
-    let chunkBlocks = Chunk.l * Chunk.w * 16
-    let blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2
-    let skyLightSize = Chunk.l * Chunk.w * Chunk.h / 2
-    let skyLightStart = blockLightStart + skyLightSize
-    let biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2
+    const chunkBlocks = Chunk.l * Chunk.w * 16
+    const blockLightStart = Chunk.l * Chunk.w * Chunk.h * 2
+    const skyLightSize = Chunk.l * Chunk.w * Chunk.h / 2
+    const skyLightStart = blockLightStart + skyLightSize
+    const biomestart = skyLightStart + Chunk.l * Chunk.w * Chunk.h / 2
 
-    let newBuffer = Buffer.alloc(BUFFER_SIZE)
+    const newBuffer = Buffer.alloc(BUFFER_SIZE)
 
     for (let y = 0; y < 16; y++) {
       let blocksAddition
@@ -411,11 +411,11 @@ class Chunk {
     // From there, the old algorithm for reading will work just fine, we don't even have to consider the existence of the longs anymore.
     // A major side-effect, though, is that all of the internal block-datas will be flipped, so we have to flip them again before extracting data.
     // 3 bytes added to be able to read ints (4 bytes) from the buffer, even if some bytes are missing
-    let unjumbledBuffer = Buffer.alloc(rawBuffer.length + 3)
+    const unjumbledBuffer = Buffer.alloc(rawBuffer.length + 3)
     for (let l = 0; l < rawBuffer.length; l += 8) {
       // Load the long
-      let longleftjumbled = rawBuffer.readUInt32BE(l)
-      let longrightjumbled = rawBuffer.readUInt32BE(l + 4)
+      const longleftjumbled = rawBuffer.readUInt32BE(l)
+      const longrightjumbled = rawBuffer.readUInt32BE(l + 4)
 
       // Write in reverse order
       unjumbledBuffer.writeInt32BE(reverseBits32(longrightjumbled), l)
@@ -427,21 +427,21 @@ class Chunk {
 
     for (let block = 0; block < blockCount; block++) {
       // Determine the start-bit for the block.
-      let bit = block * bitsPerBlock
+      const bit = block * bitsPerBlock
       // Determine the start-byte for that bit.
-      let targetByte = bit >>> 3
+      const targetByte = bit >>> 3
 
       // Read a 32-bit section surrounding the targeted block
-      let datatarget = unjumbledBuffer.readUInt32BE(targetByte)
+      const datatarget = unjumbledBuffer.readUInt32BE(targetByte)
 
       // Determine the start bit local to the datatarget.
-      let localbit = bit & 0b111
+      const localbit = bit & 0b111
 
       // Chop off uninteresting bits, then shift interesting region to the end of the bit-buffer. Reverse the bits when done
-      let paletteId = reverseBits((datatarget << localbit) >>> (32 - bitsPerBlock), bitsPerBlock)
+      const paletteId = reverseBits((datatarget << localbit) >>> (32 - bitsPerBlock), bitsPerBlock)
 
       // Grab the data from the palette
-      let paletteData = (palette && palette.length) ? palette[paletteId] : paletteId
+      const paletteData = (palette && palette.length) ? palette[paletteId] : paletteId
 
       resultantBuffer.writeUInt16LE(paletteData, block << 1)
     }
