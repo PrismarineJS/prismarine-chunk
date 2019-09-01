@@ -15,3 +15,4 @@ jobs:
           paths:
             - ./node_modules
       - run: npm test
+      - run: npm run benchmark && cat ./benchmarks/results/chunk-1.9.csv
