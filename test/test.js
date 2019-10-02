@@ -105,18 +105,21 @@ versions.forEach(function (version) {
         assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
         assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
         const buf = chunk.dump()
+        const chunk1Mask = chunk.getMask()
         const chunk2 = new Chunk()
 
-        chunk2.load(buf, 0xFFFF)
+        chunk2.load(buf, chunk1Mask)
+
         assert.strictEqual(42, chunk2.getBlock(new Vec3(0, 37, 0)).type)
         assert.strictEqual(0, chunk2.getBlock(new Vec3(0, 37, 0)).metadata)
 
         const buf2 = chunk2.dump()
+        const chunk2Mask = chunk.getMask()
+        assert.strictEqual(chunk1Mask, chunk2Mask)
 
         if (!buf.equals(buf2)) {
           assert.strictEqual(buf, buf2)
         }
-
         assert(buf.equals(buf2))
       })
     }
@@ -128,9 +131,13 @@ versions.forEach(function (version) {
       const dataFiles = files.filter(file => file.includes('.meta'))
 
       chunkFiles.forEach(chunkDump => {
-        const packetData = dataFiles.find(dataFile => dataFile.includes(chunkDump.substr(0, chunkDump.length - 5)))
+        const packetData = dataFiles.find(dataFile =>
+          dataFile.includes(chunkDump.substr(0, chunkDump.length - 5))
+        )
         const dump = fs.readFileSync(path.join(folder, chunkDump))
-        const data = JSON.parse(fs.readFileSync(path.join(folder, packetData)).toString())
+        const data = JSON.parse(
+          fs.readFileSync(path.join(folder, packetData)).toString()
+        )
         it('Loads chunk buffers ' + chunkDump, () => {
           const chunk = new Chunk()
           chunk.load(dump, data.bitMap, data.skyLightSent)
@@ -140,8 +147,9 @@ versions.forEach(function (version) {
           const chunk = new Chunk()
           chunk.load(dump, data.bitMap, data.skyLightSent)
           const buffer = chunk.dump()
+          const bitmap = chunk.getMask()
           const chunk2 = new Chunk()
-          chunk2.load(buffer, 0xFFFF, data.skyLightSent)
+          chunk2.load(buffer, bitmap, data.skyLightSent)
 
           const p = new Vec3(0, 0, 0)
           for (p.y = 0; p.y < 256; p.y++) {
@@ -149,7 +157,15 @@ versions.forEach(function (version) {
               for (p.x = 0; p.x < 16; p.x++) {
                 const b = chunk.getBlock(p)
                 const b2 = chunk2.getBlock(p)
-                assert.notStrictEqual(b.name, '', ' block state n° ' + b.stateId + ' type n°' + b.type + ' read, which doesn\'t exist')
+                assert.notStrictEqual(
+                  b.name,
+                  '',
+                  ' block state n° ' +
+                    b.stateId +
+                    ' type n°' +
+                    b.type +
+                    " read, which doesn't exist"
+                )
                 assert.deepStrictEqual(b, b2)
               }
             }

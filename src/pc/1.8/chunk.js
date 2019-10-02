@@ -183,4 +183,8 @@ class Chunk {
 
     if (data.length !== SECTION_SIZE * chunkCount + w * l) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${SECTION_SIZE * chunkCount + w * l})`)) }
   }
+
+  getMask () {
+    return 0xFFFF
+  }
 }

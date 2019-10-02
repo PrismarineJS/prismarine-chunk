@@ -417,4 +417,8 @@ class Chunk {
 
     return resultantBuffer
   }
+
+  getMask () {
+    return 0xFFFF
+  }
 }

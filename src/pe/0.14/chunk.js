@@ -166,4 +166,8 @@ class Chunk {
   dump () {
     return this.data
   }
+
+  getMask () {
+    return 0xFFFF
+  }
 }

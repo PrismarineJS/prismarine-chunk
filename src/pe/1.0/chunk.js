@@ -187,4 +187,8 @@ class Chunk {
 
     return exportData
   }
+
+  getMask () {
+    return 0xFFFF
+  }
 }
