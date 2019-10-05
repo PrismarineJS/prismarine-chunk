@@ -1,9 +1,12 @@
+const assert = require('assert')
+
 /**
  * Gives the number of bits needed to represent the value
  * @param {number} value
  * @returns {number} bits
  */
 function neededBits (value) {
+  assert(value >= 0, 'value is negative')
   let result = 0
   while (true) {
     value >>= 1

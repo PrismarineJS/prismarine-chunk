@@ -89,16 +89,17 @@ class ChunkSection {
     let palettedIndex
     if (this.palette !== null) {
       // if necessary, add the block to the palette
-      const indexInPalette = binarySearch(this.palette, stateId, cmp)
+      const indexInPalette = this.palette.indexOf(stateId) // binarySearch(this.palette, stateId, cmp)
       if (indexInPalette >= 0) {
         // block already in our palette
         palettedIndex = indexInPalette
       } else {
-        // add new block to palette
-        palettedIndex = Math.abs(indexInPalette) - 1
+        // get new block palette index
+        this.palette.push(stateId)
+        palettedIndex = this.palette.length - 1
 
         // check if resize is necessary
-        const bitsPerValue = neededBits(stateId)
+        const bitsPerValue = neededBits(palettedIndex)
 
         // if new block requires more bits than the current data array
         if (bitsPerValue > this.data.getBitsPerValue()) {
@@ -139,22 +140,6 @@ class ChunkSection {
       this.solidBlockCount += 1
     }
 
-    if (this.palette !== null) {
-      // correct data because entries after the one which was inserted will be offsetted by one
-      for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
-        for (let y = 0; y < constants.SECTION_HEIGHT; ++y) {
-          for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
-            const index = getBlockIndex(new Vec3(x, y, z))
-            const entry = this.data.get(BigInt(index))
-            if (entry >= palettedIndex) {
-              this.data.set(BigInt(index), entry + BigInt(1))
-            }
-          }
-        }
-      }
-      this.palette.splice(palettedIndex, 0, stateId)
-    }
-
     this.data.set(BigInt(blockIndex), BigInt(palettedIndex))
   }
 
@@ -179,11 +164,11 @@ class ChunkSection {
   }
 
   getBlockLight (pos) {
-    return this.blockLight.get(BigInt(getBlockIndex(pos)))
+    return Number(this.blockLight.get(BigInt(getBlockIndex(pos))))
   }
 
   getSkyLight (pos) {
-    return this.skyLight.get(BigInt(getBlockIndex(pos)))
+    return Number(this.skyLight.get(BigInt(getBlockIndex(pos))))
   }
 
   setBlockLight (pos, light) {

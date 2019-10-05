@@ -50,13 +50,13 @@ module.exports = (Block, mcData) => {
 
     getBlockType (pos) {
       assertPos(pos)
-      const blockStateId = this.getBlock(pos)
+      const blockStateId = this.getBlockStateId(pos)
       return mcData.blocksByStateId[blockStateId].id
     }
 
     getBlockStateId (pos) {
       assertPos(pos)
-      return this.getBlock(pos)
+      return this.getBlock(pos).stateId
     }
 
     getBlockData (pos) {

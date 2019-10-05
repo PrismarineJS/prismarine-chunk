@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "clean": "rimraf node_modules",
     "benchmark": "bench-csv ./benchmarks/chunk-1.9.js -o ./benchmarks/results/chunk-1.9.csv",
     "fix": "standard --fix",
     "lint": "standard",
@@ -36,6 +37,7 @@
     "bench-csv": "^2.2.3",
     "jest": "^24.9.0",
     "minecraft-data": "^2.35.0",
+    "rimraf": "^3.0.0",
     "standard": "^14.0.1"
   },
   "dependencies": {
