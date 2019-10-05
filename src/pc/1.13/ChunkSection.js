@@ -98,7 +98,7 @@ class ChunkSection {
         palettedIndex = Math.abs(indexInPalette) - 1
 
         // check if resize is necessary
-        const bitsPerValue = neededBits(stateId)
+        const bitsPerValue = neededBits(this.palette.length - 1)
 
         // if new block requires more bits than the current data array
         if (bitsPerValue > this.data.getBitsPerValue()) {
