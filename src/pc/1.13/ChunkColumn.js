@@ -113,7 +113,7 @@ module.exports = (Block, mcData) => {
 
     setBlockType (pos, id) {
       assertPos(pos)
-      this.setBlockStateId(mcData.blocks[id].minStateId)
+      this.setBlockStateId(pos, mcData.blocks[id].minStateId)
     }
 
     setBlockData (pos, data) {
