@@ -4,10 +4,7 @@ const BitArray = require('./BitArray')
 const Vec3 = require('vec3').Vec3
 const neededBits = require('./neededBits')
 const constants = require('./constants')
-const binarySearch = require('binary-search')
 const varInt = require('./varInt')
-
-const cmp = (a, b) => a - b
 
 class ChunkSection {
   constructor (options = {}) {
@@ -141,26 +138,6 @@ class ChunkSection {
     }
 
     this.data.set(BigInt(blockIndex), BigInt(palettedIndex))
-  }
-
-  // corrects a raw palette and data array
-  static correctDataAndPalette (data, palette) {
-    const originalPalette = palette.slice(0)
-    palette.sort((a, b) => a - b)
-    for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
-      for (let y = 0; y < constants.SECTION_HEIGHT; ++y) {
-        for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
-          // replace index into palette of each block with new index into the sorted palette
-          const blockIndex = BigInt(getBlockIndex(new Vec3(x, y, z)))
-          const oldIndex = data.get(blockIndex)
-          let newIndex = binarySearch(palette, originalPalette[oldIndex], cmp)
-          if (newIndex < 0) {
-            newIndex = Math.abs(newIndex) - 1
-          }
-          data.set(blockIndex, BigInt(newIndex))
-        }
-      }
-    }
   }
 
   getBlockLight (pos) {
