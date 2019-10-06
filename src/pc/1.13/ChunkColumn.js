@@ -16,7 +16,16 @@ module.exports = (Block, mcData) => {
       ).fill(1)
     }
 
-    initialize (func) {}
+    initialize (func) {
+      for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
+        for (let y = 0; y < constants.CHUNK_HEIGHT; ++y) {
+          for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
+            const block = func(x, y, z)
+            this.setBlock(new Vec3(x, y, z), block)
+          }
+        }
+      }
+    }
 
     getBlock (pos) {
       assertPos(pos)
