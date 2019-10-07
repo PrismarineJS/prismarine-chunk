@@ -1,4 +1,4 @@
-/* globals describe it BigInt */
+/* globals describe test BigInt */
 const assert = require('assert')
 const BitArray = require('./BitArray')
 

@@ -1,4 +1,4 @@
-/* globals describe, it */
+/* globals describe, test */
 const varInt = require('./varInt')
 const SmartBuffer = require('smart-buffer').SmartBuffer
 const assert = require('assert')

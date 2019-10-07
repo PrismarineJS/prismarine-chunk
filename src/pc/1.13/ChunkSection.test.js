@@ -1,4 +1,4 @@
-/* globals describe it */
+/* globals describe test */
 const Vec3 = require('vec3').Vec3
 const ChunkSection = require('./ChunkSection')
 const assert = require('assert')

@@ -1,4 +1,4 @@
-/* globals it describe */
+/* globals test describe */
 const assert = require('assert')
 const neededBits = require('./neededBits')
 

@@ -1,4 +1,4 @@
-/* globals it */
+/* globals test */
 const assert = require('assert')
 const Vec3 = require('vec3').Vec3
 const getBlockIndex = require('./getBlockIndex')
