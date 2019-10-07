@@ -3,7 +3,7 @@ const assert = require('assert')
 const neededBits = require('./neededBits')
 
 describe('neededBits', () => {
-  it('returns correct amount of needed bits to represent value', () => {
+  test('returns correct amount of needed bits to represent value', () => {
     assert(neededBits(31), 5)
     assert(neededBits(31), 5)
     assert(neededBits(255), 8)
@@ -14,7 +14,7 @@ describe('neededBits', () => {
     assert(neededBits(4), 3)
   })
 
-  it('throws when value is negative', () => {
+  test('throws when value is negative', () => {
     assert.throws(() => {
       neededBits(-1)
     })

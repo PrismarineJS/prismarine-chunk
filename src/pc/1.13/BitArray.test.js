@@ -3,7 +3,7 @@ const assert = require('assert')
 const BitArray = require('./BitArray')
 
 describe('BitArray', () => {
-  it('throws when instantiating BitArray with bad bitsPerValue', () => {
+  test('throws when instantiating BitArray with bad bitsPerValue', () => {
     assert.throws(() => {
       // eslint-disable-next-line
       new BitArray({
@@ -39,7 +39,7 @@ describe('BitArray', () => {
     })
   })
 
-  it('writes and reads values correctly', () => {
+  test('writes and reads values correctly', () => {
     const bitArr = new BitArray({
       bitsPerValue: 5,
       capacity: 4096
@@ -50,7 +50,7 @@ describe('BitArray', () => {
     }
   })
 
-  it('throws when writing out of bounds', () => {
+  test('throws when writing out of bounds', () => {
     const bitArr = new BitArray({
       bitsPerValue: 4,
       capacity: 10
@@ -69,7 +69,7 @@ describe('BitArray', () => {
     })
   })
 
-  it('throws when reading out of bounds', () => {
+  test('throws when reading out of bounds', () => {
     const bitArr = new BitArray({
       bitsPerValue: 4,
       capacity: 10
@@ -88,7 +88,7 @@ describe('BitArray', () => {
     })
   })
 
-  it('throws when setting a larger value than allowed', () => {
+  test('throws when setting a larger value than allowed', () => {
     const bitArr = new BitArray({
       bitsPerValue: 3,
       capacity: 10
@@ -101,7 +101,7 @@ describe('BitArray', () => {
     })
   })
 
-  it('succeeds with resizing', () => {
+  test('succeeds with resizing', () => {
     const bitArr = new BitArray({
       bitsPerValue: 4,
       capacity: 10
@@ -112,7 +112,7 @@ describe('BitArray', () => {
     })
   })
 
-  it('fails when resizing', () => {
+  test('fails when resizing', () => {
     const bitArr = new BitArray({
       bitsPerValue: 4,
       capacity: 10

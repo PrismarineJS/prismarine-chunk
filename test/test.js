@@ -20,13 +20,13 @@ const depsByVersion = versions.map((version) => {
 
 describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, Chunk, Block) => {
   if (version === '1.8') {
-    it('Handles {skylightSent: false}', () => {
+    test('Handles {skylightSent: false}', () => {
       const chunk = new Chunk()
 
       chunk.load(Buffer.alloc(164096), 0xFFFF, false)
     })
 
-    it('handles {skylightSent: true}', () => {
+    test('handles {skylightSent: true}', () => {
       const chunk = new Chunk()
 
       chunk.load(Buffer.alloc(196864), 0xFFFF, true)
@@ -39,14 +39,14 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     chunk.initialize((x, y, z, n) => new Block(0, 0, 0))
   })
 
-  it('Defaults to all blocks being air', function () {
+  test('Defaults to all blocks being air', function () {
     const chunk = new Chunk()
 
     assert.strictEqual(0, chunk.getBlock(new Vec3(0, 0, 0)).type)
     assert.strictEqual(0, chunk.getBlock(new Vec3(15, Chunk.h - 1, 15)).type)
   })
 
-  it('Should set a block at the given position', function () {
+  test('Should set a block at the given position', function () {
     const chunk = new Chunk()
 
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
@@ -68,7 +68,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     }
   })
 
-  it('Overwrites blocks in place', function () {
+  test('Overwrites blocks in place', function () {
     const chunk = new Chunk()
 
     chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
@@ -87,7 +87,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
   })
 
   if (version !== 'pe_1.0' && version !== '1.9') {
-    it('Fails safely when loading bad input', function () {
+    test('Fails safely when loading bad input', function () {
       const chunk = new Chunk()
 
       const tooShort = Buffer.alloc(3)
@@ -104,7 +104,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
   }
 
   if (version !== 'pe_1.0') {
-    it('Loads and dumps fake data consistently', function () {
+    test('Loads and dumps fake data consistently', function () {
       const chunk = new Chunk()
 
       chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0))
@@ -144,12 +144,12 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       const data = JSON.parse(
         fs.readFileSync(path.join(folder, packetData)).toString()
       )
-      it('Loads chunk buffers ' + chunkDump, () => {
+      test('Loads chunk buffers ' + chunkDump, () => {
         const chunk = new Chunk()
         chunk.load(dump, data.bitMap, data.skyLightSent)
       })
 
-      it('Correctly cycles through chunks ' + chunkDump, () => {
+      test('Correctly cycles through chunks ' + chunkDump, () => {
         const chunk = new Chunk()
         chunk.load(dump, data.bitMap, data.skyLightSent)
         const buffer = chunk.dump()

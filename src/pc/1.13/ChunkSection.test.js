@@ -4,7 +4,7 @@ const ChunkSection = require('./ChunkSection')
 const assert = require('assert')
 
 describe('ChunkSection', () => {
-  it('insert into middle of palette', () => {
+  test('insert into middle of palette', () => {
     const section = new ChunkSection()
     section.setBlock(new Vec3(0, 0, 0), 14)
     section.setBlock(new Vec3(0, 1, 0), 1)

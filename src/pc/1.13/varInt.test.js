@@ -4,7 +4,7 @@ const SmartBuffer = require('smart-buffer').SmartBuffer
 const assert = require('assert')
 
 describe('varInt', () => {
-  it('writes and reads correctly', () => {
+  test('writes and reads correctly', () => {
     const writer = new SmartBuffer()
 
     // taken from https://wiki.vg/Data_types "Sample VarInts:" table
