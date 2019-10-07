@@ -173,7 +173,7 @@ module.exports = (Block, mcData) => {
 
       // write biome data
       this.biomes.forEach(biome => {
-        smartBuffer.writeInt32LE(biome)
+        smartBuffer.writeInt32BE(biome)
       })
 
       return smartBuffer.toBuffer()
@@ -225,7 +225,7 @@ module.exports = (Block, mcData) => {
           bitsPerValue: 4,
           capacity: 4096,
           // we know it will always be 256 values since bitsPerValue is constant
-          data: [...Array(256).keys()].map(() => reader.readBigUInt64LE())
+          data: [...Array(256).keys()].map(() => reader.readBigUInt64BE())
         })
 
         if (skyLightSent) {
@@ -233,7 +233,7 @@ module.exports = (Block, mcData) => {
             bitsPerValue: 4,
             capacity: 4096,
             // we know it will always be 256 values since bitsPerValue is constant
-            data: [...Array(256).keys()].map(() => reader.readBigUInt64LE())
+            data: [...Array(256).keys()].map(() => reader.readBigUInt64BE())
           })
         }
 
@@ -249,7 +249,7 @@ module.exports = (Block, mcData) => {
       // read biomes
       for (let z = 0; z < constants.SECTION_WIDTH; z++) {
         for (let x = 0; x < constants.SECTION_WIDTH; x++) {
-          this.setBiome(new Vec3(x, 0, z), reader.readInt32LE())
+          this.setBiome(new Vec3(x, 0, z), reader.readInt32BE())
         }
       }
     }

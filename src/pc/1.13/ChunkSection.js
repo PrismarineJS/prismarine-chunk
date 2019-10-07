@@ -182,12 +182,12 @@ class ChunkSection {
 
     // write block light data
     for (let i = BigInt(0); i < this.blockLight.length(); ++i) {
-      smartBuffer.writeBigUInt64LE(this.blockLight.getBuffer()[i])
+      smartBuffer.writeBigUInt64BE(this.blockLight.getBuffer()[i])
     }
 
     // write sky light data
     for (let i = BigInt(0); i < this.skyLight.length(); ++i) {
-      smartBuffer.writeBigUInt64LE(this.skyLight.getBuffer()[i])
+      smartBuffer.writeBigUInt64BE(this.skyLight.getBuffer()[i])
     }
   }
 }

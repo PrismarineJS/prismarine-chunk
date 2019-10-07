@@ -39,7 +39,7 @@ describe('ChunkColumn', () => {
     let offset = 0
     for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
       for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
-        buffer.writeInt32LE(1, offset)
+        buffer.writeInt32BE(1, offset)
         offset += 4
       }
     }
