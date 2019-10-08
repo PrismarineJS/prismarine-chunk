@@ -243,17 +243,17 @@ class Chunk {
     let currentDataIndex = 0
     let currentBlockLightIndex = CHUNK_VOLUME << 1
     let currentSkyLightIndex
-    if(this.hasSkylight) {
+    if (this.hasSkylight) {
       currentSkyLightIndex = currentBlockLightIndex + (CHUNK_VOLUME >>> 1)
-     } else {
-       currentSkyLightIndex = currentBlockLightIndex
-     }
-     const biomeStart = currentSkyLightIndex + (CHUNK_VOLUME >>> 1)
+    } else {
+      currentSkyLightIndex = currentBlockLightIndex
+    }
+    const biomeStart = currentSkyLightIndex + (CHUNK_VOLUME >>> 1)
 
     const outputBuffers = []
 
     for (let y = 0; y < 16; y++) {
-      if(this.hasSkylight) {
+      if (this.hasSkylight) {
         outputBuffers.push(Chunk.packingProtocol.createPacketBuffer('section', {
           bitsPerBlock: 13,
           palette: [],
@@ -266,7 +266,7 @@ class Chunk {
           bitsPerBlock: 13,
           palette: [],
           dataArray: this.packBlockData(this.data.slice(currentDataIndex, currentDataIndex + twiceChunkBlocks), 13),
-          blockLight: this.data.slice(currentBlockLightIndex, currentBlockLightIndex + halfChunkBlocks),
+          blockLight: this.data.slice(currentBlockLightIndex, currentBlockLightIndex + halfChunkBlocks)
         }))
       }
 
