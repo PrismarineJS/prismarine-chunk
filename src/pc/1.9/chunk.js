@@ -119,6 +119,7 @@ const getBiomeCursor = (pos) => X3_CHUNK_VOLUME + (pos.z * w) + pos.x
 class Chunk {
   constructor () {
     this.data = Buffer.alloc(BUFFER_SIZE)
+    this.hasSkylight = true
   }
 
   initialize (iniFunc) {
@@ -241,19 +242,33 @@ class Chunk {
 
     let currentDataIndex = 0
     let currentBlockLightIndex = CHUNK_VOLUME << 1
-    let currentSkyLightIndex = currentBlockLightIndex + (CHUNK_VOLUME >>> 1)
+    let currentSkyLightIndex
+    if (this.hasSkylight) {
+      currentSkyLightIndex = currentBlockLightIndex + (CHUNK_VOLUME >>> 1)
+    } else {
+      currentSkyLightIndex = currentBlockLightIndex
+    }
     const biomeStart = currentSkyLightIndex + (CHUNK_VOLUME >>> 1)
 
     const outputBuffers = []
 
     for (let y = 0; y < 16; y++) {
-      outputBuffers.push(Chunk.packingProtocol.createPacketBuffer('section', {
-        bitsPerBlock: 13,
-        palette: [],
-        dataArray: this.packBlockData(this.data.slice(currentDataIndex, currentDataIndex + twiceChunkBlocks), 13),
-        blockLight: this.data.slice(currentBlockLightIndex, currentBlockLightIndex + halfChunkBlocks),
-        skyLight: this.data.slice(currentSkyLightIndex, currentSkyLightIndex + halfChunkBlocks)
-      }))
+      if (this.hasSkylight) {
+        outputBuffers.push(Chunk.packingProtocol.createPacketBuffer('section', {
+          bitsPerBlock: 13,
+          palette: [],
+          dataArray: this.packBlockData(this.data.slice(currentDataIndex, currentDataIndex + twiceChunkBlocks), 13),
+          blockLight: this.data.slice(currentBlockLightIndex, currentBlockLightIndex + halfChunkBlocks),
+          skyLight: this.data.slice(currentSkyLightIndex, currentSkyLightIndex + halfChunkBlocks)
+        }))
+      } else {
+        outputBuffers.push(Chunk.packingProtocol.createPacketBuffer('sectionNoSkylight', {
+          bitsPerBlock: 13,
+          palette: [],
+          dataArray: this.packBlockData(this.data.slice(currentDataIndex, currentDataIndex + twiceChunkBlocks), 13),
+          blockLight: this.data.slice(currentBlockLightIndex, currentBlockLightIndex + halfChunkBlocks)
+        }))
+      }
 
       currentDataIndex += twiceChunkBlocks
       currentBlockLightIndex += halfChunkBlocks
@@ -318,6 +333,7 @@ class Chunk {
     if (!Buffer.isBuffer(unpackeddata)) { throw (new Error('Data must be a buffer')) }
     if (unpackeddata.length !== BUFFER_SIZE) { throw (new Error('Data buffer not correct size (was ' + unpackeddata.length + ', expected ' + BUFFER_SIZE + ')')) }
     this.data = unpackeddata
+    this.hasSkylight = skyLightSent
   }
 
   unpackChunkData (chunk, bitMap, skyLightSent) {
