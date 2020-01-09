@@ -215,7 +215,7 @@ class Chunk {
 
   getBlockStateId (pos) {
     const cursor = getBlockCursor(pos)
-    return this.data.readUInt16LE(cursor) % 8192
+    return this.data.readUInt16LE(cursor)
   }
 
   getBlockData (pos) {
