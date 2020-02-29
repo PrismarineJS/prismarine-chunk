@@ -8,7 +8,7 @@
 [![Greenkeeper badge](https://badges.greenkeeper.io/PrismarineJS/prismarine-chunk.svg)](https://greenkeeper.io/)
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/PrismarineJS/prismarine-chunk)
 
-A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10, 1.11, 1.12 and 1.13 and Pocket Edition 0.14 and 1.0
+A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10, 1.11, 1.12 and Pocket Edition 0.14 and 1.0
 
 **1.13 and 1.14 support are not available, if you're interested to contribute on that, read https://github.com/PrismarineJS/prismarine-chunk/issues/57**
 
