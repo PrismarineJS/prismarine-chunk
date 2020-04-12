@@ -1,5 +1,9 @@
 ## History
 
+## 1.11.1
+
+* fix dumping for noSkylight chunks for 1.9-1.12 (thanks @IdanHo)
+
 ## 1.11.0
 
 * add chunk handling for chunks without skylight data in 1.8 (thanks @skullteria)
