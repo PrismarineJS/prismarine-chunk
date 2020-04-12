@@ -34,7 +34,7 @@
   "devDependencies": {
     "bench-csv": "^2.2.3",
     "minecraft-data": "^2.35.0",
-    "mocha": "^6.0.0",
+    "mocha": "^7.0.1",
     "standard": "^14.0.1"
   },
   "dependencies": {
