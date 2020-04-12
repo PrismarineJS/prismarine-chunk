@@ -132,7 +132,11 @@ Set the block `biome` id at `pos`
 
 Set the block `biomeColor` at `pos`. Does nothing for PC.
 
-#### Chunk.dump(bitmap=0xFFFF)
+#### Chunk.getMask()
+
+Return the chunk bitmap 0b0000_0000_0000_0000(0x0000) means no chunks are set while 0b1111_1111_1111_1111(0xFFFF) means all chunks are set
+
+#### Chunk.dump()
 
 Returns the chunk raw data
 

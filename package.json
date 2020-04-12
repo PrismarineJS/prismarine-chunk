@@ -4,7 +4,7 @@
   "description": "A class to hold chunk data for prismarine",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
+    "test": "jest",
     "benchmark": "bench-csv ./benchmarks/chunk-1.9.js -o ./benchmarks/results/chunk-1.9.csv",
     "fix": "standard --fix",
     "lint": "standard",
@@ -24,7 +24,8 @@
     "Will Franzen <wtfranzen@gmail.com> (http://will.xyz/)",
     "Romain Beaumont <romain.rom1@gmail.com>",
     "Georges Oates Larsen (flynnn)",
-    "mhsjlw"
+    "mhsjlw",
+    "hornta"
   ],
   "license": "MIT",
   "bugs": {
@@ -33,17 +34,18 @@
   "homepage": "https://github.com/PrismarineJS/prismarine-chunk",
   "devDependencies": {
     "bench-csv": "^2.2.3",
+    "jest": "^24.9.0",
     "minecraft-data": "^2.35.0",
-    "mocha": "^7.0.1",
     "standard": "^14.0.1"
   },
   "dependencies": {
-    "prismarine-block": "^1.1.1",
+    "prismarine-block": "hornta/prismarine-block",
     "protodef": "^1.3.1",
+    "smart-buffer": "^4.1.0",
     "uint4": "^0.1.2",
     "vec3": "^0.1.3"
   },
   "engines": {
-    "node": ">=6"
+    "node": ">=12"
   }
 }
