@@ -1,5 +1,9 @@
 ## History
 
+## 1.12.0
+
+* 1.13 support (thanks @hornta)
+
 ## 1.11.1
 
 * fix dumping for noSkylight chunks for 1.9-1.12 (thanks @IdanHo)
