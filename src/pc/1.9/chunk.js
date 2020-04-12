@@ -177,6 +177,11 @@ class Chunk {
     // polyfill
   }
 
+  getBlockStateId (pos) {
+    const cursor = getBlockCursor(pos)
+    return this.data.readUInt16LE(cursor)
+  }
+
   getBlockType (pos) {
     var cursor = getBlockCursor(pos)
     return this.data.readUInt16LE(cursor) >> 4
@@ -200,6 +205,11 @@ class Chunk {
   getBiome (pos) {
     var cursor = getBiomeCursor(pos)
     return this.data.readUInt8(cursor)
+  }
+
+  setBlockStateId (pos, stateId) {
+    const cursor = getBlockCursor(pos)
+    this.data.writeUInt16LE(stateId, cursor)
   }
 
   setBlockType (pos, id) {

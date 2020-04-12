@@ -61,6 +61,11 @@ class Section {
 
   }
 
+  getBlockStateId (pos) {
+    const cursor = getBlockCursor(pos)
+    return this.data.readUInt16LE(cursor)
+  }
+
   getBlockType (pos) {
     const cursor = getBlockCursor(pos)
     return this.data.readUInt16LE(cursor) >> 4
@@ -79,6 +84,11 @@ class Section {
   getSkyLight (pos) {
     const cursor = getSkyLightCursor(pos)
     return readUInt4LE(this.data, cursor)
+  }
+
+  setBlockStateId (pos, stateId) {
+    const cursor = getBlockCursor(pos)
+    this.data.writeUInt16LE(stateId, cursor)
   }
 
   setBlockType (pos, id) {

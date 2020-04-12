@@ -97,6 +97,10 @@ class Chunk {
     return this.sections[pos.y >> 4]
   }
 
+  getBlockStateId (pos) {
+    return this._getSection(pos).getBlockStateId(posInSection(pos))
+  }
+
   getBlockType (pos) {
     return this._getSection(pos).getBlockType(posInSection(pos))
   }
@@ -116,6 +120,10 @@ class Chunk {
   getBiome (pos) {
     const cursor = getBiomeCursor(pos)
     return this.biome.readUInt8(cursor)
+  }
+
+  setBlockStateId (pos, stateId) {
+    return this._getSection(pos).setBlockStateId(posInSection(pos), stateId)
   }
 
   setBlockType (pos, id) {
