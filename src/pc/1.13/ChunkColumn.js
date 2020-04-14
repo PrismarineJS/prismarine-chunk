@@ -1,15 +1,14 @@
 const SmartBuffer = require('smart-buffer').SmartBuffer
-const Vec3 = require('vec3').Vec3
 const ChunkSection = require('./ChunkSection')
 const constants = require('./constants')
 const BitArray = require('./BitArray')
 const varInt = require('./varInt')
-const assert = require('assert')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
     constructor () {
+      this.sectionMask = 0
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
@@ -17,30 +16,35 @@ module.exports = (Block, mcData) => {
     }
 
     toJson () {
-      return JSON.stringify({ biomes: this.biomes, sections: this.sections.map(section => section === null ? null : section.toJson()) })
+      return JSON.stringify({
+        biomes: this.biomes,
+        sectionMask: this.sectionMask,
+        sections: this.sections.map(section => section === null ? null : section.toJson())
+      })
     }
 
     static fromJson (j) {
       const parsed = JSON.parse(j)
       const chunk = new ChunkColumn()
       chunk.biomes = parsed.biomes
+      chunk.sectionMask = parsed.sectionMask
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
       return chunk
     }
 
     initialize (func) {
-      for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
-        for (let y = 0; y < constants.CHUNK_HEIGHT; ++y) {
-          for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
-            const block = func(x, y, z)
-            this.setBlock(new Vec3(x, y, z), block)
+      const p = { x: 0, y: 0, z: 0 }
+      for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+        for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+          for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
+            const block = func(p.x, p.y, p.z)
+            this.setBlock(p, block)
           }
         }
       }
     }
 
     getBlock (pos) {
-      assertPos(pos)
       const section = this.sections[getSectionIndex(pos)]
       const biome = this.getBiome(pos)
       if (section === null) {
@@ -54,7 +58,6 @@ module.exports = (Block, mcData) => {
     }
 
     setBlock (pos, block) {
-      assertPos(pos)
       if (typeof block.stateId !== 'undefined') {
         this.setBlockStateId(pos, block.stateId)
       }
@@ -70,109 +73,84 @@ module.exports = (Block, mcData) => {
     }
 
     getBlockType (pos) {
-      assertPos(pos)
       const blockStateId = this.getBlockStateId(pos)
       return mcData.blocksByStateId[blockStateId].id
     }
 
-    getBlockStateId (pos) {
-      assertPos(pos)
-      return this.getBlock(pos).stateId
+    getBlockData (pos) {
+      const blockStateId = this.getBlockStateId(pos)
+      return mcData.blocksByStateId[blockStateId].metadata
     }
 
-    getBlockData (pos) {
-      // TODO
-      return 0
+    getBlockStateId (pos) {
+      const section = this.sections[getSectionIndex(pos)]
+      return section ? section.getBlock(toSectionPos(pos)) : 0
     }
 
     getBlockLight (pos) {
-      assertPos(pos)
       const section = this.sections[getSectionIndex(pos)]
       return section ? section.getBlockLight(toSectionPos(pos)) : 15
     }
 
     getSkyLight (pos) {
-      assertPos(pos)
       const section = this.sections[getSectionIndex(pos)]
       return section ? section.getSkyLight(toSectionPos(pos)) : 15
     }
 
     getBiome (pos) {
-      assertPos(pos)
       return this.biomes[getBiomeIndex(pos)]
     }
 
     getBiomeColor (pos) {
-      assertPos(pos)
       // TODO
-      return {
-        r: 0,
-        g: 0,
-        b: 0
-      }
+      return { r: 0, g: 0, b: 0 }
+    }
+
+    setBlockType (pos, id) {
+      this.setBlockStateId(pos, mcData.blocks[id].minStateId)
+    }
+
+    setBlockData (pos, data) {
+      // TODO
     }
 
     setBlockStateId (pos, stateId) {
-      assertPos(pos)
       const sectionIndex = getSectionIndex(pos)
-      const chunkSection = this.sections[sectionIndex]
-      let section
+      let section = this.sections[sectionIndex]
 
-      if (chunkSection !== null) {
-        section = chunkSection
-      } else {
+      if (section === null) {
         // if it's air
         if (stateId === 0) {
           return
         }
         section = new ChunkSection()
+        this.sectionMask |= 1 << sectionIndex
         this.sections[sectionIndex] = section
       }
 
-      section.setBlock(new Vec3(pos.x, pos.y % 16, pos.z), stateId)
-    }
-
-    setBlockType (pos, id) {
-      assertPos(pos)
-      this.setBlockStateId(pos, mcData.blocks[id].minStateId)
-    }
-
-    setBlockData (pos, data) {
-      assertPos(pos)
-      // TODO
+      section.setBlock(toSectionPos(pos), stateId)
     }
 
     setBlockLight (pos, light) {
-      assertPos(pos)
-      assertLight(light)
       const section = this.sections[getSectionIndex(pos)]
       return section && section.setBlockLight(toSectionPos(pos), light)
     }
 
     setSkyLight (pos, light) {
-      assertPos(pos)
-      assertLight(light)
       const section = this.sections[getSectionIndex(pos)]
       return section && section.setSkyLight(toSectionPos(pos), light)
     }
 
     setBiome (pos, biome) {
-      assertPos(pos)
-      this.biomes[(pos.z * 16) | pos.x] = biome
+      this.biomes[getBiomeIndex(pos)] = biome
     }
 
     setBiomeColor (pos, r, g, b) {
-      assertPos(pos)
       // TODO
     }
 
     getMask () {
-      return this.sections.reduce((mask, section, index) => {
-        if (section === null || section.isEmpty()) {
-          return mask
-        }
-        return mask | (1 << index)
-      }, 0)
+      return this.sectionMask
     }
 
     dump () {
@@ -191,11 +169,12 @@ module.exports = (Block, mcData) => {
       return smartBuffer.toBuffer()
     }
 
-    load (data, bitMap = 0b1111111111111111, skyLightSent = true) {
+    load (data, bitMap = 0xffff, skyLightSent = true) {
       // make smartbuffer from node buffer
       // so that we doesn't need to maintain a cursor
       const reader = SmartBuffer.fromBuffer(data)
 
+      this.sectionMask |= bitMap
       for (let y = 0; y < constants.NUM_SECTIONS; ++y) {
         // does `data` contain this chunk?
         if (!((bitMap >> y) & 1)) {
@@ -229,24 +208,19 @@ module.exports = (Block, mcData) => {
         const numLongs = varInt.read(reader)
         const dataArray = new BitArray({
           bitsPerValue: Math.ceil((numLongs * 64) / 4096),
-          capacity: 4096,
-          data: [...Array(numLongs).keys()].map(() => reader.readBigUInt64BE())
-        })
+          capacity: 4096
+        }).readBuffer(reader)
 
         const blockLight = new BitArray({
           bitsPerValue: 4,
-          capacity: 4096,
-          // we know it will always be 256 values since bitsPerValue is constant
-          data: [...Array(256).keys()].map(() => reader.readBigUInt64BE())
-        })
+          capacity: 4096
+        }).readBuffer(reader)
 
         if (skyLightSent) {
           skyLight = new BitArray({
             bitsPerValue: 4,
-            capacity: 4096,
-            // we know it will always be 256 values since bitsPerValue is constant
-            data: [...Array(256).keys()].map(() => reader.readBigUInt64BE())
-          })
+            capacity: 4096
+          }).readBuffer(reader)
         }
 
         const section = new ChunkSection({
@@ -259,23 +233,14 @@ module.exports = (Block, mcData) => {
       }
 
       // read biomes
-      for (let z = 0; z < constants.SECTION_WIDTH; z++) {
-        for (let x = 0; x < constants.SECTION_WIDTH; x++) {
-          this.setBiome(new Vec3(x, 0, z), reader.readInt32BE())
+      const p = { x: 0, y: 0, z: 0 }
+      for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+        for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
+          this.setBiome(p, reader.readInt32BE())
         }
       }
     }
   }
-}
-
-function assertPos (pos) {
-  assert(pos.x >= 0 && pos.x < 256, 'pos.x lies outside the 0-255 range')
-  assert(pos.y >= 0 && pos.y < 256, 'pos.y lies outside the 0-255 range')
-  assert(pos.z >= 0 && pos.z < 256, 'pos.z lies outside the 0-255 range')
-}
-
-function assertLight (light) {
-  assert(light >= 0 && light < 16, 'light lies outside the 0-15 range')
 }
 
 function getSectionIndex (pos) {
@@ -287,5 +252,5 @@ function getBiomeIndex (pos) {
 }
 
 function toSectionPos (pos) {
-  return new Vec3(pos.x, pos.y % 16, pos.z)
+  return { x: pos.x, y: pos.y & 15, z: pos.z }
 }

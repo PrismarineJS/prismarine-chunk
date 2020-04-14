@@ -1,47 +1,51 @@
-/* global BigInt */
-const getBlockIndex = require('./getBlockIndex')
 const BitArray = require('./BitArray')
-const Vec3 = require('vec3').Vec3
 const neededBits = require('./neededBits')
 const constants = require('./constants')
 const varInt = require('./varInt')
+
+function getBlockIndex (pos) {
+  return (pos.y << 8) | (pos.z << 4) | pos.x
+}
 
 class ChunkSection {
   constructor (options = {}) {
     if (options === null) {
       return
     }
+
+    if (typeof options.solidBlockCount === 'undefined') {
+      options.solidBlockCount = 0
+      if (options.data) {
+        for (let i = 0; i < constants.SECTION_VOLUME; i++) {
+          if (options.data.get(i) !== 0) {
+            options.solidBlockCount += 1
+          }
+        }
+      }
+    }
+
     if (!options.data) {
       options.data = new BitArray({
         bitsPerValue: 4,
-        capacity:
-          constants.SECTION_WIDTH *
-          constants.SECTION_HEIGHT *
-          constants.SECTION_WIDTH
+        capacity: constants.SECTION_VOLUME
       })
     }
 
     if (!options.palette) {
-      options.palette = []
+      options.palette = [0]
     }
 
     if (!options.blockLight) {
       options.blockLight = new BitArray({
         bitsPerValue: 4,
-        capacity:
-          constants.SECTION_WIDTH *
-          constants.SECTION_HEIGHT *
-          constants.SECTION_WIDTH
+        capacity: constants.SECTION_VOLUME
       })
     }
 
     if (!options.skyLight) {
       options.skyLight = new BitArray({
         bitsPerValue: 4,
-        capacity:
-          constants.SECTION_WIDTH *
-          constants.SECTION_HEIGHT *
-          constants.SECTION_WIDTH
+        capacity: constants.SECTION_VOLUME
       })
     }
 
@@ -50,17 +54,7 @@ class ChunkSection {
     this.isDirty = false
     this.blockLight = options.blockLight
     this.skyLight = options.skyLight
-    this.solidBlockCount = 0
-    // TODO remove/optimize this : way too slow
-    for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
-      for (let y = 0; y < constants.SECTION_HEIGHT; ++y) {
-        for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
-          if (this.data.get(BigInt(getBlockIndex(new Vec3(x, y, z)))) !== 0) {
-            this.solidBlockCount += 1
-          }
-        }
-      }
-    }
+    this.solidBlockCount = options.solidBlockCount
   }
 
   toJson () {
@@ -76,32 +70,22 @@ class ChunkSection {
 
   static fromJson (j) {
     const parsed = JSON.parse(j)
-    const chunkSection = new ChunkSection(null)
-    chunkSection.data = BitArray.fromJson(parsed.data)
-    chunkSection.palette = parsed.palette
-    chunkSection.blockLight = BitArray.fromJson(parsed.blockLight)
-    chunkSection.skyLight = BitArray.fromJson(parsed.skyLight)
-    chunkSection.solidBlockCount = parsed.solidBlockCount
-    return chunkSection
+    return new ChunkSection({
+      data: BitArray.fromJson(parsed.data),
+      palette: parsed.palette,
+      blockLight: BitArray.fromJson(parsed.blockLight),
+      skyLight: BitArray.fromJson(parsed.skyLight),
+      solidBlockCount: parsed.solidBlockCount
+    })
   }
 
   getBlock (pos) {
-    const index = getBlockIndex(pos)
-
     // index in palette or block id
     // depending on if the global palette or the section palette is used
-    const blockId = Number(this.data.get(BigInt(index)))
+    let stateId = this.data.get(getBlockIndex(pos))
 
-    let stateId
-
-    if (
-      this.palette !== null &&
-      blockId >= 0 &&
-      blockId < this.palette.length
-    ) {
-      stateId = this.palette[blockId]
-    } else {
-      stateId = blockId
+    if (this.palette !== null) {
+      stateId = this.palette[stateId]
     }
 
     return stateId
@@ -135,14 +119,9 @@ class ChunkSection {
               bitsPerValue: constants.GLOBAL_BITS_PER_BLOCK,
               capacity: constants.SECTION_VOLUME
             })
-            for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
-              for (let y = 0; y < constants.SECTION_HEIGHT; ++y) {
-                for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
-                  const blockPosition = new Vec3(x, y, z)
-                  const stateId = this.getBlock(blockPosition)
-                  newData.set(BigInt(getBlockIndex(blockPosition)), BigInt(stateId))
-                }
-              }
+            for (let i = 0; i < constants.SECTION_VOLUME; i++) {
+              const stateId = this.palette[this.data.get(i)]
+              newData.set(i, stateId)
             }
 
             this.palette = null
@@ -163,23 +142,23 @@ class ChunkSection {
       this.solidBlockCount += 1
     }
 
-    this.data.set(BigInt(blockIndex), BigInt(palettedIndex))
+    this.data.set(blockIndex, palettedIndex)
   }
 
   getBlockLight (pos) {
-    return Number(this.blockLight.get(BigInt(getBlockIndex(pos))))
+    return this.blockLight.get(getBlockIndex(pos))
   }
 
   getSkyLight (pos) {
-    return Number(this.skyLight.get(BigInt(getBlockIndex(pos))))
+    return this.skyLight.get(getBlockIndex(pos))
   }
 
   setBlockLight (pos, light) {
-    return this.blockLight.set(BigInt(getBlockIndex(pos)), BigInt(light))
+    return this.blockLight.set(getBlockIndex(pos), light)
   }
 
   setSkyLight (pos, light) {
-    return this.skyLight.set(BigInt(getBlockIndex(pos)), BigInt(light))
+    return this.skyLight.set(getBlockIndex(pos), light)
   }
 
   isEmpty () {
@@ -201,20 +180,14 @@ class ChunkSection {
     // write the number of longs to be written
     varInt.write(smartBuffer, this.data.length())
 
-    // write longs
-    for (let i = BigInt(0); i < this.data.length(); ++i) {
-      smartBuffer.writeBigUInt64BE(this.data.getBuffer()[i])
-    }
+    // write block data
+    this.data.writeBuffer(smartBuffer)
 
     // write block light data
-    for (let i = BigInt(0); i < this.blockLight.length(); ++i) {
-      smartBuffer.writeBigUInt64BE(this.blockLight.getBuffer()[i])
-    }
+    this.blockLight.writeBuffer(smartBuffer)
 
     // write sky light data
-    for (let i = BigInt(0); i < this.skyLight.length(); ++i) {
-      smartBuffer.writeBigUInt64BE(this.skyLight.getBuffer()[i])
-    }
+    this.skyLight.writeBuffer(smartBuffer)
   }
 }
 
