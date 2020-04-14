@@ -1,5 +1,9 @@
 ## History
 
+## 1.14.0
+
+* faster 1.13 chunk implementation (thanks @Karang)
+
 ## 1.13.0
 
 * fast json serialization/parsing for out of process loading/writing
