@@ -13,10 +13,4 @@ describe('neededBits', () => {
     assert(neededBits(3), 2)
     assert(neededBits(4), 3)
   })
-
-  test('throws when value is negative', () => {
-    assert.throws(() => {
-      neededBits(-1)
-    })
-  })
 })

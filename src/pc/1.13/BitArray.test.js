@@ -1,4 +1,4 @@
-/* globals describe test BigInt */
+/* globals describe test */
 const assert = require('assert')
 const BitArray = require('./BitArray')
 
@@ -33,7 +33,7 @@ describe('BitArray', () => {
       })
       // eslint-disable-next-line
       new BitArray({
-        bitsPerValue: 64,
+        bitsPerValue: 32,
         capacity: 1
       })
     })
@@ -44,9 +44,9 @@ describe('BitArray', () => {
       bitsPerValue: 5,
       capacity: 4096
     })
-    for (let i = BigInt(0); i < BigInt(4096); ++i) {
-      bitArr.set(i, BigInt(8))
-      assert.strictEqual(bitArr.get(i), BigInt(8))
+    for (let i = 0; i < 4096; ++i) {
+      bitArr.set(i, 8)
+      assert.strictEqual(bitArr.get(i), 8)
     }
   })
 
@@ -56,16 +56,16 @@ describe('BitArray', () => {
       capacity: 10
     })
     assert.throws(() => {
-      bitArr.set(BigInt(-1), BigInt(2))
+      bitArr.set(-1, 2)
     })
     assert.throws(() => {
-      bitArr.set(BigInt(10), BigInt(2))
+      bitArr.set(10, 2)
     })
     assert.doesNotThrow(() => {
-      bitArr.set(BigInt(0), BigInt(2))
+      bitArr.set(0, 2)
     })
     assert.doesNotThrow(() => {
-      bitArr.set(BigInt(9), BigInt(2))
+      bitArr.set(9, 2)
     })
   })
 
@@ -75,16 +75,16 @@ describe('BitArray', () => {
       capacity: 10
     })
     assert.throws(() => {
-      bitArr.get(BigInt(-1), BigInt(2))
+      bitArr.get(-1, 2)
     })
     assert.throws(() => {
-      bitArr.get(BigInt(10), BigInt(2))
+      bitArr.get(10, 2)
     })
     assert.doesNotThrow(() => {
-      bitArr.get(BigInt(0), BigInt(2))
+      bitArr.get(0, 2)
     })
     assert.doesNotThrow(() => {
-      bitArr.get(BigInt(9), BigInt(2))
+      bitArr.get(9, 2)
     })
   })
 
@@ -94,10 +94,10 @@ describe('BitArray', () => {
       capacity: 10
     })
     assert.throws(() => {
-      bitArr.set(BigInt(0), BigInt(8))
+      bitArr.set(0, 8)
     })
     assert.doesNotThrow(() => {
-      bitArr.set(BigInt(0), BigInt(7))
+      bitArr.set(0, 7)
     })
   })
 
@@ -106,7 +106,7 @@ describe('BitArray', () => {
       bitsPerValue: 4,
       capacity: 10
     })
-    bitArr.set(BigInt(0), BigInt(7))
+    bitArr.set(0, 7)
     assert.doesNotThrow(() => {
       bitArr.resizeTo(3)
     })
@@ -117,7 +117,7 @@ describe('BitArray', () => {
       bitsPerValue: 4,
       capacity: 10
     })
-    bitArr.set(BigInt(0), BigInt(8))
+    bitArr.set(0, 8)
     assert.throws(() => {
       bitArr.resizeTo(3)
     })

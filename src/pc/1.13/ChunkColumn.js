@@ -4,7 +4,6 @@ const ChunkSection = require('./ChunkSection')
 const constants = require('./constants')
 const BitArray = require('./BitArray')
 const varInt = require('./varInt')
-const assert = require('assert')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
@@ -29,18 +28,18 @@ module.exports = (Block, mcData) => {
     }
 
     initialize (func) {
-      for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
-        for (let y = 0; y < constants.CHUNK_HEIGHT; ++y) {
-          for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
-            const block = func(x, y, z)
-            this.setBlock(new Vec3(x, y, z), block)
+      const p = { x: 0, y: 0, z: 0 }
+      for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
+        for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+          for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+            const block = func(p.x, p.y, p.z)
+            this.setBlock(p, block)
           }
         }
       }
     }
 
     getBlock (pos) {
-      assertPos(pos)
       const section = this.sections[getSectionIndex(pos)]
       const biome = this.getBiome(pos)
       if (section === null) {
@@ -54,7 +53,6 @@ module.exports = (Block, mcData) => {
     }
 
     setBlock (pos, block) {
-      assertPos(pos)
       if (typeof block.stateId !== 'undefined') {
         this.setBlockStateId(pos, block.stateId)
       }
@@ -70,13 +68,11 @@ module.exports = (Block, mcData) => {
     }
 
     getBlockType (pos) {
-      assertPos(pos)
       const blockStateId = this.getBlockStateId(pos)
       return mcData.blocksByStateId[blockStateId].id
     }
 
     getBlockStateId (pos) {
-      assertPos(pos)
       return this.getBlock(pos).stateId
     }
 
@@ -86,24 +82,20 @@ module.exports = (Block, mcData) => {
     }
 
     getBlockLight (pos) {
-      assertPos(pos)
       const section = this.sections[getSectionIndex(pos)]
       return section ? section.getBlockLight(toSectionPos(pos)) : 15
     }
 
     getSkyLight (pos) {
-      assertPos(pos)
       const section = this.sections[getSectionIndex(pos)]
       return section ? section.getSkyLight(toSectionPos(pos)) : 15
     }
 
     getBiome (pos) {
-      assertPos(pos)
       return this.biomes[getBiomeIndex(pos)]
     }
 
     getBiomeColor (pos) {
-      assertPos(pos)
       // TODO
       return {
         r: 0,
@@ -113,7 +105,6 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockStateId (pos, stateId) {
-      assertPos(pos)
       const sectionIndex = getSectionIndex(pos)
       const chunkSection = this.sections[sectionIndex]
       let section
@@ -133,36 +124,28 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockType (pos, id) {
-      assertPos(pos)
       this.setBlockStateId(pos, mcData.blocks[id].minStateId)
     }
 
     setBlockData (pos, data) {
-      assertPos(pos)
       // TODO
     }
 
     setBlockLight (pos, light) {
-      assertPos(pos)
-      assertLight(light)
       const section = this.sections[getSectionIndex(pos)]
-      return section && section.setBlockLight(toSectionPos(pos), light)
+      return section && section.setBlockLight(toSectionPos(pos), light & 0xF)
     }
 
     setSkyLight (pos, light) {
-      assertPos(pos)
-      assertLight(light)
       const section = this.sections[getSectionIndex(pos)]
-      return section && section.setSkyLight(toSectionPos(pos), light)
+      return section && section.setSkyLight(toSectionPos(pos), light & 0xF)
     }
 
     setBiome (pos, biome) {
-      assertPos(pos)
       this.biomes[(pos.z * 16) | pos.x] = biome
     }
 
     setBiomeColor (pos, r, g, b) {
-      assertPos(pos)
       // TODO
     }
 
@@ -228,24 +211,24 @@ module.exports = (Block, mcData) => {
         // number of items in data array
         const numLongs = varInt.read(reader)
         const dataArray = new BitArray({
-          bitsPerValue: Math.ceil((numLongs * 64) / 4096),
+          bitsPerValue: Math.ceil((numLongs * 32) / 4096),
           capacity: 4096,
-          data: [...Array(numLongs).keys()].map(() => reader.readBigUInt64BE())
+          data: [...Array(numLongs).keys()].map(() => reader.readUInt32BE())
         })
 
         const blockLight = new BitArray({
           bitsPerValue: 4,
           capacity: 4096,
-          // we know it will always be 256 values since bitsPerValue is constant
-          data: [...Array(256).keys()].map(() => reader.readBigUInt64BE())
+          // we know it will always be 512 values since bitsPerValue is constant
+          data: [...Array(512).keys()].map(() => reader.readUInt32BE())
         })
 
         if (skyLightSent) {
           skyLight = new BitArray({
             bitsPerValue: 4,
             capacity: 4096,
-            // we know it will always be 256 values since bitsPerValue is constant
-            data: [...Array(256).keys()].map(() => reader.readBigUInt64BE())
+            // we know it will always be 512 values since bitsPerValue is constant
+            data: [...Array(512).keys()].map(() => reader.readUInt32BE())
           })
         }
 
@@ -259,23 +242,14 @@ module.exports = (Block, mcData) => {
       }
 
       // read biomes
-      for (let z = 0; z < constants.SECTION_WIDTH; z++) {
-        for (let x = 0; x < constants.SECTION_WIDTH; x++) {
-          this.setBiome(new Vec3(x, 0, z), reader.readInt32BE())
+      const p = { x: 0, y: 0, z: 0 }
+      for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+        for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
+          this.setBiome(p, reader.readInt32BE())
         }
       }
     }
   }
-}
-
-function assertPos (pos) {
-  assert(pos.x >= 0 && pos.x < 256, 'pos.x lies outside the 0-255 range')
-  assert(pos.y >= 0 && pos.y < 256, 'pos.y lies outside the 0-255 range')
-  assert(pos.z >= 0 && pos.z < 256, 'pos.z lies outside the 0-255 range')
-}
-
-function assertLight (light) {
-  assert(light >= 0 && light < 16, 'light lies outside the 0-15 range')
 }
 
 function getSectionIndex (pos) {

@@ -108,16 +108,16 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       const chunk = new Chunk()
 
       chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0))
-      assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
-      assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
+      assert.strictEqual(chunk.getBlock(new Vec3(0, 37, 0)).metadata, 0)
+      assert.strictEqual(chunk.getBlock(new Vec3(0, 37, 0)).type, 42)
       const buf = chunk.dump()
       const chunk1Mask = chunk.getMask()
       const chunk2 = new Chunk()
 
       chunk2.load(buf, chunk1Mask)
 
-      assert.strictEqual(42, chunk2.getBlock(new Vec3(0, 37, 0)).type)
-      assert.strictEqual(0, chunk2.getBlock(new Vec3(0, 37, 0)).metadata)
+      assert.strictEqual(chunk2.getBlock(new Vec3(0, 37, 0)).type, 42)
+      assert.strictEqual(chunk2.getBlock(new Vec3(0, 37, 0)).metadata, 0)
 
       const buf2 = chunk2.dump()
       const chunk2Mask = chunk.getMask()
