@@ -1,5 +1,9 @@
 ## History
 
+## 1.13.0
+
+* fast json serialization/parsing for out of process loading/writing
+
 ## 1.12.0
 
 * 1.13 support (thanks @hornta)
