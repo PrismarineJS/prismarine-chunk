@@ -4,7 +4,7 @@
   "description": "A class to hold chunk data for prismarine",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --verbose",
     "benchmark": "bench-csv ./benchmarks/chunk-1.9.js -o ./benchmarks/results/chunk-1.9.csv",
     "fix": "standard --fix",
     "lint": "standard",

@@ -4,6 +4,9 @@ const neededBits = require('./neededBits')
 
 class BitArray {
   constructor (options) {
+    if (options === null) {
+      return
+    }
     assert(options.bitsPerValue > 0, 'bits per value must at least 1')
     assert(options.bitsPerValue <= 64, 'bits per value exceeds 64')
 
@@ -30,7 +33,7 @@ class BitArray {
 
   static fromJson (j) {
     const parsed = JSON.parse(j)
-    const bitarray = new BitArray({ bitsPerValue: parseInt(parsed.bitsPerValue, 10), capacity: parsed.capacity })
+    const bitarray = new BitArray(null)
     bitarray.data = parsed.data.map(d => BigInt(d))
     bitarray.capacity = parsed.capacity
     bitarray.bitsPerValue = BigInt(parsed.bitsPerValue)

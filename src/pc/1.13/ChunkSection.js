@@ -8,6 +8,9 @@ const varInt = require('./varInt')
 
 class ChunkSection {
   constructor (options = {}) {
+    if (options === null) {
+      return
+    }
     if (!options.data) {
       options.data = new BitArray({
         bitsPerValue: 4,
@@ -48,6 +51,7 @@ class ChunkSection {
     this.blockLight = options.blockLight
     this.skyLight = options.skyLight
     this.solidBlockCount = 0
+    // TODO remove/optimize this : way too slow
     for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
       for (let y = 0; y < constants.SECTION_HEIGHT; ++y) {
         for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
@@ -72,7 +76,7 @@ class ChunkSection {
 
   static fromJson (j) {
     const parsed = JSON.parse(j)
-    const chunkSection = new ChunkSection()
+    const chunkSection = new ChunkSection(null)
     chunkSection.data = BitArray.fromJson(parsed.data)
     chunkSection.palette = parsed.palette
     chunkSection.blockLight = BitArray.fromJson(parsed.blockLight)

@@ -179,10 +179,18 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       })
 
       test('Correctly cycles through chunks json ' + chunkDump, () => {
+        let a = new Date()
         const chunk = new Chunk()
+        console.log('creation', version, (new Date()) - a)
+        a = new Date()
         chunk.load(dump, data.bitMap, data.skyLightSent)
+        console.log('loading', version, (new Date()) - a)
+        a = new Date()
         const j = chunk.toJson()
+        console.log('seria json', version, (new Date()) - a)
+        a = new Date()
         const chunk2 = Chunk.fromJson(j)
+        console.log('loading json', version, (new Date()) - a)
 
         const p = new Vec3(0, 0, 0)
         for (p.y = 0; p.y < 256; p.y++) {
