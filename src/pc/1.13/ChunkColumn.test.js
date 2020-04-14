@@ -29,9 +29,9 @@ describe('ChunkColumn', () => {
 
     let different = 0
     const p = { x: 0, y: 0, z: 0 }
-    for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
-      for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
-        for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+    for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+      for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+        for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
           different += column.getBlock(p).stateId !== 0
         }
       }
@@ -56,9 +56,9 @@ describe('ChunkColumn', () => {
 
     let different = 0
     const p = { x: 0, y: 0, z: 0 }
-    for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
-      for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
-        for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+    for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+      for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+        for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
           different += column.getBlock(p).stateId !== 0
         }
       }

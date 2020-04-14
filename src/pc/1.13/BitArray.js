@@ -9,9 +9,9 @@ class BitArray {
     assert(options.bitsPerValue > 0, 'bits per value must at least 1')
     assert(options.bitsPerValue <= 32, 'bits per value exceeds 32')
 
-    const length = Math.ceil((options.capacity * options.bitsPerValue) / 32)
+    const length = Math.ceil((options.capacity * options.bitsPerValue) / 64)
     if (!options.data) {
-      options.data = Array(length).fill(0)
+      options.data = Array(length * 2).fill(0)
     }
     const valueMask = (1 << options.bitsPerValue) - 1
 
@@ -101,11 +101,13 @@ class BitArray {
   }
 
   length () {
-    return this.data.length
+    return this.data.length / 2
   }
 
-  getBuffer () {
-    return this.data
+  writeBuffer (smartBuffer) {
+    for (let i = 0; i < this.data.length; ++i) {
+      smartBuffer.writeUInt32BE(this.data[i])
+    }
   }
 
   getBitsPerValue () {

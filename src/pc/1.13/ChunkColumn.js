@@ -29,9 +29,9 @@ module.exports = (Block, mcData) => {
 
     initialize (func) {
       const p = { x: 0, y: 0, z: 0 }
-      for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
-        for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
-          for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+      for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+        for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+          for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
             const block = func(p.x, p.y, p.z)
             this.setBlock(p, block)
           }
@@ -133,12 +133,12 @@ module.exports = (Block, mcData) => {
 
     setBlockLight (pos, light) {
       const section = this.sections[getSectionIndex(pos)]
-      return section && section.setBlockLight(toSectionPos(pos), light & 0xF)
+      return section && section.setBlockLight(toSectionPos(pos), light)
     }
 
     setSkyLight (pos, light) {
       const section = this.sections[getSectionIndex(pos)]
-      return section && section.setSkyLight(toSectionPos(pos), light & 0xF)
+      return section && section.setSkyLight(toSectionPos(pos), light)
     }
 
     setBiome (pos, biome) {
@@ -211,9 +211,9 @@ module.exports = (Block, mcData) => {
         // number of items in data array
         const numLongs = varInt.read(reader)
         const dataArray = new BitArray({
-          bitsPerValue: Math.ceil((numLongs * 32) / 4096),
+          bitsPerValue: Math.ceil((numLongs * 64) / 4096),
           capacity: 4096,
-          data: [...Array(numLongs).keys()].map(() => reader.readUInt32BE())
+          data: [...Array(numLongs * 2).keys()].map(() => reader.readUInt32BE())
         })
 
         const blockLight = new BitArray({

@@ -6,9 +6,10 @@ const fs = require('fs')
 const path = require('path')
 const prismarineBlockLoader = require('prismarine-block')
 const chunkLoader = require('../index')
+const { performance } = require('perf_hooks')
 
-const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2']
-const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2']
+const versions = [/* 'pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', */'1.13.2']
+const cycleTests = [/* '1.8', '1.9', '1.10', '1.11', '1.12', */'1.13.2']
 
 const depsByVersion = versions.map((version) => {
   return [
@@ -179,18 +180,18 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       })
 
       test('Correctly cycles through chunks json ' + chunkDump, () => {
-        let a = new Date()
+        let a = performance.now()
         const chunk = new Chunk()
-        console.log('creation', version, (new Date()) - a)
-        a = new Date()
+        console.log('creation', version, performance.now() - a)
+        a = performance.now()
         chunk.load(dump, data.bitMap, data.skyLightSent)
-        console.log('loading', version, (new Date()) - a)
-        a = new Date()
+        console.log('loading', version, performance.now() - a)
+        a = performance.now()
         const j = chunk.toJson()
-        console.log('seria json', version, (new Date()) - a)
-        a = new Date()
+        console.log('seria json', version, performance.now() - a)
+        a = performance.now()
         const chunk2 = Chunk.fromJson(j)
-        console.log('loading json', version, (new Date()) - a)
+        console.log('loading json', version, performance.now() - a)
 
         const p = new Vec3(0, 0, 0)
         for (p.y = 0; p.y < 256; p.y++) {

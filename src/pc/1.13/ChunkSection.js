@@ -14,9 +14,9 @@ class ChunkSection {
       options.solidBlockCount = 0
       if (options.data) {
         const p = { x: 0, y: 0, z: 0 }
-        for (p.x = 0; p.x < constants.SECTION_WIDTH; ++p.x) {
-          for (p.y = 0; p.y < constants.SECTION_HEIGHT; ++p.y) {
-            for (p.z = 0; p.z < constants.SECTION_WIDTH; ++p.z) {
+        for (p.y = 0; p.y < constants.SECTION_HEIGHT; p.y++) {
+          for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+            for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
               if (options.data.get(getBlockIndex(p)) !== 0) {
                 options.solidBlockCount += 1
               }
@@ -125,14 +125,9 @@ class ChunkSection {
               bitsPerValue: constants.GLOBAL_BITS_PER_BLOCK,
               capacity: constants.SECTION_VOLUME
             })
-            const blockPosition = { x: 0, y: 0, z: 0 }
-            for (blockPosition.x = 0; blockPosition.x < constants.SECTION_WIDTH; blockPosition.x++) {
-              for (blockPosition.y = 0; blockPosition.y < constants.SECTION_HEIGHT; blockPosition.y++) {
-                for (blockPosition.z = 0; blockPosition.z < constants.SECTION_WIDTH; blockPosition.z++) {
-                  const stateId = this.getBlock(blockPosition)
-                  newData.set(getBlockIndex(blockPosition), stateId)
-                }
-              }
+            for (let i = 0; i < constants.SECTION_VOLUME; i++) {
+              const stateId = this.palette[this.data.get(i)]
+              newData.set(i, stateId)
             }
 
             this.palette = null
@@ -191,20 +186,14 @@ class ChunkSection {
     // write the number of longs to be written
     varInt.write(smartBuffer, this.data.length())
 
-    // write longs
-    for (let i = 0; i < this.data.length(); ++i) {
-      smartBuffer.writeUInt32BE(this.data.getBuffer()[i])
-    }
+    // write block data
+    this.data.writeBuffer(smartBuffer)
 
     // write block light data
-    for (let i = 0; i < this.blockLight.length(); ++i) {
-      smartBuffer.writeUInt32BE(this.blockLight.getBuffer()[i])
-    }
+    this.blockLight.writeBuffer(smartBuffer)
 
     // write sky light data
-    for (let i = 0; i < this.skyLight.length(); ++i) {
-      smartBuffer.writeUInt32BE(this.skyLight.getBuffer()[i])
-    }
+    this.skyLight.writeBuffer(smartBuffer)
   }
 }
 
