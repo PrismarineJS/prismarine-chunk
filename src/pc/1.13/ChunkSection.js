@@ -1,8 +1,11 @@
-const getBlockIndex = require('./getBlockIndex')
 const BitArray = require('./BitArray')
 const neededBits = require('./neededBits')
 const constants = require('./constants')
 const varInt = require('./varInt')
+
+function getBlockIndex (pos) {
+  return (pos.y << 8) | (pos.z << 4) | pos.x
+}
 
 class ChunkSection {
   constructor (options = {}) {
@@ -13,14 +16,9 @@ class ChunkSection {
     if (typeof options.solidBlockCount === 'undefined') {
       options.solidBlockCount = 0
       if (options.data) {
-        const p = { x: 0, y: 0, z: 0 }
-        for (p.y = 0; p.y < constants.SECTION_HEIGHT; p.y++) {
-          for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
-            for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
-              if (options.data.get(getBlockIndex(p)) !== 0) {
-                options.solidBlockCount += 1
-              }
-            }
+        for (let i = 0; i < constants.SECTION_VOLUME; i++) {
+          if (options.data.get(i) !== 0) {
+            options.solidBlockCount += 1
           }
         }
       }

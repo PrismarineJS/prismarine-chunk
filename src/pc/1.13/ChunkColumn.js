@@ -1,5 +1,4 @@
 const SmartBuffer = require('smart-buffer').SmartBuffer
-const Vec3 = require('vec3').Vec3
 const ChunkSection = require('./ChunkSection')
 const constants = require('./constants')
 const BitArray = require('./BitArray')
@@ -9,6 +8,7 @@ const varInt = require('./varInt')
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
     constructor () {
+      this.sectionMask = 0
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
@@ -16,13 +16,18 @@ module.exports = (Block, mcData) => {
     }
 
     toJson () {
-      return JSON.stringify({ biomes: this.biomes, sections: this.sections.map(section => section === null ? null : section.toJson()) })
+      return JSON.stringify({
+        biomes: this.biomes,
+        sectionMask: this.sectionMask,
+        sections: this.sections.map(section => section === null ? null : section.toJson())
+      })
     }
 
     static fromJson (j) {
       const parsed = JSON.parse(j)
       const chunk = new ChunkColumn()
       chunk.biomes = parsed.biomes
+      chunk.sectionMask = parsed.sectionMask
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
       return chunk
     }
@@ -72,13 +77,14 @@ module.exports = (Block, mcData) => {
       return mcData.blocksByStateId[blockStateId].id
     }
 
-    getBlockStateId (pos) {
-      return this.getBlock(pos).stateId
+    getBlockData (pos) {
+      const blockStateId = this.getBlockStateId(pos)
+      return mcData.blocksByStateId[blockStateId].metadata
     }
 
-    getBlockData (pos) {
-      // TODO
-      return 0
+    getBlockStateId (pos) {
+      const section = this.sections[getSectionIndex(pos)]
+      return section ? section.getBlock(toSectionPos(pos)) : 0
     }
 
     getBlockLight (pos) {
@@ -97,30 +103,7 @@ module.exports = (Block, mcData) => {
 
     getBiomeColor (pos) {
       // TODO
-      return {
-        r: 0,
-        g: 0,
-        b: 0
-      }
-    }
-
-    setBlockStateId (pos, stateId) {
-      const sectionIndex = getSectionIndex(pos)
-      const chunkSection = this.sections[sectionIndex]
-      let section
-
-      if (chunkSection !== null) {
-        section = chunkSection
-      } else {
-        // if it's air
-        if (stateId === 0) {
-          return
-        }
-        section = new ChunkSection()
-        this.sections[sectionIndex] = section
-      }
-
-      section.setBlock(new Vec3(pos.x, pos.y % 16, pos.z), stateId)
+      return { r: 0, g: 0, b: 0 }
     }
 
     setBlockType (pos, id) {
@@ -129,6 +112,23 @@ module.exports = (Block, mcData) => {
 
     setBlockData (pos, data) {
       // TODO
+    }
+
+    setBlockStateId (pos, stateId) {
+      const sectionIndex = getSectionIndex(pos)
+      let section = this.sections[sectionIndex]
+
+      if (section === null) {
+        // if it's air
+        if (stateId === 0) {
+          return
+        }
+        section = new ChunkSection()
+        this.sectionMask |= 1 << sectionIndex
+        this.sections[sectionIndex] = section
+      }
+
+      section.setBlock(toSectionPos(pos), stateId)
     }
 
     setBlockLight (pos, light) {
@@ -142,7 +142,7 @@ module.exports = (Block, mcData) => {
     }
 
     setBiome (pos, biome) {
-      this.biomes[(pos.z * 16) | pos.x] = biome
+      this.biomes[getBiomeIndex(pos)] = biome
     }
 
     setBiomeColor (pos, r, g, b) {
@@ -150,12 +150,7 @@ module.exports = (Block, mcData) => {
     }
 
     getMask () {
-      return this.sections.reduce((mask, section, index) => {
-        if (section === null || section.isEmpty()) {
-          return mask
-        }
-        return mask | (1 << index)
-      }, 0)
+      return this.sectionMask
     }
 
     dump () {
@@ -174,11 +169,12 @@ module.exports = (Block, mcData) => {
       return smartBuffer.toBuffer()
     }
 
-    load (data, bitMap = 0b1111111111111111, skyLightSent = true) {
+    load (data, bitMap = 0xffff, skyLightSent = true) {
       // make smartbuffer from node buffer
       // so that we doesn't need to maintain a cursor
       const reader = SmartBuffer.fromBuffer(data)
 
+      this.sectionMask |= bitMap
       for (let y = 0; y < constants.NUM_SECTIONS; ++y) {
         // does `data` contain this chunk?
         if (!((bitMap >> y) & 1)) {
@@ -261,5 +257,5 @@ function getBiomeIndex (pos) {
 }
 
 function toSectionPos (pos) {
-  return new Vec3(pos.x, pos.y % 16, pos.z)
+  return { x: pos.x, y: pos.y & 15, z: pos.z }
 }
