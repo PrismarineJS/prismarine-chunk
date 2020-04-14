@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
-const Vec3 = require('vec3').Vec3
 const fs = require('fs')
 const path = require('path')
 const prismarineBlockLoader = require('prismarine-block')
@@ -43,47 +42,47 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
   test('Defaults to all blocks being air', function () {
     const chunk = new Chunk()
 
-    assert.strictEqual(0, chunk.getBlock(new Vec3(0, 0, 0)).type)
-    assert.strictEqual(0, chunk.getBlock(new Vec3(15, Chunk.h - 1, 15)).type)
+    assert.strictEqual(0, chunk.getBlock({ x: 0, y: 0, z: 0 }).type)
+    assert.strictEqual(0, chunk.getBlock({ x: 15, y: Chunk.h - 1, z: 15 }).type)
   })
 
   test('Should set a block at the given position', function () {
     const chunk = new Chunk()
 
-    chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
-    assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
+    chunk.setBlock({ x: 0, y: 0, z: 0 }, new Block(5, 0, 2)) // Birch planks, if you're wondering
+    assert.strictEqual(5, chunk.getBlock({ x: 0, y: 0, z: 0 }).type)
     if (!version.startsWith('1.13')) {
-      assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
+      assert.strictEqual(2, chunk.getBlock({ x: 0, y: 0, z: 0 }).metadata)
     }
 
-    chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
-    assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
+    chunk.setBlock({ x: 0, y: 37, z: 0 }, new Block(42, 0, 0)) // Iron block
+    assert.strictEqual(42, chunk.getBlock({ x: 0, y: 37, z: 0 }).type)
     if (!version.startsWith('1.13')) {
-      assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
+      assert.strictEqual(0, chunk.getBlock({ x: 0, y: 37, z: 0 }).metadata)
     }
 
-    chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
-    assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
+    chunk.setBlock({ x: 1, y: 0, z: 0 }, new Block(35, 0, 1)) // Orange wool
+    assert.strictEqual(35, chunk.getBlock({ x: 1, y: 0, z: 0 }).type)
     if (!version.startsWith('1.13')) {
-      assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
+      assert.strictEqual(1, chunk.getBlock({ x: 1, y: 0, z: 0 }).metadata)
     }
   })
 
   test('Overwrites blocks in place', function () {
     const chunk = new Chunk()
 
-    chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
-    chunk.setBlock(new Vec3(0, 1, 0), new Block(41, 0, 0)) // Gold block
-    assert.strictEqual(41, chunk.getBlock(new Vec3(0, 1, 0)).type)
+    chunk.setBlock({ x: 0, y: 1, z: 0 }, new Block(42, 0, 0)) // Iron block
+    chunk.setBlock({ x: 0, y: 1, z: 0 }, new Block(41, 0, 0)) // Gold block
+    assert.strictEqual(41, chunk.getBlock({ x: 0, y: 1, z: 0 }).type)
     if (!version.startsWith('1.13')) {
-      assert.strictEqual(0, chunk.getBlock(new Vec3(0, 1, 0)).metadata)
+      assert.strictEqual(0, chunk.getBlock({ x: 0, y: 1, z: 0 }).metadata)
     }
 
-    chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 1)) // Orange wool
-    chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 14)) // Red wool
-    assert.strictEqual(35, chunk.getBlock(new Vec3(5, 5, 5)).type)
+    chunk.setBlock({ x: 5, y: 5, z: 5 }, new Block(35, 0, 1)) // Orange wool
+    chunk.setBlock({ x: 5, y: 5, z: 5 }, new Block(35, 0, 14)) // Red wool
+    assert.strictEqual(35, chunk.getBlock({ x: 5, y: 5, z: 5 }).type)
     if (!version.startsWith('1.13')) {
-      assert.strictEqual(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata)
+      assert.strictEqual(14, chunk.getBlock({ x: 5, y: 5, z: 5 }).metadata)
     }
   })
 
@@ -108,17 +107,17 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     test('Loads and dumps fake data consistently', function () {
       const chunk = new Chunk()
 
-      chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0))
-      assert.strictEqual(chunk.getBlock(new Vec3(0, 37, 0)).metadata, 0)
-      assert.strictEqual(chunk.getBlock(new Vec3(0, 37, 0)).type, 42)
+      chunk.setBlock({ x: 0, y: 37, z: 0 }, new Block(42, 0, 0))
+      assert.strictEqual(chunk.getBlock({ x: 0, y: 37, z: 0 }).metadata, 0)
+      assert.strictEqual(chunk.getBlock({ x: 0, y: 37, z: 0 }).type, 42)
       const buf = chunk.dump()
       const chunk1Mask = chunk.getMask()
       const chunk2 = new Chunk()
 
       chunk2.load(buf, chunk1Mask)
 
-      assert.strictEqual(chunk2.getBlock(new Vec3(0, 37, 0)).type, 42)
-      assert.strictEqual(chunk2.getBlock(new Vec3(0, 37, 0)).metadata, 0)
+      assert.strictEqual(chunk2.getBlock({ x: 0, y: 37, z: 0 }).type, 42)
+      assert.strictEqual(chunk2.getBlock({ x: 0, y: 37, z: 0 }).metadata, 0)
 
       const buf2 = chunk2.dump()
       const chunk2Mask = chunk.getMask()
@@ -158,7 +157,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         const chunk2 = new Chunk()
         chunk2.load(buffer, bitmap, data.skyLightSent)
 
-        const p = new Vec3(0, 0, 0)
+        const p = { x: 0, y: 0, z: 0 }
         for (p.y = 0; p.y < 256; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
             for (p.x = 0; p.x < 16; p.x++) {
@@ -193,7 +192,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         const chunk2 = Chunk.fromJson(j)
         console.log('loading json', version, performance.now() - a)
 
-        const p = new Vec3(0, 0, 0)
+        const p = { x: 0, y: 0, z: 0 }
         for (p.y = 0; p.y < 256; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
             for (p.x = 0; p.x < 16; p.x++) {

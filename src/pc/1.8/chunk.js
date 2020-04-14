@@ -1,9 +1,8 @@
 const Section = require('./section')
-const Vec3 = require('vec3').Vec3
 
 const w = Section.w
 const l = Section.l
-const sh = Section.sh// section height
+const sh = Section.sh // section height
 const sectionCount = 16
 const h = sh * sectionCount
 
@@ -30,7 +29,7 @@ const getBiomeCursor = function (pos) {
 }
 
 function posInSection (pos) {
-  return pos.modulus(new Vec3(w, l, sh))
+  return { x: pos.x & 15, y: pos.y & 15, z: pos.z & 15 }
 }
 
 function parseBitMap (bitMap) {

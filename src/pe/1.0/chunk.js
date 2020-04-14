@@ -1,7 +1,6 @@
 'use strict'
 
 const SubChunk = require('./subchunk')
-const Vec3 = require('vec3')
 
 const BIOME_ID_SIZE = 256
 const HEIGHT_SIZE = 256 * 2
@@ -23,6 +22,10 @@ let Block
 
 function exists (val) {
   return val !== undefined
+}
+
+function posInSection (pos) {
+  return { x: pos.x, y: pos.y & 15, z: pos.z }
 }
 
 class Chunk {
@@ -54,7 +57,7 @@ class Chunk {
   }
 
   initialize (iniFunc) {
-    const p = new Vec3(0, 0, 0)
+    const p = { x: 0, y: 0, z: 0 }
     for (p.y = 0; p.y < Chunk.h; p.y++) {
       for (p.z = 0; p.z < Chunk.w; p.z++) {
         for (p.x = 0; p.x < Chunk.l; p.x++) {
@@ -82,42 +85,42 @@ class Chunk {
 
   getBlockType (pos) {
     const chunk = this.chunks[pos.y >> 4]
-    return chunk.getBlockType(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z))
+    return chunk.getBlockType(posInSection(pos))
   }
 
   setBlockType (pos, type) {
     const chunk = this.chunks[pos.y >> 4]
-    chunk.setBlockType(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), type)
+    chunk.setBlockType(posInSection(pos), type)
   }
 
   getBlockData (pos) {
     const chunk = this.chunks[pos.y >> 4]
-    return chunk.getBlockData(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z))
+    return chunk.getBlockData(posInSection(pos))
   }
 
   setBlockData (pos, data) {
     const chunk = this.chunks[pos.y >> 4]
-    chunk.setBlockData(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), data)
+    chunk.setBlockData(posInSection(pos), data)
   }
 
   getBlockLight (pos) {
     const chunk = this.chunks[pos.y >> 4]
-    return chunk.getBlockLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z))
+    return chunk.getBlockLight(posInSection(pos), pos.z)
   }
 
   setBlockLight (pos, light) {
     const chunk = this.chunks[pos.y >> 4]
-    chunk.setBlockLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), light)
+    chunk.setBlockLight(posInSection(pos), light)
   }
 
   getSkyLight (pos) {
     const chunk = this.chunks[pos.y >> 4]
-    return chunk.getSkyLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z))
+    return chunk.getSkyLight(posInSection(pos))
   }
 
   setSkyLight (pos, light) {
     const chunk = this.chunks[pos.y >> 4]
-    chunk.setSkyLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), light)
+    chunk.setSkyLight(posInSection(pos), light)
   }
 
   getBiomeColor (pos) {
