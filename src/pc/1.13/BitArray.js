@@ -19,6 +19,25 @@ class BitArray {
     this.valueMask = valueMask
   }
 
+  toJson () {
+    return JSON.stringify({
+      data: this.data.map(d => d.toString()),
+      capacity: this.capacity,
+      bitsPerValue: this.bitsPerValue.toString(),
+      valueMask: this.valueMask.toString()
+    })
+  }
+
+  static fromJson (j) {
+    const parsed = JSON.parse(j)
+    const bitarray = new BitArray({ bitsPerValue: parseInt(parsed.bitsPerValue, 10), capacity: parsed.capacity })
+    bitarray.data = parsed.data.map(d => BigInt(d))
+    bitarray.capacity = parsed.capacity
+    bitarray.bitsPerValue = BigInt(parsed.bitsPerValue)
+    bitarray.valueMask = BigInt(parsed.valueMask)
+    return bitarray
+  }
+
   get (index) {
     assert(index >= 0 && index < this.capacity, 'index is out of bounds')
 

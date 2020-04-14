@@ -122,6 +122,18 @@ class Chunk {
     this.hasSkylight = true
   }
 
+  toJson () {
+    return JSON.stringify({ hasSkylight: this.hasSkylight, data: this.data.toJSON() })
+  }
+
+  static fromJson (j) {
+    const parsed = JSON.parse(j)
+    const chunk = new Chunk()
+    chunk.data = Buffer.from(parsed.data)
+    chunk.hasSkylight = parsed.hasSkylight
+    return chunk
+  }
+
   initialize (iniFunc) {
     const skylight = (CHUNK_VOLUME >>> 1) * 5
     const light = CHUNK_VOLUME << 1

@@ -177,6 +177,33 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
           }
         }
       })
+
+      test('Correctly cycles through chunks json ' + chunkDump, () => {
+        const chunk = new Chunk()
+        chunk.load(dump, data.bitMap, data.skyLightSent)
+        const j = chunk.toJson()
+        const chunk2 = Chunk.fromJson(j)
+
+        const p = new Vec3(0, 0, 0)
+        for (p.y = 0; p.y < 256; p.y++) {
+          for (p.z = 0; p.z < 16; p.z++) {
+            for (p.x = 0; p.x < 16; p.x++) {
+              const b = chunk.getBlock(p)
+              const b2 = chunk2.getBlock(p)
+              assert.notStrictEqual(
+                b.name,
+                '',
+                ' block state n° ' +
+                    b.stateId +
+                    ' type n°' +
+                    b.type +
+                    " read, which doesn't exist"
+              )
+              assert.deepStrictEqual(b, b2)
+            }
+          }
+        }
+      })
     })
   }
 })

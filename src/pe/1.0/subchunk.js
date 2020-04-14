@@ -19,6 +19,17 @@ class SubChunk {
     this.data.fill(0)
   }
 
+  toJson () {
+    return JSON.stringify({ data: this.data.toJSON() })
+  }
+
+  static fromJson (j) {
+    const parsed = JSON.parse(j)
+    const chunk = new SubChunk()
+    chunk.data = Buffer.from(parsed.data)
+    return chunk
+  }
+
   getBlockType (pos) {
     return this.data.readUInt8(getIndex(pos))
   }

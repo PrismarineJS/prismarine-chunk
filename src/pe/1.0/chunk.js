@@ -41,6 +41,18 @@ class Chunk {
     }
   }
 
+  toJson () {
+    return JSON.stringify({ data: this.data, sections: this.chunks.map(section => section.toJson()) })
+  }
+
+  static fromJson (j) {
+    const parsed = JSON.parse(j)
+    const chunk = new Chunk()
+    chunk.data = parsed.data
+    chunk.chunks = parsed.sections.map(s => SubChunk.fromJson(s))
+    return chunk
+  }
+
   initialize (iniFunc) {
     const p = new Vec3(0, 0, 0)
     for (p.y = 0; p.y < Chunk.h; p.y++) {

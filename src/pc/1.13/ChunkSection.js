@@ -59,6 +59,28 @@ class ChunkSection {
     }
   }
 
+  toJson () {
+    return JSON.stringify({
+      data: this.data.toJson(),
+      palette: this.palette,
+      isDirty: this.isDirty,
+      blockLight: this.blockLight.toJson(),
+      skyLight: this.skyLight.toJson(),
+      solidBlockCount: this.solidBlockCount
+    })
+  }
+
+  static fromJson (j) {
+    const parsed = JSON.parse(j)
+    const chunkSection = new ChunkSection()
+    chunkSection.data = BitArray.fromJson(parsed.data)
+    chunkSection.palette = parsed.palette
+    chunkSection.blockLight = BitArray.fromJson(parsed.blockLight)
+    chunkSection.skyLight = BitArray.fromJson(parsed.skyLight)
+    chunkSection.solidBlockCount = parsed.solidBlockCount
+    return chunkSection
+  }
+
   getBlock (pos) {
     const index = getBlockIndex(pos)
 

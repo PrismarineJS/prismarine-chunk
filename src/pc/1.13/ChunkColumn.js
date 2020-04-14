@@ -16,6 +16,18 @@ module.exports = (Block, mcData) => {
       ).fill(1)
     }
 
+    toJson () {
+      return JSON.stringify({ biomes: this.biomes, sections: this.sections.map(section => section === null ? null : section.toJson()) })
+    }
+
+    static fromJson (j) {
+      const parsed = JSON.parse(j)
+      const chunk = new ChunkColumn()
+      chunk.biomes = parsed.biomes
+      chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
+      return chunk
+    }
+
     initialize (func) {
       for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
         for (let y = 0; y < constants.CHUNK_HEIGHT; ++y) {

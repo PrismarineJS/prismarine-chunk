@@ -141,3 +141,11 @@ Returns the chunk raw data
 #### Chunk.load(data,bitmap=0xFFFF,skyLightSent = true)
 
 Load raw `data` into the chunk
+
+#### Chunk.toJson()
+
+Returns the chunk as json
+
+#### Chunk.fromJson(j)
+
+Load chunk from json

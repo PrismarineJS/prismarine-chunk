@@ -67,6 +67,17 @@ class Chunk {
     this.data.fill(0)
   }
 
+  toJson () {
+    return JSON.stringify({ data: this.data.toJSON() })
+  }
+
+  static fromJson (j) {
+    const parsed = JSON.parse(j)
+    const chunk = new Chunk()
+    chunk.data = Buffer.from(parsed.data)
+    return chunk
+  }
+
   initialize (iniFunc) {
     const p = new Vec3(0, 0, 0)
     for (p.y = 0; p.y < h; p.y++) {

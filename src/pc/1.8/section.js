@@ -28,6 +28,16 @@ class Section {
     this.data.fill(0)
   }
 
+  toJson () {
+    return this.data.toJSON()
+  }
+
+  static fromJson (j) {
+    const section = new Section()
+    section.data = Buffer.from(j)
+    return section
+  }
+
   static sectionSize (skyLightSent = true) {
     return (w * l * sh) * (skyLightSent ? 3 : 5 / 2)
   }

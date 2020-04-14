@@ -52,6 +52,19 @@ class Chunk {
     this.biome.fill(0)
   }
 
+  toJson () {
+    return JSON.stringify({ skyLightSent: this.skyLightSent, biome: this.biome.toJSON(), sections: this.sections.map(section => section.toJson()) })
+  }
+
+  static fromJson (j) {
+    const parsed = JSON.parse(j)
+    const chunk = new Chunk()
+    chunk.skyLightSent = parsed.skyLightSent
+    chunk.biome = Buffer.from(parsed.biome)
+    chunk.sections = parsed.sections.map(s => Section.fromJson(s))
+    return chunk
+  }
+
   initialize (iniFunc) {
     let biome = 0
     for (let i = 0; i < sectionCount; i++) {
