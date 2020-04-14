@@ -208,24 +208,19 @@ module.exports = (Block, mcData) => {
         const numLongs = varInt.read(reader)
         const dataArray = new BitArray({
           bitsPerValue: Math.ceil((numLongs * 64) / 4096),
-          capacity: 4096,
-          data: [...Array(numLongs * 2).keys()].map(() => reader.readUInt32BE())
-        })
+          capacity: 4096
+        }).readBuffer(reader)
 
         const blockLight = new BitArray({
           bitsPerValue: 4,
-          capacity: 4096,
-          // we know it will always be 512 values since bitsPerValue is constant
-          data: [...Array(512).keys()].map(() => reader.readUInt32BE())
-        })
+          capacity: 4096
+        }).readBuffer(reader)
 
         if (skyLightSent) {
           skyLight = new BitArray({
             bitsPerValue: 4,
-            capacity: 4096,
-            // we know it will always be 512 values since bitsPerValue is constant
-            data: [...Array(512).keys()].map(() => reader.readUInt32BE())
-          })
+            capacity: 4096
+          }).readBuffer(reader)
         }
 
         const section = new ChunkSection({

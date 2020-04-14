@@ -104,10 +104,20 @@ class BitArray {
     return this.data.length / 2
   }
 
+  readBuffer (smartBuffer) {
+    for (let i = 0; i < this.data.length; i += 2) {
+      this.data[i + 1] = smartBuffer.readUInt32BE()
+      this.data[i] = smartBuffer.readUInt32BE()
+    }
+    return this
+  }
+
   writeBuffer (smartBuffer) {
-    for (let i = 0; i < this.data.length; ++i) {
+    for (let i = 0; i < this.data.length; i += 2) {
+      smartBuffer.writeUInt32BE(this.data[i + 1])
       smartBuffer.writeUInt32BE(this.data[i])
     }
+    return this
   }
 
   getBitsPerValue () {

@@ -84,11 +84,7 @@ class ChunkSection {
     // depending on if the global palette or the section palette is used
     let stateId = this.data.get(getBlockIndex(pos))
 
-    if (
-      this.palette !== null &&
-      stateId >= 0 &&
-      stateId < this.palette.length
-    ) {
+    if (this.palette !== null) {
       stateId = this.palette[stateId]
     }
 
