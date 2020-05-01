@@ -52,19 +52,19 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
 
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
     assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
     assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
     }
   })
@@ -75,14 +75,14 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
     chunk.setBlock(new Vec3(0, 1, 0), new Block(41, 0, 0)) // Gold block
     assert.strictEqual(41, chunk.getBlock(new Vec3(0, 1, 0)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(0, chunk.getBlock(new Vec3(0, 1, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 1)) // Orange wool
     chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 14)) // Red wool
     assert.strictEqual(35, chunk.getBlock(new Vec3(5, 5, 5)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata)
     }
   })

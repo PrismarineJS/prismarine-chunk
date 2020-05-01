@@ -35,7 +35,7 @@
   "devDependencies": {
     "bench-csv": "^2.2.3",
     "jest": "^24.9.0",
-    "minecraft-data": "^2.35.0",
+    "minecraft-data": "^2.47.0",
     "standard": "^14.0.1"
   },
   "dependencies": {
