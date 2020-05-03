@@ -134,20 +134,31 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
   if (cycleTests.includes(version)) {
     const folder = path.join(__dirname, version)
     const files = fs.readdirSync(folder)
-    const chunkFiles = files.filter(file => file.includes('.dump'))
-    const dataFiles = files.filter(file => file.includes('.meta'))
+    const chunkFiles = files.filter(file => file.includes('.dump') && !file.includes('light'))
+    const dataFiles = files.filter(file => file.includes('.meta') && !file.includes('light'))
 
     chunkFiles.forEach(chunkDump => {
-      const packetData = dataFiles.find(dataFile =>
-        dataFile.includes(chunkDump.substr(0, chunkDump.length - 5))
-      )
+      const name = chunkDump.substr(0, chunkDump.length - 5)
+      const packetData = dataFiles.find(dataFile => dataFile.includes(name))
       const dump = fs.readFileSync(path.join(folder, chunkDump))
       const data = JSON.parse(
         fs.readFileSync(path.join(folder, packetData)).toString()
       )
+
+      let lightDump, lightData
+      if (version.startsWith('1.14')) {
+        lightDump = fs.readFileSync(path.join(folder, chunkDump.replace('chunk', 'chunk_light')))
+        lightData = JSON.parse(
+          fs.readFileSync(path.join(folder, packetData.replace('chunk', 'chunk_light'))).toString()
+        )
+      }
+
       test('Loads chunk buffers ' + chunkDump, () => {
         const chunk = new Chunk()
         chunk.load(dump, data.bitMap, data.skyLightSent)
+        if (version.startsWith('1.14')) {
+          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+        }
       })
 
       test('Correctly cycles through chunks ' + chunkDump, () => {
@@ -157,6 +168,12 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         const bitmap = chunk.getMask()
         const chunk2 = new Chunk()
         chunk2.load(buffer, bitmap, data.skyLightSent)
+
+        if (version.startsWith('1.14')) {
+          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          const lightBuffer = chunk.dumpLight()
+          chunk2.loadLight(lightBuffer, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+        }
 
         const p = new Vec3(0, 0, 0)
         for (p.y = 0; p.y < 256; p.y++) {
@@ -185,6 +202,9 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         console.log('creation', version, performance.now() - a)
         a = performance.now()
         chunk.load(dump, data.bitMap, data.skyLightSent)
+        if (version.startsWith('1.14')) {
+          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+        }
         console.log('loading', version, performance.now() - a)
         a = performance.now()
         const j = chunk.toJson()
