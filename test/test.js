@@ -8,8 +8,8 @@ const prismarineBlockLoader = require('prismarine-block')
 const chunkLoader = require('../index')
 const { performance } = require('perf_hooks')
 
-const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2']
-const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2']
+const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4']
+const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4']
 
 const depsByVersion = versions.map((version) => {
   return [
@@ -52,19 +52,19 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
 
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
     assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
     assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
     }
   })
@@ -75,14 +75,14 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
     chunk.setBlock(new Vec3(0, 1, 0), new Block(41, 0, 0)) // Gold block
     assert.strictEqual(41, chunk.getBlock(new Vec3(0, 1, 0)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(0, chunk.getBlock(new Vec3(0, 1, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 1)) // Orange wool
     chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 14)) // Red wool
     assert.strictEqual(35, chunk.getBlock(new Vec3(5, 5, 5)).type)
-    if (!version.startsWith('1.13')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14')) {
       assert.strictEqual(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata)
     }
   })
@@ -134,20 +134,31 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
   if (cycleTests.includes(version)) {
     const folder = path.join(__dirname, version)
     const files = fs.readdirSync(folder)
-    const chunkFiles = files.filter(file => file.includes('.dump'))
-    const dataFiles = files.filter(file => file.includes('.meta'))
+    const chunkFiles = files.filter(file => file.includes('.dump') && !file.includes('light'))
+    const dataFiles = files.filter(file => file.includes('.meta') && !file.includes('light'))
 
     chunkFiles.forEach(chunkDump => {
-      const packetData = dataFiles.find(dataFile =>
-        dataFile.includes(chunkDump.substr(0, chunkDump.length - 5))
-      )
+      const name = chunkDump.substr(0, chunkDump.length - 5)
+      const packetData = dataFiles.find(dataFile => dataFile.includes(name))
       const dump = fs.readFileSync(path.join(folder, chunkDump))
       const data = JSON.parse(
         fs.readFileSync(path.join(folder, packetData)).toString()
       )
+
+      let lightDump, lightData
+      if (version.startsWith('1.14')) {
+        lightDump = fs.readFileSync(path.join(folder, chunkDump.replace('chunk', 'chunk_light')))
+        lightData = JSON.parse(
+          fs.readFileSync(path.join(folder, packetData.replace('chunk', 'chunk_light'))).toString()
+        )
+      }
+
       test('Loads chunk buffers ' + chunkDump, () => {
         const chunk = new Chunk()
         chunk.load(dump, data.bitMap, data.skyLightSent)
+        if (version.startsWith('1.14')) {
+          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+        }
       })
 
       test('Correctly cycles through chunks ' + chunkDump, () => {
@@ -157,6 +168,12 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         const bitmap = chunk.getMask()
         const chunk2 = new Chunk()
         chunk2.load(buffer, bitmap, data.skyLightSent)
+
+        if (version.startsWith('1.14')) {
+          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          const lightBuffer = chunk.dumpLight()
+          chunk2.loadLight(lightBuffer, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+        }
 
         const p = new Vec3(0, 0, 0)
         for (p.y = 0; p.y < 256; p.y++) {
@@ -185,6 +202,9 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         console.log('creation', version, performance.now() - a)
         a = performance.now()
         chunk.load(dump, data.bitMap, data.skyLightSent)
+        if (version.startsWith('1.14')) {
+          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+        }
         console.log('loading', version, performance.now() - a)
         a = performance.now()
         const j = chunk.toJson()
