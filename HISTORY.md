@@ -1,5 +1,9 @@
 ## History
 
+## 1.15.0
+
+* support for 1.14 chunk
+
 ## 1.14.0
 
 * faster 1.13 chunk implementation (thanks @Karang)
