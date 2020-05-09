@@ -6,7 +6,8 @@ const chunkImplementations = {
     1.11: require('./pc/1.9/chunk'),
     1.12: require('./pc/1.9/chunk'),
     1.13: require('./pc/1.13/chunk'),
-    1.14: require('./pc/1.14/chunk')
+    1.14: require('./pc/1.14/chunk'),
+    1.15: require('./pc/1.15/chunk')
   },
   pe: {
     0.14: require('./pe/0.14/chunk'),
