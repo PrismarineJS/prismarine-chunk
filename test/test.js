@@ -175,6 +175,12 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
           chunk2.loadLight(lightBuffer, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
         }
 
+        if (version.startsWith('1.15')) {
+          chunk.loadBiomes(data.biomes)
+          const dumpedBiomes = chunk.dumpBiomes()
+          chunk2.loadBiomes(dumpedBiomes)
+        }
+
         const p = new Vec3(0, 0, 0)
         for (p.y = 0; p.y < 256; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
@@ -204,6 +210,10 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (version.startsWith('1.14') || version.startsWith('1.15')) {
           chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+        }
+
+        if (version.startsWith('1.15')) {
+          chunk.loadBiomes(data.biomes)
         }
         console.log('loading', version, performance.now() - a)
         a = performance.now()

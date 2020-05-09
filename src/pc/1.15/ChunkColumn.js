@@ -201,6 +201,14 @@ module.exports = (Block, mcData) => {
       return smartBuffer.toBuffer()
     }
 
+    loadBiomes (biomes) {
+      this.biomes = biomes
+    }
+
+    dumpBiomes (biomes) {
+      return this.biomes
+    }
+
     load (data, bitMap = 0xffff) {
       // make smartbuffer from node buffer
       // so that we doesn't need to maintain a cursor

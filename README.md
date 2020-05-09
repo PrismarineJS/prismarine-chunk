@@ -142,6 +142,22 @@ Returns the chunk raw data
 
 Load raw `data` into the chunk
 
+#### Chunk.dumpLight()
+
+Returns the chunk raw light data (starting from 1.14)
+
+#### Chunk.loadLight(data, skyLightMask, blockLightMask, emptySkyLightMask = 0, emptyBlockLightMask = 0)
+
+Load lights into the chunk (starting from 1.14)
+
+#### Chunk.dumpBiomes()
+
+Returns the biomes as an array (starting from 1.15)
+
+#### Chunk.loadBiomes(biomes)
+
+Load biomes into the chunk (starting from 1.15)
+
 #### Chunk.toJson()
 
 Returns the chunk as json
