@@ -1,8 +1,12 @@
 ## History
 
+## 1.16.0
+
+* support for 1.15 chunk (thanks @Karang)
+
 ## 1.15.0
 
-* support for 1.14 chunk
+* support for 1.14 chunk (thanks @Karang)
 
 ## 1.14.0
 
