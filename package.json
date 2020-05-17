@@ -35,7 +35,7 @@
   "homepage": "https://github.com/PrismarineJS/prismarine-chunk",
   "devDependencies": {
     "bench-csv": "^2.2.3",
-    "jest": "^24.9.0",
+    "jest": "^26.0.1",
     "standard": "^14.0.1"
   },
   "dependencies": {
