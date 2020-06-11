@@ -138,7 +138,7 @@ Return the chunk bitmap 0b0000_0000_0000_0000(0x0000) means no chunks are set wh
 
 Returns the chunk raw data
 
-#### Chunk.load(data,bitmap=0xFFFF,skyLightSent = true)
+#### Chunk.load(data, bitmap = 0xFFFF, skyLightSent = true, fullChunk = true)
 
 Load raw `data` into the chunk
 
