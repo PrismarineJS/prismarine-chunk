@@ -1,5 +1,10 @@
 ## History
 
+## 1.17.0
+
+* support for full chunk property (thanks @Karang)
+* fix bug in json serialization
+
 ## 1.16.0
 
 * support for 1.15 chunk (thanks @Karang)
