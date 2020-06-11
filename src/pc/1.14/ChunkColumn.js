@@ -209,7 +209,7 @@ module.exports = (Block, mcData) => {
       return smartBuffer.toBuffer()
     }
 
-    load (data, bitMap = 0xffff) {
+    load (data, bitMap = 0xffff, skyLightSent = true, fullChunk = true) {
       // make smartbuffer from node buffer
       // so that we doesn't need to maintain a cursor
       const reader = SmartBuffer.fromBuffer(data)
@@ -261,10 +261,12 @@ module.exports = (Block, mcData) => {
       }
 
       // read biomes
-      const p = { x: 0, y: 0, z: 0 }
-      for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
-        for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
-          this.setBiome(p, reader.readInt32BE())
+      if (fullChunk) {
+        const p = { x: 0, y: 0, z: 0 }
+        for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+          for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
+            this.setBiome(p, reader.readInt32BE())
+          }
         }
       }
     }

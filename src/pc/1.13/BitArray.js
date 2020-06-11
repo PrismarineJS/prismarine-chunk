@@ -23,17 +23,17 @@ class BitArray {
 
   toJson () {
     return JSON.stringify({
-      data: this.data.map(d => d.toString()),
+      data: this.data,
       capacity: this.capacity,
-      bitsPerValue: this.bitsPerValue.toString(),
-      valueMask: this.valueMask.toString()
+      bitsPerValue: this.bitsPerValue,
+      valueMask: this.valueMask
     })
   }
 
   static fromJson (j) {
     const parsed = JSON.parse(j)
     const bitarray = new BitArray(null)
-    bitarray.data = parsed.data.map(d => d)
+    bitarray.data = parsed.data
     bitarray.capacity = parsed.capacity
     bitarray.bitsPerValue = parsed.bitsPerValue
     bitarray.valueMask = parsed.valueMask
