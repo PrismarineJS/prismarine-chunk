@@ -38,19 +38,6 @@ Install it globally with `npm install minecraft-chunk-dumper -g` then run :
 
 `minecraftChunkDumper saveChunk 1.8.8 1.8/chunk.dump 1.8/chunk.meta`
 
-## Benchmarking
-
-Benchmarks may be run by using:
-```bash
-# run benchmarks once
-npm run benchmark
-
-# run benchmarks continuously, reloading changes as they are made
-npm run benchmark -- --watch
-```
-
-The output of the benchmarking will be placed in the file `benchmarks/results/chunk-1.9.csv`
-
 ## API
 
 ### Chunk
