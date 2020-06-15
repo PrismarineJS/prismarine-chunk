@@ -1,5 +1,11 @@
 ## History
 
+## 1.18.0
+
+* reimplement 1.9->1.12 in a similar way to 1.13 (remove protodef dependency)
+* implement full chunk for 1.8
+* add empty load and dump biomes and light methods for simplicity in all versions
+
 ## 1.17.0
 
 * support for full chunk property (thanks @Karang)
