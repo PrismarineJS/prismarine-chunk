@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --verbose",
-    "benchmark": "bench-csv ./benchmarks/chunk-1.9.js -o ./benchmarks/results/chunk-1.9.csv",
     "fix": "standard --fix",
     "lint": "standard",
     "pretest": "npm run lint"
@@ -34,7 +33,6 @@
   },
   "homepage": "https://github.com/PrismarineJS/prismarine-chunk",
   "devDependencies": {
-    "bench-csv": "^2.2.3",
     "jest": "^26.0.1",
     "standard": "^14.0.1"
   },
