@@ -197,7 +197,7 @@ class Chunk {
     return buffer
   }
 
-  load (data, bitMap = 0xFFFF, skyLightSent = true) {
+  load (data, bitMap = 0xFFFF, skyLightSent = true, fullChunk = true) {
     if (!Buffer.isBuffer(data)) { throw (new Error('Data must be a buffer')) }
 
     this.skyLightSent = skyLightSent
@@ -217,9 +217,12 @@ class Chunk {
         this.sections[i].load(sectionBuffer, skyLightSent)
       }
     }
-    data.copy(this.biome, w * l * sectionCount * chunkCount * (skyLightSent ? 3 : 5 / 2))
+    if (fullChunk) {
+      data.copy(this.biome, w * l * sectionCount * chunkCount * (skyLightSent ? 3 : 5 / 2))
+    }
 
-    if (data.length !== SECTION_SIZE * chunkCount + w * l) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${SECTION_SIZE * chunkCount + w * l})`)) }
+    const expectedSize = SECTION_SIZE * chunkCount + (fullChunk ? w * l : 0)
+    if (data.length !== expectedSize) { throw (new Error(`Data buffer not correct size (was ${data.length}, expected ${expectedSize})`)) }
   }
 
   getMask () {
