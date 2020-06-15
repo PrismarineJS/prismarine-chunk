@@ -1,4 +1,4 @@
-const constants = require('../1.13/constants')
+const constants = require('../common/constants')
 
 function loader (mcVersion) {
   const Block = require('prismarine-block')(mcVersion)

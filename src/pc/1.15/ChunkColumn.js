@@ -1,8 +1,8 @@
 const SmartBuffer = require('smart-buffer').SmartBuffer
 const ChunkSection = require('./ChunkSection')
-const constants = require('../1.13/constants')
-const BitArray = require('../1.13/BitArray')
-const varInt = require('../1.13/varInt')
+const constants = require('../common/constants')
+const BitArray = require('../common/BitArray')
+const varInt = require('../common/varInt')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {

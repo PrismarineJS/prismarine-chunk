@@ -3,6 +3,7 @@ const ChunkSection = require('./ChunkSection')
 const constants = require('../common/constants')
 const BitArray = require('../common/BitArray')
 const varInt = require('../common/varInt')
+const exists = val => val !== undefined
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
@@ -13,21 +14,13 @@ module.exports = (Block, mcData) => {
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
       ).fill(1)
-      this.skyLightMask = 0
-      this.blockLightMask = 0
-      this.skyLightSections = Array(constants.NUM_SECTIONS + 2).fill(null)
-      this.blockLightSections = Array(constants.NUM_SECTIONS + 2).fill(null)
     }
 
     toJson () {
       return JSON.stringify({
         biomes: this.biomes,
         sectionMask: this.sectionMask,
-        sections: this.sections.map(section => section === null ? null : section.toJson()),
-        skyLightMask: this.skyLightMask,
-        blockLightMask: this.blockLightMask,
-        skyLightSections: this.skyLightSections.map(section => section === null ? null : section.toJson()),
-        blockLightSections: this.blockLightSections.map(section => section === null ? null : section.toJson())
+        sections: this.sections.map(section => section === null ? null : section.toJson())
       })
     }
 
@@ -37,10 +30,6 @@ module.exports = (Block, mcData) => {
       chunk.biomes = parsed.biomes
       chunk.sectionMask = parsed.sectionMask
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
-      chunk.skyLightMask = parsed.skyLightMask
-      chunk.blockLightMask = parsed.blockLightMask
-      chunk.skyLightSections = parsed.skyLightSections.map(s => s === null ? null : BitArray.fromJson(s))
-      chunk.blockLightSections = parsed.blockLightSections.map(s => s === null ? null : BitArray.fromJson(s))
       return chunk
     }
 
@@ -57,41 +46,26 @@ module.exports = (Block, mcData) => {
     }
 
     getBlock (pos) {
-      const section = this.sections[getSectionIndex(pos)]
-      const biome = this.getBiome(pos)
-      if (section === null) {
-        return Block.fromStateId(0, biome)
-      }
-      const stateId = section.getBlock(toSectionPos(pos))
-      const block = Block.fromStateId(stateId, biome)
+      var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos))
       block.light = this.getBlockLight(pos)
       block.skyLight = this.getSkyLight(pos)
       return block
     }
 
     setBlock (pos, block) {
-      if (typeof block.stateId !== 'undefined') {
-        this.setBlockStateId(pos, block.stateId)
-      }
-      if (typeof block.biome !== 'undefined') {
-        this.setBiome(pos, block.biome.id)
-      }
-      if (typeof block.skyLight !== 'undefined') {
-        this.setSkyLight(pos, block.skyLight)
-      }
-      if (typeof block.light !== 'undefined') {
-        this.setBlockLight(pos, block.light)
-      }
+      if (exists(block.type)) { this.setBlockType(pos, block.type) }
+      if (exists(block.metadata)) { this.setBlockData(pos, block.metadata) }
+      if (exists(block.biome)) { this.setBiome(pos, block.biome.id) }
+      if (exists(block.skyLight)) { this.setSkyLight(pos, block.skyLight) }
+      if (exists(block.light)) { this.setBlockLight(pos, block.light) }
     }
 
     getBlockType (pos) {
-      const blockStateId = this.getBlockStateId(pos)
-      return mcData.blocksByStateId[blockStateId].id
+      return this.getBlockStateId(pos) >> 4
     }
 
     getBlockData (pos) {
-      const blockStateId = this.getBlockStateId(pos)
-      return mcData.blocksByStateId[blockStateId].metadata
+      return this.getBlockStateId(pos) & 15
     }
 
     getBlockStateId (pos) {
@@ -100,13 +74,13 @@ module.exports = (Block, mcData) => {
     }
 
     getBlockLight (pos) {
-      const section = this.blockLightSections[getLightSectionIndex(pos)]
-      return section ? section.get(getSectionBlockIndex(pos)) : 0
+      const section = this.sections[getSectionIndex(pos)]
+      return section ? section.getBlockLight(toSectionPos(pos)) : 15
     }
 
     getSkyLight (pos) {
-      const section = this.skyLightSections[getLightSectionIndex(pos)]
-      return section ? section.get(getSectionBlockIndex(pos)) : 0
+      const section = this.sections[getSectionIndex(pos)]
+      return section ? section.getSkyLight(toSectionPos(pos)) : 15
     }
 
     getBiome (pos) {
@@ -119,11 +93,13 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockType (pos, id) {
-      this.setBlockStateId(pos, mcData.blocks[id].minStateId)
+      const data = this.getBlockData(pos)
+      this.setBlockStateId(pos, (id << 4) | data)
     }
 
     setBlockData (pos, data) {
-      // TODO
+      const id = this.getBlockType(pos)
+      this.setBlockStateId(pos, (id << 4) | data)
     }
 
     setBlockStateId (pos, stateId) {
@@ -144,41 +120,13 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockLight (pos, light) {
-      const sectionIndex = getLightSectionIndex(pos)
-      let section = this.blockLightSections[sectionIndex]
-
-      if (section === null) {
-        if (light === 0) {
-          return
-        }
-        section = new BitArray({
-          bitsPerValue: 4,
-          capacity: 4096
-        })
-        this.blockLightMask |= 1 << sectionIndex
-        this.blockLightSections[sectionIndex] = section
-      }
-
-      section.set(getSectionBlockIndex(pos), light)
+      const section = this.sections[getSectionIndex(pos)]
+      return section && section.setBlockLight(toSectionPos(pos), light)
     }
 
     setSkyLight (pos, light) {
-      const sectionIndex = getLightSectionIndex(pos)
-      let section = this.skyLightSections[sectionIndex]
-
-      if (section === null) {
-        if (light === 0) {
-          return
-        }
-        section = new BitArray({
-          bitsPerValue: 4,
-          capacity: 4096
-        })
-        this.skyLightMask |= 1 << sectionIndex
-        this.skyLightSections[sectionIndex] = section
-      }
-
-      section.set(getSectionBlockIndex(pos), light)
+      const section = this.sections[getSectionIndex(pos)]
+      return section && section.setSkyLight(toSectionPos(pos), light)
     }
 
     setBiome (pos, biome) {
@@ -203,7 +151,7 @@ module.exports = (Block, mcData) => {
 
       // write biome data
       this.biomes.forEach(biome => {
-        smartBuffer.writeInt32BE(biome)
+        smartBuffer.writeUInt8(biome)
       })
 
       return smartBuffer.toBuffer()
@@ -224,8 +172,7 @@ module.exports = (Block, mcData) => {
 
         // keep temporary palette
         let palette
-
-        const solidBlockCount = reader.readInt16BE()
+        let skyLight
 
         // get number of bits a palette item use
         const bitsPerBlock = reader.readUInt8()
@@ -252,10 +199,23 @@ module.exports = (Block, mcData) => {
           capacity: 4096
         }).readBuffer(reader)
 
+        const blockLight = new BitArray({
+          bitsPerValue: 4,
+          capacity: 4096
+        }).readBuffer(reader)
+
+        if (skyLightSent) {
+          skyLight = new BitArray({
+            bitsPerValue: 4,
+            capacity: 4096
+          }).readBuffer(reader)
+        }
+
         const section = new ChunkSection({
           data: dataArray,
           palette,
-          solidBlockCount
+          blockLight,
+          ...(skyLightSent ? { skyLight } : {})
         })
         this.sections[y] = section
       }
@@ -265,69 +225,10 @@ module.exports = (Block, mcData) => {
         const p = { x: 0, y: 0, z: 0 }
         for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
           for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
-            this.setBiome(p, reader.readInt32BE())
+            this.setBiome(p, reader.readUInt8())
           }
         }
       }
-    }
-
-    loadLight (data, skyLightMask, blockLightMask, emptySkyLightMask = 0, emptyBlockLightMask = 0) {
-      const reader = SmartBuffer.fromBuffer(data)
-
-      // Read sky light
-      this.skyLightMask |= skyLightMask
-      for (let y = 0; y < constants.NUM_SECTIONS + 2; y++) {
-        if (!((skyLightMask >> y) & 1)) {
-          continue
-        }
-        varInt.read(reader) // always 2048
-        this.skyLightSections[y] = new BitArray({
-          bitsPerValue: 4,
-          capacity: 4096
-        }).readBuffer(reader)
-      }
-
-      // Read block light
-      this.blockLightMask |= blockLightMask
-      for (let y = 0; y < constants.NUM_SECTIONS + 2; y++) {
-        if (!((blockLightMask >> y) & 1)) {
-          continue
-        }
-        varInt.read(reader) // always 2048
-        this.blockLightSections[y] = new BitArray({
-          bitsPerValue: 4,
-          capacity: 4096
-        }).readBuffer(reader)
-      }
-    }
-
-    // These methods do nothing, and are present only for API compatibility
-    dumpBiomes () {
-
-    }
-
-    loadBiomes () {
-
-    }
-
-    dumpLight () {
-      const smartBuffer = new SmartBuffer()
-
-      this.skyLightSections.forEach((section, i) => {
-        if (section !== null) {
-          varInt.write(smartBuffer, 2048)
-          section.writeBuffer(smartBuffer)
-        }
-      })
-
-      this.blockLightSections.forEach((section, i) => {
-        if (section !== null) {
-          varInt.write(smartBuffer, 2048)
-          section.writeBuffer(smartBuffer)
-        }
-      })
-
-      return smartBuffer.toBuffer()
     }
   }
 }
@@ -336,18 +237,10 @@ function getSectionIndex (pos) {
   return Math.floor(pos.y / 16)
 }
 
-function getLightSectionIndex (pos) {
-  return Math.floor(pos.y / 16) + 1
-}
-
 function getBiomeIndex (pos) {
   return (pos.z * 16) | pos.x
 }
 
 function toSectionPos (pos) {
   return { x: pos.x, y: pos.y & 15, z: pos.z }
-}
-
-function getSectionBlockIndex (pos) {
-  return ((pos.y & 15) << 8) | (pos.z << 4) | pos.x
 }

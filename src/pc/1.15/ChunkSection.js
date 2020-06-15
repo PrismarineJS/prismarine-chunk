@@ -1,7 +1,7 @@
-const BitArray = require('../1.13/BitArray')
-const neededBits = require('../1.13/neededBits')
-const constants = require('../1.13/constants')
-const varInt = require('../1.13/varInt')
+const BitArray = require('../common/BitArray')
+const neededBits = require('../common/neededBits')
+const constants = require('../common/constants')
+const varInt = require('../common/varInt')
 
 function getBlockIndex (pos) {
   return (pos.y << 8) | (pos.z << 4) | pos.x

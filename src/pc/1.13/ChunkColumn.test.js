@@ -2,7 +2,7 @@
 const Block = require('prismarine-block')('1.13')
 const mcData = require('minecraft-data')('1.13.2')
 const ChunkColumn = require('./ChunkColumn')(Block, mcData)
-const constants = require('./constants')
+const constants = require('../common/constants')
 
 describe('ChunkColumn', () => {
   test('use function to initialize the chunk column', () => {
