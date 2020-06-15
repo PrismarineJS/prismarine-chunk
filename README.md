@@ -165,3 +165,11 @@ Returns the chunk as json
 #### Chunk.fromJson(j)
 
 Load chunk from json
+
+#### Chunk.sections
+
+Available for pc chunk implementation.
+Array of y => section
+Can be used to identify whether a section is empty or not (will be null if it's the case)
+For version >= 1.9, contains a .palette property which contains all the stateId of this section, can be used to check quickly whether a given block
+is in this section.
