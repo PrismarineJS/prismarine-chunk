@@ -141,6 +141,23 @@ module.exports = (Block, mcData) => {
       return this.sectionMask
     }
 
+    // These methods do nothing, and are present only for API compatibility
+    dumpBiomes () {
+
+    }
+
+    dumpLight () {
+
+    }
+
+    loadLight () {
+
+    }
+
+    loadBiomes () {
+
+    }
+
     dump () {
       const smartBuffer = new SmartBuffer()
       this.sections.forEach((section, i) => {

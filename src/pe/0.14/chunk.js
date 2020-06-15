@@ -174,6 +174,23 @@ class Chunk {
     this.data = data
   }
 
+  // These methods do nothing, and are present only for API compatibility
+  dumpBiomes () {
+
+  }
+
+  dumpLight () {
+
+  }
+
+  loadLight () {
+
+  }
+
+  loadBiomes () {
+
+  }
+
   dump () {
     return this.data
   }

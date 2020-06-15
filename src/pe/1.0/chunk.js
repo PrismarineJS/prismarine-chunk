@@ -173,6 +173,23 @@ class Chunk {
     return size
   }
 
+  // These methods do nothing, and are present only for API compatibility
+  dumpBiomes () {
+
+  }
+
+  dumpLight () {
+
+  }
+
+  loadLight () {
+
+  }
+
+  loadBiomes () {
+
+  }
+
   dump () {
     let offset = 0
 

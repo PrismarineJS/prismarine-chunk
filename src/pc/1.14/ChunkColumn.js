@@ -301,6 +301,15 @@ module.exports = (Block, mcData) => {
       }
     }
 
+    // These methods do nothing, and are present only for API compatibility
+    dumpBiomes () {
+
+    }
+
+    loadBiomes () {
+
+    }
+
     dumpLight () {
       const smartBuffer = new SmartBuffer()
 

@@ -160,6 +160,23 @@ class Chunk {
     this.biome.writeUInt8(biome, cursor)
   }
 
+  // These methods do nothing, and are present only for API compatibility
+  dumpBiomes () {
+
+  }
+
+  dumpLight () {
+
+  }
+
+  loadLight () {
+
+  }
+
+  loadBiomes () {
+
+  }
+
   dump (bitMap = 0xFFFF, skyLightSent = true) {
     const SECTION_SIZE = Section.sectionSize(this.skyLightSent && skyLightSent)
 
