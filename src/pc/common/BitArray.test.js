@@ -59,7 +59,6 @@ describe('BitArray', () => {
       bitArr.set(i, 15)
       assert.strictEqual(bitArr.get(i), 15)
     }
-    console.log(bitArr)
     assert(bitArr.data[0] > 0, `${bitArr.data[0]} is negative`)
   })
 
