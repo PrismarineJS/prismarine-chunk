@@ -76,12 +76,14 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
     chunk.setSkyLight(new Vec3(0, 0, 0), 15)
     assert.strictEqual(15, chunk.getSkyLight(new Vec3(0, 0, 0)))
-    const buffer = chunk.dump()
-    const bitmap = chunk.getMask()
-    const chunk2 = new Chunk()
-    chunk2.load(buffer, bitmap, true)
+    if (!version.startsWith('1.8') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+      const buffer = chunk.dump()
+      const bitmap = chunk.getMask()
+      const chunk2 = new Chunk()
+      chunk2.load(buffer, bitmap, true)
 
-    assert.strictEqual(15, chunk2.getSkyLight(new Vec3(0, 0, 0)))
+      assert.strictEqual(15, chunk2.getSkyLight(new Vec3(0, 0, 0)))
+    }
   })
 
   test('Block light set/get', function () {
@@ -91,12 +93,14 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
     chunk.setBlockLight(new Vec3(0, 0, 0), 15)
     assert.strictEqual(15, chunk.getBlockLight(new Vec3(0, 0, 0)))
-    const buffer = chunk.dump()
-    const bitmap = chunk.getMask()
-    const chunk2 = new Chunk()
-    chunk2.load(buffer, bitmap, true)
+    if (!version.startsWith('1.8') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+      const buffer = chunk.dump()
+      const bitmap = chunk.getMask()
+      const chunk2 = new Chunk()
+      chunk2.load(buffer, bitmap, true)
 
-    assert.strictEqual(15, chunk2.getBlockLight(new Vec3(0, 0, 0)))
+      assert.strictEqual(15, chunk2.getBlockLight(new Vec3(0, 0, 0)))
+    }
   })
 
   test('Overwrites blocks in place', function () {
