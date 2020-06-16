@@ -144,6 +144,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       const data = JSON.parse(
         fs.readFileSync(path.join(folder, packetData)).toString()
       )
+      data.skylightSent = !packetData.includes('nether') && !packetData.includes('end')
 
       let lightDump, lightData
       if (version.startsWith('1.14') || version.startsWith('1.15')) {
