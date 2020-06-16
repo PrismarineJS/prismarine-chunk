@@ -69,6 +69,15 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     }
   })
 
+  test('Skylight set/get', function () {
+    const chunk = new Chunk()
+
+    chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
+    assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
+    chunk.setSkyLight(new Vec3(0, 0, 0), 15)
+    assert.strictEqual(15, chunk.getSkyLight(new Vec3(0, 0, 0)))
+  })
+
   test('Overwrites blocks in place', function () {
     const chunk = new Chunk()
 
@@ -182,6 +191,23 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
           chunk2.loadBiomes(dumpedBiomes)
         }
 
+        function eqSet (as, bs) {
+          if (as.size !== bs.size) return false
+          for (var a of as) if (!bs.has(a)) return false
+          return true
+        }
+
+        if (chunk.sections) {
+          assert.strictEqual(chunk.sections.length, chunk2.sections.length)
+          for (let i = 0; i < chunk.sections.length; i++) {
+            if (chunk.sections[i] !== null && chunk.sections[i].palette !== undefined) {
+              const s1 = new Set(chunk.sections[i].palette)
+              const s2 = new Set(chunk2.sections[i].palette)
+              assert(eqSet(s1, s2), `palettes are not equal ${[...s1]} != ${[...s2]}`)
+            }
+          }
+        }
+
         const p = new Vec3(0, 0, 0)
         for (p.y = 0; p.y < 256; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
@@ -201,13 +227,19 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
             }
           }
         }
+        if (!version.startsWith('1.8')) {
+          assert(Buffer.compare(dump, buffer) === 0, 'chunk buffers are not equal')
+        }
       })
 
       test('Correctly cycles through chunks json ' + chunkDump, () => {
+        const measurePerformance = false
         let a = performance.now()
         const chunk = new Chunk()
-        console.log('creation', version, performance.now() - a)
-        a = performance.now()
+        if (measurePerformance) {
+          console.log('creation', version, performance.now() - a)
+          a = performance.now()
+        }
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (version.startsWith('1.14') || version.startsWith('1.15')) {
           chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
@@ -216,13 +248,19 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         if (version.startsWith('1.15')) {
           chunk.loadBiomes(data.biomes)
         }
-        console.log('loading', version, performance.now() - a)
-        a = performance.now()
+        if (measurePerformance) {
+          console.log('loading', version, performance.now() - a)
+          a = performance.now()
+        }
         const j = chunk.toJson()
-        console.log('seria json', version, performance.now() - a)
-        a = performance.now()
+        if (measurePerformance) {
+          console.log('seria json', version, performance.now() - a)
+          a = performance.now()
+        }
         const chunk2 = Chunk.fromJson(j)
-        console.log('loading json', version, performance.now() - a)
+        if (measurePerformance) {
+          console.log('loading json', version, performance.now() - a)
+        }
 
         const p = new Vec3(0, 0, 0)
         for (p.y = 0; p.y < 256; p.y++) {
