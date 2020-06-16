@@ -67,15 +67,15 @@ class BitArray {
 
     // Clear bits of this value first
     this.data[startLongIndex] =
-      (this.data[startLongIndex] & ~(this.valueMask << indexInStartLong)) |
-      ((value & this.valueMask) << indexInStartLong)
+      ((this.data[startLongIndex] & ~(this.valueMask << indexInStartLong)) |
+      ((value & this.valueMask) << indexInStartLong)) >>> 0
     const endBitOffset = indexInStartLong + this.bitsPerValue
     if (endBitOffset > 32) {
       // Value stretches across multiple longs
       this.data[startLongIndex + 1] =
-        (this.data[startLongIndex + 1] &
+        ((this.data[startLongIndex + 1] &
           ~((1 << (endBitOffset - 32)) - 1)) |
-        (value >> (32 - indexInStartLong))
+        (value >> (32 - indexInStartLong))) >>> 0
     }
   }
 

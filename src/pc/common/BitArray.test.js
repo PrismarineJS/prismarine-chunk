@@ -50,6 +50,18 @@ describe('BitArray', () => {
     }
   })
 
+  test('does not overflow', () => {
+    const bitArr = new BitArray({
+      bitsPerValue: 4,
+      capacity: 4096
+    })
+    for (let i = 0; i < 8; ++i) {
+      bitArr.set(i, 15)
+      assert.strictEqual(bitArr.get(i), 15)
+    }
+    assert(bitArr.data[0] > 0, `${bitArr.data[0]} is negative`)
+  })
+
   test('throws when writing out of bounds', () => {
     const bitArr = new BitArray({
       bitsPerValue: 4,
