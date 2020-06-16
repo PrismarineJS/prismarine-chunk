@@ -1,5 +1,9 @@
 ## History
 
+## 1.18.1
+
+* fix bitwise unsigned operators => fix dumping chunks for 1.9->1.12
+
 ## 1.18.0
 
 * reimplement 1.9->1.12 in a similar way to 1.13 (remove protodef dependency)
