@@ -123,7 +123,7 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockData (pos, data) {
-      // TODO
+      this.setBlockStateId(pos, mcData.blocksByStateId[this.getBlockStateId(pos)].minStateId + data)
     }
 
     setBlockStateId (pos, stateId) {
