@@ -1,5 +1,9 @@
 ## History
 
+## 1.19.0
+
+* setBlockData for 1.13, 1.14, 1.15 (thanks @Deudly)
+
 ## 1.18.1
 
 * fix bitwise unsigned operators => fix dumping chunks for 1.9->1.12
