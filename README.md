@@ -1,7 +1,7 @@
 # prismarine-chunk
 
 [![NPM version](https://img.shields.io/npm/v/prismarine-chunk.svg)](http://npmjs.com/package/prismarine-chunk)
-[![Build Status](https://img.shields.io/circleci/project/github/PrismarineJS/prismarine-chunk/master.svg)](https://circleci.com/gh/PrismarineJS/prismarine-chunk)
+[![Build Status](https://github.com/PrismarineJS/prismarine-chunk/workflows/CI/badge.svg)](https://github.com/PrismarineJS/prismarine-chunk/actions?query=workflow%3A%22CI%22)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-brightgreen.svg)](https://discord.gg/GsEFRM8)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-brightgreen.svg)](https://gitter.im/PrismarineJS/general)
 [![Irc](https://img.shields.io/badge/chat-on%20irc-brightgreen.svg)](https://irc.gitter.im/)
