@@ -8,8 +8,8 @@ const prismarineBlockLoader = require('prismarine-block')
 const chunkLoader = require('../index')
 const { performance } = require('perf_hooks')
 
-const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2']
-const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2']
+const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1']
+const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1']
 
 const depsByVersion = versions.map((version) => {
   return [
@@ -52,19 +52,19 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
 
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
-    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15') && !version.startsWith('1.16')) {
       assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
     assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
-    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15') && !version.startsWith('1.16')) {
       assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
     assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
-    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15') && !version.startsWith('1.16')) {
       assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
     }
   })
@@ -76,7 +76,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
     chunk.setSkyLight(new Vec3(0, 0, 0), 15)
     assert.strictEqual(15, chunk.getSkyLight(new Vec3(0, 0, 0)))
-    if (!version.startsWith('1.8') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+    if (!version.startsWith('1.8') && !version.startsWith('1.14') && !version.startsWith('1.15') && !version.startsWith('1.16')) {
       const buffer = chunk.dump()
       const bitmap = chunk.getMask()
       const chunk2 = new Chunk()
@@ -93,7 +93,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
     chunk.setBlockLight(new Vec3(0, 0, 0), 15)
     assert.strictEqual(15, chunk.getBlockLight(new Vec3(0, 0, 0)))
-    if (!version.startsWith('1.8') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+    if (!version.startsWith('1.8') && !version.startsWith('1.14') && !version.startsWith('1.15') && !version.startsWith('1.16')) {
       const buffer = chunk.dump()
       const bitmap = chunk.getMask()
       const chunk2 = new Chunk()
@@ -109,14 +109,14 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
     chunk.setBlock(new Vec3(0, 1, 0), new Block(41, 0, 0)) // Gold block
     assert.strictEqual(41, chunk.getBlock(new Vec3(0, 1, 0)).type)
-    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15') && !version.startsWith('1.16')) {
       assert.strictEqual(0, chunk.getBlock(new Vec3(0, 1, 0)).metadata)
     }
 
     chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 1)) // Orange wool
     chunk.setBlock(new Vec3(5, 5, 5), new Block(35, 0, 14)) // Red wool
     assert.strictEqual(35, chunk.getBlock(new Vec3(5, 5, 5)).type)
-    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15')) {
+    if (!version.startsWith('1.13') && !version.startsWith('1.14') && !version.startsWith('1.15') && !version.startsWith('1.16')) {
       assert.strictEqual(14, chunk.getBlock(new Vec3(5, 5, 5)).metadata)
     }
   })
@@ -181,7 +181,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       data.skylightSent = !packetData.includes('nether') && !packetData.includes('end')
 
       let lightDump, lightData
-      if (version.startsWith('1.14') || version.startsWith('1.15')) {
+      if (version.startsWith('1.14') || version.startsWith('1.15') || version.startsWith('1.16')) {
         lightDump = fs.readFileSync(path.join(folder, chunkDump.replace('chunk', 'chunk_light')))
         lightData = JSON.parse(
           fs.readFileSync(path.join(folder, packetData.replace('chunk', 'chunk_light'))).toString()
@@ -191,7 +191,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       test('Loads chunk buffers ' + chunkDump, () => {
         const chunk = new Chunk()
         chunk.load(dump, data.bitMap, data.skyLightSent)
-        if (version.startsWith('1.14') || version.startsWith('1.15')) {
+        if (version.startsWith('1.14') || version.startsWith('1.15') || version.startsWith('1.16')) {
           chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
         }
       })
@@ -204,13 +204,13 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         const chunk2 = new Chunk()
         chunk2.load(buffer, bitmap, data.skyLightSent)
 
-        if (version.startsWith('1.14') || version.startsWith('1.15')) {
+        if (version.startsWith('1.14') || version.startsWith('1.15') || version.startsWith('1.16')) {
           chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           const lightBuffer = chunk.dumpLight()
           chunk2.loadLight(lightBuffer, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
         }
 
-        if (version.startsWith('1.15')) {
+        if (version.startsWith('1.15') || version.startsWith('1.16')) {
           chunk.loadBiomes(data.biomes)
           const dumpedBiomes = chunk.dumpBiomes()
           chunk2.loadBiomes(dumpedBiomes)
@@ -266,11 +266,11 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
           a = performance.now()
         }
         chunk.load(dump, data.bitMap, data.skyLightSent)
-        if (version.startsWith('1.14') || version.startsWith('1.15')) {
+        if (version.startsWith('1.14') || version.startsWith('1.15') || version.startsWith('1.16')) {
           chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
         }
 
-        if (version.startsWith('1.15')) {
+        if (version.startsWith('1.15') || version.startsWith('1.16')) {
           chunk.loadBiomes(data.biomes)
         }
         if (measurePerformance) {

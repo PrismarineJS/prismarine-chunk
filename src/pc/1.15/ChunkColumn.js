@@ -6,6 +6,7 @@ const varInt = require('../common/varInt')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
+  const entriesSpanMultipleLongs = mcData.version.majorVersion === '1.15'
   return class ChunkColumn {
     constructor () {
       this.sectionMask = 0
@@ -151,7 +152,8 @@ module.exports = (Block, mcData) => {
         }
         section = new BitArray({
           bitsPerValue: 4,
-          capacity: 4096
+          capacity: 4096,
+          entriesSpanMultipleLongs
         })
         this.blockLightMask |= 1 << sectionIndex
         this.blockLightSections[sectionIndex] = section
@@ -170,7 +172,8 @@ module.exports = (Block, mcData) => {
         }
         section = new BitArray({
           bitsPerValue: 4,
-          capacity: 4096
+          capacity: 4096,
+          entriesSpanMultipleLongs
         })
         this.skyLightMask |= 1 << sectionIndex
         this.skyLightSections[sectionIndex] = section
@@ -249,7 +252,8 @@ module.exports = (Block, mcData) => {
         const numLongs = varInt.read(reader)
         const dataArray = new BitArray({
           bitsPerValue: Math.ceil((numLongs * 64) / 4096),
-          capacity: 4096
+          capacity: 4096,
+          entriesSpanMultipleLongs
         }).readBuffer(reader)
 
         const section = new ChunkSection({
@@ -273,7 +277,8 @@ module.exports = (Block, mcData) => {
         varInt.read(reader) // always 2048
         this.skyLightSections[y] = new BitArray({
           bitsPerValue: 4,
-          capacity: 4096
+          capacity: 4096,
+          entriesSpanMultipleLongs
         }).readBuffer(reader)
       }
 
@@ -286,7 +291,8 @@ module.exports = (Block, mcData) => {
         varInt.read(reader) // always 2048
         this.blockLightSections[y] = new BitArray({
           bitsPerValue: 4,
-          capacity: 4096
+          capacity: 4096,
+          entriesSpanMultipleLongs
         }).readBuffer(reader)
       }
     }

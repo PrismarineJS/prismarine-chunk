@@ -19,6 +19,7 @@ class BitArray {
     this.capacity = options.capacity
     this.bitsPerValue = options.bitsPerValue
     this.valueMask = valueMask
+    this.entriesSpanMultipleLongs = options.entriesSpanMultipleLongs || true
   }
 
   toJson () {
@@ -26,7 +27,8 @@ class BitArray {
       data: this.data,
       capacity: this.capacity,
       bitsPerValue: this.bitsPerValue,
-      valueMask: this.valueMask
+      valueMask: this.valueMask,
+      entriesSpanMultipleLongs: this.entriesSpanMultipleLongs
     })
   }
 
@@ -37,45 +39,92 @@ class BitArray {
     bitarray.capacity = parsed.capacity
     bitarray.bitsPerValue = parsed.bitsPerValue
     bitarray.valueMask = parsed.valueMask
+    bitarray.entriesSpanMultipleLongs = parsed.entriesSpanMultipleLongs
     return bitarray
   }
 
   get (index) {
     assert(index >= 0 && index < this.capacity, 'index is out of bounds')
 
-    const bitIndex = index * this.bitsPerValue
-    const startLongIndex = bitIndex >>> 5
-    const startLong = this.data[startLongIndex]
-    const indexInStartLong = bitIndex & 31
-    let result = startLong >>> indexInStartLong
-    const endBitOffset = indexInStartLong + this.bitsPerValue
-    if (endBitOffset > 32) {
-      // Value stretches across multiple longs
-      const endLong = this.data[startLongIndex + 1]
-      result |= endLong << (32 - indexInStartLong)
+    if (this.entriesSpanMultipleLongs) {
+      const bitIndex = index * this.bitsPerValue
+      const startLongIndex = bitIndex >>> 5
+      const startLong = this.data[startLongIndex]
+      const indexInStartLong = bitIndex & 31
+      let result = startLong >>> indexInStartLong
+      const endBitOffset = indexInStartLong + this.bitsPerValue
+      if (endBitOffset > 32) {
+        // Value stretches across multiple longs
+        const endLong = this.data[startLongIndex + 1]
+        result |= endLong << (32 - indexInStartLong)
+      }
+      return result & this.valueMask
+    } else {
+      /*
+      WIP
+      22:25 <Karang> let's say you have bitPerValue = 5, you can fit 12 x 5 bits values, and you'll have 4 bit remaining
+      22:25 <Karang> in the old version, you would store the first 4 bit of the value in the same long, and the remaining 1 bit in the next
+      22:25 <Karang> in 1.16, you store the 5 bits in the next, and you leave 4 bits of padding
+      */
+      const bitIndex = index * this.bitsPerValue
+      const startLongIndex = bitIndex >>> 5
+      const startLong = this.data[startLongIndex]
+      const indexInStartLong = bitIndex & 31
+      let result = startLong >>> indexInStartLong
+      const endBitOffset = indexInStartLong + this.bitsPerValue
+      if (endBitOffset > 32) {
+        // Value stretches across multiple longs
+        const endLong = this.data[startLongIndex + 1]
+        result |= endLong << (32 - indexInStartLong)
+      }
+      return result & this.valueMask
     }
-    return result & this.valueMask
   }
 
   set (index, value) {
     assert(index >= 0 && index < this.capacity, 'index is out of bounds')
     assert(value <= this.valueMask, 'value does not fit into bits per value')
 
-    const bitIndex = index * this.bitsPerValue
-    const startLongIndex = bitIndex >>> 5
-    const indexInStartLong = bitIndex & 31
+    if (this.entriesSpanMultipleLongs) {
+      const bitIndex = index * this.bitsPerValue
+      const startLongIndex = bitIndex >>> 5
+      const indexInStartLong = bitIndex & 31
 
-    // Clear bits of this value first
-    this.data[startLongIndex] =
-      ((this.data[startLongIndex] & ~(this.valueMask << indexInStartLong)) |
-      ((value & this.valueMask) << indexInStartLong)) >>> 0
-    const endBitOffset = indexInStartLong + this.bitsPerValue
-    if (endBitOffset > 32) {
-      // Value stretches across multiple longs
-      this.data[startLongIndex + 1] =
-        ((this.data[startLongIndex + 1] &
-          ~((1 << (endBitOffset - 32)) - 1)) |
-        (value >> (32 - indexInStartLong))) >>> 0
+      // Clear bits of this value first
+      this.data[startLongIndex] =
+        ((this.data[startLongIndex] & ~(this.valueMask << indexInStartLong)) |
+        ((value & this.valueMask) << indexInStartLong)) >>> 0
+      const endBitOffset = indexInStartLong + this.bitsPerValue
+      if (endBitOffset > 32) {
+        // Value stretches across multiple longs
+        this.data[startLongIndex + 1] =
+          ((this.data[startLongIndex + 1] &
+            ~((1 << (endBitOffset - 32)) - 1)) |
+          (value >> (32 - indexInStartLong))) >>> 0
+      }
+    } else {
+      /*
+      WIP
+      22:25 <Karang> let's say you have bitPerValue = 5, you can fit 12 x 5 bits values, and you'll have 4 bit remaining
+      22:25 <Karang> in the old version, you would store the first 4 bit of the value in the same long, and the remaining 1 bit in the next
+      22:25 <Karang> in 1.16, you store the 5 bits in the next, and you leave 4 bits of padding
+      */
+      const bitIndex = index * this.bitsPerValue
+      const startLongIndex = bitIndex >>> 5
+      const indexInStartLong = bitIndex & 31
+
+      // Clear bits of this value first
+      this.data[startLongIndex] =
+        ((this.data[startLongIndex] & ~(this.valueMask << indexInStartLong)) |
+        ((value & this.valueMask) << indexInStartLong)) >>> 0
+      const endBitOffset = indexInStartLong + this.bitsPerValue
+      if (endBitOffset > 32) {
+        // Value stretches across multiple longs
+        this.data[startLongIndex + 1] =
+          ((this.data[startLongIndex + 1] &
+            ~((1 << (endBitOffset - 32)) - 1)) |
+          (value >> (32 - indexInStartLong))) >>> 0
+      }
     }
   }
 
