@@ -50,18 +50,18 @@ class BitArray {
 
     const startLongIndex = Math.floor(index / this.valuesPerLong)
     const indexInLong = (index - startLongIndex * this.valuesPerLong) * this.bitsPerValue
-    if (indexInLong > 32) {
+    if (indexInLong >= 32) {
       const indexInStartLong = indexInLong - 32
-      const startLong = this.data[startLongIndex + 1]
+      const startLong = this.data[startLongIndex * 2 + 1]
       return (startLong >>> indexInStartLong) & this.valueMask
     }
-    const startLong = this.data[startLongIndex]
+    const startLong = this.data[startLongIndex * 2]
     const indexInStartLong = indexInLong
     let result = startLong >>> indexInStartLong
     const endBitOffset = indexInStartLong + this.bitsPerValue
     if (endBitOffset > 32) {
       // Value stretches across multiple longs
-      const endLong = this.data[startLongIndex + 1]
+      const endLong = this.data[startLongIndex * 2 + 1]
       result |= endLong << (32 - indexInStartLong)
     }
     return result & this.valueMask
@@ -73,24 +73,24 @@ class BitArray {
 
     const startLongIndex = Math.floor(index / this.valuesPerLong)
     const indexInLong = (index - startLongIndex * this.valuesPerLong) * this.bitsPerValue
-    if (indexInLong > 32) {
+    if (indexInLong >= 32) {
       const indexInStartLong = indexInLong - 32
-      this.data[startLongIndex + 1] =
-      ((this.data[startLongIndex + 1] & ~(this.valueMask << indexInStartLong)) |
+      this.data[startLongIndex * 2 + 1] =
+      ((this.data[startLongIndex * 2 + 1] & ~(this.valueMask << indexInStartLong)) |
       ((value & this.valueMask) << indexInStartLong)) >>> 0
       return
     }
     const indexInStartLong = indexInLong
 
     // Clear bits of this value first
-    this.data[startLongIndex] =
-      ((this.data[startLongIndex] & ~(this.valueMask << indexInStartLong)) |
+    this.data[startLongIndex * 2] =
+      ((this.data[startLongIndex * 2] & ~(this.valueMask << indexInStartLong)) |
       ((value & this.valueMask) << indexInStartLong)) >>> 0
     const endBitOffset = indexInStartLong + this.bitsPerValue
     if (endBitOffset > 32) {
       // Value stretches across multiple longs
-      this.data[startLongIndex + 1] =
-        ((this.data[startLongIndex + 1] &
+      this.data[startLongIndex * 2 + 1] =
+        ((this.data[startLongIndex * 2 + 1] &
           ~((1 << (endBitOffset - 32)) - 1)) |
         (value >> (32 - indexInStartLong))) >>> 0
     }
