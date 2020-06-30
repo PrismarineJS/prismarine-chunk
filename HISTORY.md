@@ -1,5 +1,9 @@
 ## History
 
+## 1.20.0
+
+* 1.16 support
+
 ## 1.19.0
 
 * setBlockData for 1.13, 1.14, 1.15 (thanks @Deudly)
