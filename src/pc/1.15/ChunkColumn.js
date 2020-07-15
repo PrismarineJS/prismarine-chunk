@@ -58,7 +58,7 @@ module.exports = (Block, mcData) => {
     getBlock (pos) {
       const section = this.sections[getSectionIndex(pos)]
       const biome = this.getBiome(pos)
-      if (section === null) {
+      if (!section) {
         return Block.fromStateId(0, biome)
       }
       const stateId = section.getBlock(toSectionPos(pos))
@@ -127,9 +127,10 @@ module.exports = (Block, mcData) => {
 
     setBlockStateId (pos, stateId) {
       const sectionIndex = getSectionIndex(pos)
-      let section = this.sections[sectionIndex]
+      if (sectionIndex < 0 || sectionIndex >= 16) return
 
-      if (section === null) {
+      let section = this.sections[sectionIndex]
+      if (!section) {
         // if it's air
         if (stateId === 0) {
           return

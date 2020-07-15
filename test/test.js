@@ -47,6 +47,13 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     assert.strictEqual(0, chunk.getBlock(new Vec3(15, Chunk.h - 1, 15)).type)
   })
 
+  test('Out of bounds blocks being air', function () {
+    const chunk = new Chunk()
+
+    assert.strictEqual(0, chunk.getBlock(new Vec3(8, -1, 8)).type)
+    assert.strictEqual(0, chunk.getBlock(new Vec3(8, 256, 8)).type)
+  })
+
   test('Should set a block at the given position', function () {
     const chunk = new Chunk()
 

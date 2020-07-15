@@ -111,23 +111,29 @@ class Chunk {
   }
 
   getBlockStateId (pos) {
-    return this._getSection(pos).getBlockStateId(posInSection(pos))
+    const section = this._getSection(pos)
+    return section ? section.getBlockStateId(posInSection(pos)) : 0
   }
 
   getBlockType (pos) {
-    return this._getSection(pos).getBlockType(posInSection(pos))
+    const section = this._getSection(pos)
+    return section ? section.getBlockType(posInSection(pos)) : 0
   }
 
   getBlockData (pos) {
-    return this._getSection(pos).getBlockData(posInSection(pos))
+    const section = this._getSection(pos)
+    return section ? section.getBlockData(posInSection(pos)) : 0
   }
 
   getBlockLight (pos) {
-    return this._getSection(pos).getBlockLight(posInSection(pos))
+    const section = this._getSection(pos)
+    return section ? section.getBlockLight(posInSection(pos)) : 0
   }
 
   getSkyLight (pos) {
-    return (this.skyLightSent) ? this._getSection(pos).getSkyLight(posInSection(pos)) : 0
+    if (!this.skyLightSent) return 0
+    const section = this._getSection(pos)
+    return section ? section.getSkyLight(posInSection(pos)) : 15
   }
 
   getBiome (pos) {
@@ -136,23 +142,28 @@ class Chunk {
   }
 
   setBlockStateId (pos, stateId) {
-    return this._getSection(pos).setBlockStateId(posInSection(pos), stateId)
+    const section = this._getSection(pos)
+    return section && section.setBlockStateId(posInSection(pos), stateId)
   }
 
   setBlockType (pos, id) {
-    this._getSection(pos).setBlockType(posInSection(pos), id)
+    const data = this.getBlockData(pos)
+    this.setBlockStateId(pos, (id << 4) | data)
   }
 
   setBlockData (pos, data) {
-    this._getSection(pos).setBlockData(posInSection(pos), data)
+    const id = this.getBlockType(pos)
+    this.setBlockStateId(pos, (id << 4) | data)
   }
 
   setBlockLight (pos, light) {
-    this._getSection(pos).setBlockLight(posInSection(pos), light)
+    const section = this._getSection(pos)
+    return section && section.setBlockLight(posInSection(pos), light)
   }
 
   setSkyLight (pos, light) {
-    this._getSection(pos).setSkyLight(posInSection(pos), light)
+    const section = this._getSection(pos)
+    return section && section.setSkyLight(posInSection(pos), light)
   }
 
   setBiome (pos, biome) {
