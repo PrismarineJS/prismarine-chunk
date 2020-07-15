@@ -109,6 +109,7 @@ module.exports = (Block, mcData) => {
     }
 
     getBiome (pos) {
+      if (pos.y < 0 || pos.y >= 256) return 0
       return this.biomes[getBiomeIndex(pos)]
     }
 
@@ -182,6 +183,7 @@ module.exports = (Block, mcData) => {
     }
 
     setBiome (pos, biome) {
+      if (pos.y < 0 || pos.y >= 256) return
       this.biomes[getBiomeIndex(pos)] = biome
     }
 
