@@ -1,5 +1,9 @@
 ## History
 
+## 1.20.1
+
+* Return air when reading y < 0 or y >= 256
+
 ## 1.20.0
 
 * 1.16 support
