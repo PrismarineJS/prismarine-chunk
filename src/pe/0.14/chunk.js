@@ -106,34 +106,42 @@ class Chunk {
   }
 
   getBlockType (pos) {
+    if (pos.y < 0 || pos.y >= 256) return 0
     return this.data.readUInt8(getBlockCursor(pos))
   }
 
   setBlockType (pos, id) {
+    if (pos.y < 0 || pos.y >= 256) return
     this.data.writeUInt8(id, getBlockCursor(pos))
   }
 
   getBlockData (pos) {
+    if (pos.y < 0 || pos.y >= 256) return 0
     return readUInt4LE(this.data, getBlockDataCursor(pos))
   }
 
   setBlockData (pos, data) {
+    if (pos.y < 0 || pos.y >= 256) return
     writeUInt4LE(this.data, data, getBlockDataCursor(pos))
   }
 
   getBlockLight (pos) {
+    if (pos.y < 0 || pos.y >= 256) return 0
     return readUInt4LE(this.data, getBlockLightCursor(pos))
   }
 
   setBlockLight (pos, light) {
+    if (pos.y < 0 || pos.y >= 256) return
     writeUInt4LE(this.data, light, getBlockLightCursor(pos))
   }
 
   getSkyLight (pos) {
+    if (pos.y < 0 || pos.y >= 256) return 0
     return readUInt4LE(this.data, getSkyLightCursor(pos))
   }
 
   setSkyLight (pos, light) {
+    if (pos.y < 0 || pos.y >= 256) return
     writeUInt4LE(this.data, light, getSkyLightCursor(pos))
   }
 

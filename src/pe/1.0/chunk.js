@@ -82,42 +82,42 @@ class Chunk {
 
   getBlockType (pos) {
     const chunk = this.chunks[pos.y >> 4]
-    return chunk.getBlockType(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z))
+    return chunk ? chunk.getBlockType(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z)) : 0
   }
 
   setBlockType (pos, type) {
     const chunk = this.chunks[pos.y >> 4]
-    chunk.setBlockType(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), type)
+    return chunk && chunk.setBlockType(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), type)
   }
 
   getBlockData (pos) {
     const chunk = this.chunks[pos.y >> 4]
-    return chunk.getBlockData(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z))
+    return chunk ? chunk.getBlockData(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z)) : 0
   }
 
   setBlockData (pos, data) {
     const chunk = this.chunks[pos.y >> 4]
-    chunk.setBlockData(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), data)
+    return chunk && chunk.setBlockData(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), data)
   }
 
   getBlockLight (pos) {
     const chunk = this.chunks[pos.y >> 4]
-    return chunk.getBlockLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z))
+    return chunk ? chunk.getBlockLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z)) : 0
   }
 
   setBlockLight (pos, light) {
     const chunk = this.chunks[pos.y >> 4]
-    chunk.setBlockLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), light)
+    return chunk && chunk.setBlockLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), light)
   }
 
   getSkyLight (pos) {
     const chunk = this.chunks[pos.y >> 4]
-    return chunk.getSkyLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z))
+    return chunk ? chunk.getSkyLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z)) : 15
   }
 
   setSkyLight (pos, light) {
     const chunk = this.chunks[pos.y >> 4]
-    chunk.setSkyLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), light)
+    return chunk && chunk.setSkyLight(new Vec3(pos.x, pos.y - 16 * (pos.y >> 4), pos.z), light)
   }
 
   getBiomeColor (pos) {
