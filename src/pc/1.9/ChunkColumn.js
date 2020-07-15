@@ -104,9 +104,10 @@ module.exports = (Block, mcData) => {
 
     setBlockStateId (pos, stateId) {
       const sectionIndex = getSectionIndex(pos)
-      let section = this.sections[sectionIndex]
+      if (sectionIndex < 0 || sectionIndex >= 16) return
 
-      if (section === null) {
+      let section = this.sections[sectionIndex]
+      if (!section) {
         // if it's air
         if (stateId === 0) {
           return
