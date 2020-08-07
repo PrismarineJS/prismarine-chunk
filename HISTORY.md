@@ -1,5 +1,9 @@
 ## History
 
+## 1.20.2
+
+* Discard the 0 length of the missing palette array in 1.9 (thanks @IdanHo)
+
 ## 1.20.1
 
 * Return air when reading y < 0 or y >= 256
