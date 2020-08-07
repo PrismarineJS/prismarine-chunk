@@ -206,6 +206,8 @@ module.exports = (Block, mcData) => {
             palette.push(varInt.read(reader))
           }
         } else {
+          // remove the 0 length signifying the missing palette array
+          varInt.read(reader)
           // global palette is used
           palette = null
         }
