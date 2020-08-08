@@ -176,6 +176,9 @@ class ChunkSection {
       this.palette.forEach(paletteElement => {
         varInt.write(smartBuffer, paletteElement)
       })
+    } else {
+      // write 0 length for missing palette
+      varInt.write(smartBuffer, 0)
     }
 
     // write the number of longs to be written
