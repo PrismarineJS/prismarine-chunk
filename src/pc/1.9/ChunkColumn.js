@@ -10,6 +10,7 @@ module.exports = (Block, mcData) => {
   return class ChunkColumn {
     constructor () {
       this.sectionMask = 0
+      this.skyLightSent = true
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
@@ -180,6 +181,7 @@ module.exports = (Block, mcData) => {
       // so that we doesn't need to maintain a cursor
       const reader = SmartBuffer.fromBuffer(data)
 
+      this.skyLightSent = skyLightSent
       this.sectionMask |= bitMap
       for (let y = 0; y < constants.NUM_SECTIONS; ++y) {
         // does `data` contain this chunk?
@@ -235,7 +237,7 @@ module.exports = (Block, mcData) => {
           data: dataArray,
           palette,
           blockLight,
-          ...(skyLightSent ? { skyLight } : {})
+          ...(skyLightSent ? { skyLight } : { skyLight: null })
         })
         this.sections[y] = section
       }
