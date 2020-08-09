@@ -224,7 +224,7 @@ class Chunk {
         const sectionBuffer = Buffer.alloc(SECTION_SIZE)
         offset += data.copy(sectionBuffer, 0, offset, offset + w * l * sh * 2)
         offsetLight += data.copy(sectionBuffer, w * l * sh * 2, offsetLight, offsetLight + w * l * sh / 2)
-        if (this.skyLightSent) offsetSkyLight += data.copy(sectionBuffer, w * l * sh * 5 / 2, offsetLight, offsetSkyLight + w * l * sh / 2)
+        if (this.skyLightSent) offsetSkyLight += data.copy(sectionBuffer, w * l * sh * 5 / 2, offsetSkyLight, offsetSkyLight + w * l * sh / 2)
         this.sections[i].load(sectionBuffer, skyLightSent)
       }
     }
