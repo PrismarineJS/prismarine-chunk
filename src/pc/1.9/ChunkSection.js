@@ -32,7 +32,7 @@ class ChunkSection {
       })
     }
 
-    if (!options.palette) {
+    if (options.palette === undefined) { // dont create palette if its null
       options.palette = [0]
     }
 
