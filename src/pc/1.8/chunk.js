@@ -229,7 +229,7 @@ class Chunk {
       }
     }
     if (fullChunk) {
-      data.copy(this.biome, w * l * sectionCount * chunkCount * (skyLightSent ? 3 : 5 / 2))
+      data.copy(this.biome, 0, w * l * sectionCount * chunkCount * (skyLightSent ? 3 : 5 / 2))
     }
 
     const expectedSize = SECTION_SIZE * chunkCount + (fullChunk ? w * l : 0)
