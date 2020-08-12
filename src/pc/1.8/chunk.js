@@ -224,12 +224,12 @@ class Chunk {
         const sectionBuffer = Buffer.alloc(SECTION_SIZE)
         offset += data.copy(sectionBuffer, 0, offset, offset + w * l * sh * 2)
         offsetLight += data.copy(sectionBuffer, w * l * sh * 2, offsetLight, offsetLight + w * l * sh / 2)
-        if (this.skyLightSent) offsetSkyLight += data.copy(sectionBuffer, w * l * sh * 5 / 2, offsetLight, offsetSkyLight + w * l * sh / 2)
+        if (this.skyLightSent) offsetSkyLight += data.copy(sectionBuffer, w * l * sh * 5 / 2, offsetSkyLight, offsetSkyLight + w * l * sh / 2)
         this.sections[i].load(sectionBuffer, skyLightSent)
       }
     }
     if (fullChunk) {
-      data.copy(this.biome, w * l * sectionCount * chunkCount * (skyLightSent ? 3 : 5 / 2))
+      data.copy(this.biome, 0, w * l * sectionCount * chunkCount * (skyLightSent ? 3 : 5 / 2))
     }
 
     const expectedSize = SECTION_SIZE * chunkCount + (fullChunk ? w * l : 0)

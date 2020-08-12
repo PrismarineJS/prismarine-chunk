@@ -31,7 +31,7 @@ class ChunkSection {
       })
     }
 
-    if (!options.palette) {
+    if (options.palette === undefined) { // dont create palette if its null
       options.palette = [0]
     }
 
@@ -42,7 +42,7 @@ class ChunkSection {
       })
     }
 
-    if (!options.skyLight) {
+    if (options.skyLight === undefined) { // dont create skylight if its null
       options.skyLight = new BitArray({
         bitsPerValue: 4,
         capacity: constants.SECTION_VOLUME
@@ -63,7 +63,7 @@ class ChunkSection {
       palette: this.palette,
       isDirty: this.isDirty,
       blockLight: this.blockLight.toJson(),
-      skyLight: this.skyLight.toJson(),
+      skyLight: this.skyLight ? this.skyLight.toJson() : this.skyLight,
       solidBlockCount: this.solidBlockCount
     })
   }
@@ -74,7 +74,7 @@ class ChunkSection {
       data: BitArray.fromJson(parsed.data),
       palette: parsed.palette,
       blockLight: BitArray.fromJson(parsed.blockLight),
-      skyLight: BitArray.fromJson(parsed.skyLight),
+      skyLight: parsed.skyLight ? BitArray.fromJson(parsed.skyLight) : parsed.skyLight,
       solidBlockCount: parsed.solidBlockCount
     })
   }
@@ -150,7 +150,7 @@ class ChunkSection {
   }
 
   getSkyLight (pos) {
-    return this.skyLight.get(getBlockIndex(pos))
+    return this.skyLight ? this.skyLight.get(getBlockIndex(pos)) : 0
   }
 
   setBlockLight (pos, light) {
@@ -158,7 +158,7 @@ class ChunkSection {
   }
 
   setSkyLight (pos, light) {
-    return this.skyLight.set(getBlockIndex(pos), light)
+    return this.skyLight ? this.skyLight.set(getBlockIndex(pos), light) : 0
   }
 
   isEmpty () {
@@ -186,8 +186,10 @@ class ChunkSection {
     // write block light data
     this.blockLight.writeBuffer(smartBuffer)
 
-    // write sky light data
-    this.skyLight.writeBuffer(smartBuffer)
+    if (this.skyLight !== null) {
+      // write sky light data
+      this.skyLight.writeBuffer(smartBuffer)
+    }
   }
 }
 
