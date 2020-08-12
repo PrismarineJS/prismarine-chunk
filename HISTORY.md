@@ -1,5 +1,9 @@
 ## History
 
+## 1.20.3
+
+* Several bug fix (thanks @IdanHo)
+
 ## 1.20.2
 
 * Discard the 0 length of the missing palette array in 1.9 (thanks @IdanHo)
