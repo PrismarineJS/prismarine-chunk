@@ -40,7 +40,7 @@ module.exports = (Block, mcData) => {
       chunk.skyLightMask = parsed.skyLightMask
       chunk.blockLightMask = parsed.blockLightMask
       chunk.skyLightSections = parsed.skyLightSections.map(s => s === null ? null : BitArray.fromJson(s))
-      chunk.blockLightSections = parsed.blockLightSections.map(s => s === null ? null : BitArray.fromJson(s)),
+      chunk.blockLightSections = parsed.blockLightSections.map(s => s === null ? null : BitArray.fromJson(s))
       chunk.blockEntities = parsed.blockEntities
       return chunk
     }
