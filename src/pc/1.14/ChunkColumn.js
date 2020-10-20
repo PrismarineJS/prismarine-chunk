@@ -1,8 +1,8 @@
 const SmartBuffer = require('smart-buffer').SmartBuffer
 const ChunkSection = require('./ChunkSection')
 const constants = require('../common/constants')
-const BitArray = require('../common/BitArray')
 const varInt = require('../common/varInt')
+const BitArray = require('../common/BitArray')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
@@ -17,6 +17,7 @@ module.exports = (Block, mcData) => {
       this.blockLightMask = 0
       this.skyLightSections = Array(constants.NUM_SECTIONS + 2).fill(null)
       this.blockLightSections = Array(constants.NUM_SECTIONS + 2).fill(null)
+      this.blockEntities = []
     }
 
     toJson () {
@@ -27,7 +28,8 @@ module.exports = (Block, mcData) => {
         skyLightMask: this.skyLightMask,
         blockLightMask: this.blockLightMask,
         skyLightSections: this.skyLightSections.map(section => section === null ? null : section.toJson()),
-        blockLightSections: this.blockLightSections.map(section => section === null ? null : section.toJson())
+        blockLightSections: this.blockLightSections.map(section => section === null ? null : section.toJson()),
+        blockEntities: this.blockEntities
       })
     }
 
@@ -41,6 +43,7 @@ module.exports = (Block, mcData) => {
       chunk.blockLightMask = parsed.blockLightMask
       chunk.skyLightSections = parsed.skyLightSections.map(s => s === null ? null : BitArray.fromJson(s))
       chunk.blockLightSections = parsed.blockLightSections.map(s => s === null ? null : BitArray.fromJson(s))
+      chunk.blockEntities = parsed.blockEntities
       return chunk
     }
 

@@ -50,10 +50,16 @@ class Chunk {
     for (let i = 0; i < sectionCount; i++) { this.sections[i] = new Section() }
     this.biome = Buffer.alloc(BIOME_SIZE)
     this.biome.fill(0)
+    this.blockEntities = []
   }
 
   toJson () {
-    return JSON.stringify({ skyLightSent: this.skyLightSent, biome: this.biome.toJSON(), sections: this.sections.map(section => section.toJson()) })
+    return JSON.stringify({
+      skyLightSent: this.skyLightSent,
+      biome: this.biome.toJSON(),
+      sections: this.sections.map(section => section.toJson()),
+      blockEntities: this.blockEntities
+    })
   }
 
   static fromJson (j) {
@@ -62,6 +68,7 @@ class Chunk {
     chunk.skyLightSent = parsed.skyLightSent
     chunk.biome = Buffer.from(parsed.biome)
     chunk.sections = parsed.sections.map(s => Section.fromJson(s))
+    chunk.blockEntities = parsed.blockEntities
     return chunk
   }
 
