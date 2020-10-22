@@ -1,16 +1,17 @@
 import { Block } from "prismarine-block";
 import { Vec3 } from "vec3";
+import Section from "../../../src/pc/1.8/section";
 
 export = loader;
 declare function loader(mcVersion: number): typeof Chunk;
 declare class Chunk {
     static fromJson(j: any): Chunk;
     skyLightSent: boolean;
-    sections: any[];
+    sections: Section[]; 
     biome: Buffer;
     toJson(): string;
     initialize(iniFunc: any): void;
-    getBlock(pos: Vec3): any;
+    getBlock(pos: Vec3): Block;
     setBlock(pos: Vec3, block: Block): void;
     getBiomeColor(pos: Vec3): {
         r: number;
@@ -18,8 +19,8 @@ declare class Chunk {
         b: number;
     };
     setBiomeColor(pos: Vec3, r: number, g: number, b: number): void;
-    _getSection(pos: Vec3): any;
-    getBlockStateId(pos: Vec3): any;
+    _getSection(pos: Vec3): Section;
+    getBlockStateId(pos: Vec3): Section;
     getBlockType(pos: Vec3): any;
     getBlockData(pos: Vec3): any;
     getBlockLight(pos: Vec3): any;
