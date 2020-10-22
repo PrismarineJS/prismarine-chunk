@@ -1,3 +1,5 @@
+import { Vec3 } from "vec3";
+
 export = ChunkSection;
 declare class ChunkSection {
     static fromJson(j: any): ChunkSection;
@@ -9,12 +11,12 @@ declare class ChunkSection {
     skyLight: any;
     solidBlockCount: any;
     toJson(): string;
-    getBlock(pos: any): any;
-    setBlock(pos: any, stateId: any): void;
-    getBlockLight(pos: any): any;
-    getSkyLight(pos: any): any;
-    setBlockLight(pos: any, light: any): any;
-    setSkyLight(pos: any, light: any): any;
+    getBlock(pos: Vec3): any;
+    setBlock(pos: Vec3, stateId: any): void;
+    getBlockLight(pos: Vec3): any;
+    getSkyLight(pos: Vec3): any;
+    setBlockLight(pos: Vec3, light: any): any;
+    setSkyLight(pos: Vec3, light: any): any;
     isEmpty(): boolean;
     write(smartBuffer: any): void;
 }

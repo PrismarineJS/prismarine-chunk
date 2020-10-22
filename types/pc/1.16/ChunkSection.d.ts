@@ -1,3 +1,5 @@
+import { Vec3 } from "vec3";
+
 export = ChunkSection;
 declare class ChunkSection {
     static fromJson(j: any): ChunkSection;
@@ -7,8 +9,8 @@ declare class ChunkSection {
     isDirty: boolean;
     solidBlockCount: any;
     toJson(): string;
-    getBlock(pos: any): any;
-    setBlock(pos: any, stateId: any): void;
+    getBlock(pos: Vec3): any;
+    setBlock(pos: Vec3, stateId: any): void;
     isEmpty(): boolean;
     write(smartBuffer: any): void;
 }

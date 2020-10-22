@@ -1,3 +1,6 @@
+import { Block } from "prismarine-block";
+import { Vec3 } from "vec3";
+
 export = loader;
 declare function loader(mcVersion: number): {
     new (): {
@@ -7,26 +10,26 @@ declare function loader(mcVersion: number): {
         biomes: any[];
         toJson(): string;
         initialize(func: any): void;
-        getBlock(pos: any): any;
-        setBlock(pos: any, block: any): void;
-        getBlockType(pos: any): number;
-        getBlockData(pos: any): number;
-        getBlockStateId(pos: any): any;
-        getBlockLight(pos: any): any;
-        getSkyLight(pos: any): any;
-        getBiome(pos: any): any;
-        getBiomeColor(pos: any): {
+        getBlock(pos: Vec3): any;
+        setBlock(pos: Vec3, block: Block): void;
+        getBlockType(pos: Vec3): number;
+        getBlockData(pos: Vec3): number;
+        getBlockStateId(pos: Vec3): any;
+        getBlockLight(pos: Vec3): any;
+        getSkyLight(pos: Vec3): any;
+        getBiome(pos: Vec3): any;
+        getBiomeColor(pos: Vec3): {
             r: number;
             g: number;
             b: number;
         };
-        setBlockType(pos: any, id: any): void;
-        setBlockData(pos: any, data: any): void;
-        setBlockStateId(pos: any, stateId: any): void;
-        setBlockLight(pos: any, light: any): any;
-        setSkyLight(pos: any, light: any): any;
-        setBiome(pos: any, biome: any): void;
-        setBiomeColor(pos: any, r: any, g: any, b: any): void;
+        setBlockType(pos: Vec3, id: any): void;
+        setBlockData(pos: Vec3, data: any): void;
+        setBlockStateId(pos: Vec3, stateId: any): void;
+        setBlockLight(pos: Vec3, light: any): any;
+        setSkyLight(pos: Vec3, light: any): any;
+        setBiome(pos: Vec3, biome: any): void;
+        setBiomeColor(pos: Vec3, r: number, g: number, b: number): void;
         getMask(): number;
         dumpBiomes(): void;
         dumpLight(): void;
@@ -42,26 +45,26 @@ declare function loader(mcVersion: number): {
         biomes: any[];
         toJson(): string;
         initialize(func: any): void;
-        getBlock(pos: any): any;
-        setBlock(pos: any, block: any): void;
-        getBlockType(pos: any): number;
-        getBlockData(pos: any): number;
-        getBlockStateId(pos: any): any;
-        getBlockLight(pos: any): any;
-        getSkyLight(pos: any): any;
-        getBiome(pos: any): any;
-        getBiomeColor(pos: any): {
+        getBlock(pos: Vec3): any;
+        setBlock(pos: Vec3, block: any): void;
+        getBlockType(pos: Vec3): number;
+        getBlockData(pos: Vec3): number;
+        getBlockStateId(pos: Vec3): any;
+        getBlockLight(pos: Vec3): any;
+        getSkyLight(pos: Vec3): any;
+        getBiome(pos: Vec3): any;
+        getBiomeColor(pos: Vec3): {
             r: number;
             g: number;
             b: number;
         };
-        setBlockType(pos: any, id: any): void;
-        setBlockData(pos: any, data: any): void;
-        setBlockStateId(pos: any, stateId: any): void;
-        setBlockLight(pos: any, light: any): any;
-        setSkyLight(pos: any, light: any): any;
-        setBiome(pos: any, biome: any): void;
-        setBiomeColor(pos: any, r: any, g: any, b: any): void;
+        setBlockType(pos: Vec3, id: any): void;
+        setBlockData(pos: Vec3, data: any): void;
+        setBlockStateId(pos: Vec3, stateId: any): void;
+        setBlockLight(pos: Vec3, light: any): any;
+        setSkyLight(pos: Vec3, light: any): any;
+        setBiome(pos: Vec3, biome: any): void;
+        setBiomeColor(pos: Vec3, r: number, g: number, b: number): void;
         getMask(): number;
         dumpBiomes(): void;
         dumpLight(): void;

@@ -1,3 +1,6 @@
+import { Block } from "prismarine-block";
+import { Vec3 } from "vec3";
+
 export = loader;
 declare function loader(mcVersion: number): typeof Chunk;
 declare class Chunk {
@@ -6,26 +9,26 @@ declare class Chunk {
     data: Buffer;
     toJson(): string;
     initialize(iniFunc: any): void;
-    getBlock(pos: any): any;
-    setBlock(pos: any, block: any): void;
-    getBlockType(pos: any): any;
-    setBlockType(pos: any, type: any): any;
-    getBlockData(pos: any): any;
-    setBlockData(pos: any, data: any): any;
-    getBlockLight(pos: any): any;
-    setBlockLight(pos: any, light: any): any;
-    getSkyLight(pos: any): any;
-    setSkyLight(pos: any, light: any): any;
-    getBiomeColor(pos: any): {
+    getBlock(pos: Vec3): any;
+    setBlock(pos: Vec3, block: Block): void;
+    getBlockType(pos: Vec3): any;
+    setBlockType(pos: Vec3, type: any): any;
+    getBlockData(pos: Vec3): any;
+    setBlockData(pos: Vec3, data: any): any;
+    getBlockLight(pos: Vec3): any;
+    setBlockLight(pos: Vec3, light: any): any;
+    getSkyLight(pos: Vec3): any;
+    setSkyLight(pos: Vec3, light: any): any;
+    getBiomeColor(pos: Vec3): {
         x: number;
         y: number;
         z: number;
     };
-    setBiomeColor(pos: any, r: any, g: any, b: any): void;
-    getBiome(pos: any): number;
-    setBiome(pos: any, id: any): void;
-    getHeight(pos: any): number;
-    setHeight(pos: any, height: any): void;
+    setBiomeColor(pos: Vec3, r: number, g: number, b: number): void;
+    getBiome(pos: Vec3): number;
+    setBiome(pos: Vec3, id: any): void;
+    getHeight(pos: Vec3): number;
+    setHeight(pos: Vec3, height: any): void;
     load(newData: any): void;
     size(): number;
     dumpBiomes(): void;

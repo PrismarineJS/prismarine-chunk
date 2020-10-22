@@ -1,16 +1,18 @@
+import { Vec3 } from "vec3";
+
 export = SubChunk;
 declare class SubChunk {
     static fromJson(j: any): SubChunk;
     data: Buffer;
     toJson(): string;
-    getBlockType(pos: any): number;
-    setBlockType(pos: any, type: any): void;
-    getBlockLight(pos: any): any;
-    setBlockLight(pos: any, light: any): void;
-    getSkyLight(pos: any): any;
-    setSkyLight(pos: any, light: any): void;
-    getBlockData(pos: any): any;
-    setBlockData(pos: any, data: any): void;
+    getBlockType(pos: Vec3): number;
+    setBlockType(pos: Vec3, type: any): void;
+    getBlockLight(pos: Vec3): any;
+    setBlockLight(pos: Vec3, light: any): void;
+    getSkyLight(pos: Vec3): any;
+    setSkyLight(pos: Vec3, light: any): void;
+    getBlockData(pos: Vec3): any;
+    setBlockData(pos: Vec3, data: any): void;
     load(data: any): void;
     dump(): Buffer;
 }
