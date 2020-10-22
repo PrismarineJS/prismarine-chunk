@@ -1,6 +1,6 @@
 import { Block } from "prismarine-block";
 import { Vec3 } from "vec3";
-import Section from "../../../src/pc/1.8/section";
+import Section from "./section";
 
 export = loader;
 declare function loader(mcVersion: number): typeof Chunk;
@@ -19,24 +19,23 @@ declare class Chunk {
         b: number;
     };
     setBiomeColor(pos: Vec3, r: number, g: number, b: number): void;
-    _getSection(pos: Vec3): Section;
     getBlockStateId(pos: Vec3): Section;
-    getBlockType(pos: Vec3): any;
-    getBlockData(pos: Vec3): any;
-    getBlockLight(pos: Vec3): any;
-    getSkyLight(pos: Vec3): any;
+    getBlockType(pos: Vec3): number;
+    getBlockData(pos: Vec3): number;
+    getBlockLight(pos: Vec3): number;
+    getSkyLight(pos: Vec3): number;
     getBiome(pos: Vec3): number;
-    setBlockStateId(pos: Vec3, stateId: any): any;
-    setBlockType(pos: Vec3, id: any): void;
-    setBlockData(pos: Vec3, data: any): void;
-    setBlockLight(pos: Vec3, light: any): any;
-    setSkyLight(pos: Vec3, light: any): any;
-    setBiome(pos: Vec3, biome: any): void;
+    setBlockStateId(pos: Vec3, stateId: number): any;
+    setBlockType(pos: Vec3, id: number): void;
+    setBlockData(pos: Vec3, data: Buffer): void;
+    setBlockLight(pos: Vec3, light: number): any;
+    setSkyLight(pos: Vec3, light: number): any;
+    setBiome(pos: Vec3, biome: number): void;
     dumpBiomes(): void;
     dumpLight(): void;
     loadLight(): void;
     loadBiomes(): void;
     dump(bitMap?: number, skyLightSent?: boolean): Buffer;
-    load(data: any, bitMap?: number, skyLightSent?: boolean, fullChunk?: boolean): void;
+    load(data: Buffer, bitMap?: number, skyLightSent?: boolean, fullChunk?: boolean): void;
     getMask(): number;
 }

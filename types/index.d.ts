@@ -1,2 +1,4 @@
+import Chunk = require("./chunk");
+
 export = loader;
-declare function loader(mcVersion: number): any;
+declare function loader(mcVersion: number): typeof Chunk;

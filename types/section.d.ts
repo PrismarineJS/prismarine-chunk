@@ -16,19 +16,19 @@ declare class Section {
         g: number;
         b: number;
     };
-    setBiomeColor(pos: Vec3, r: number, g: number, b: any): void;
+    setBiomeColor(pos: Vec3, r: number, g: number, b: number): void;
     getBlockStateId(pos: Vec3): number;
     getBlockType(pos: Vec3): number;
     getBlockData(pos: Vec3): number;
-    getBlockLight(pos: Vec3): any;
-    getSkyLight(pos: Vec3): any;
-    setBlockStateId(pos: Vec3, stateId: any): void;
-    setBlockType(pos: Vec3, id: any): void;
-    setBlockData(pos: Vec3, data: any): void;
-    setBlockLight(pos: Vec3, light: any): void;
-    setSkyLight(pos: Vec3, light: any): void;
+    getBlockLight(pos: Vec3): number;
+    getSkyLight(pos: Vec3): number;
+    setBlockStateId(pos: Vec3, stateId: number): void;
+    setBlockType(pos: Vec3, id: number): void;
+    setBlockData(pos: Vec3, data: Buffer): void;
+    setBlockLight(pos: Vec3, light: number): void;
+    setSkyLight(pos: Vec3, light: number): void;
     dump(): Buffer;
-    load(data: any, skyLightSent?: boolean): void;
+    load(data: Buffer, skyLightSent?: boolean): void;
 }
 declare namespace Section {
     export { w };
