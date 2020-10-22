@@ -25,11 +25,11 @@ declare class Chunk {
     getBlockLight(pos: Vec3): number;
     getSkyLight(pos: Vec3): number;
     getBiome(pos: Vec3): number;
-    setBlockStateId(pos: Vec3, stateId: number): any;
+    setBlockStateId(pos: Vec3, stateId: number): Section;
     setBlockType(pos: Vec3, id: number): void;
     setBlockData(pos: Vec3, data: Buffer): void;
-    setBlockLight(pos: Vec3, light: number): any;
-    setSkyLight(pos: Vec3, light: number): any;
+    setBlockLight(pos: Vec3, light: number): Section;
+    setSkyLight(pos: Vec3, light: number): Section;
     setBiome(pos: Vec3, biome: number): void;
     dumpBiomes(): void;
     dumpLight(): void;
