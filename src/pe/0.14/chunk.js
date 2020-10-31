@@ -91,7 +91,7 @@ class Chunk {
   }
 
   getBlock (pos) {
-    var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos))
+    const block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos))
     block.light = this.getBlockLight(pos)
     block.skyLight = this.getSkyLight(pos)
     return block
@@ -146,7 +146,7 @@ class Chunk {
   }
 
   getBiomeColor (pos) {
-    var color = this.data.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF
+    const color = this.data.readInt32BE(getBiomeCursor(pos)) & 0xFFFFFF
 
     return {
       r: (color >> 16),
