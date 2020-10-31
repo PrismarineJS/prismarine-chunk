@@ -47,7 +47,7 @@ module.exports = (Block, mcData) => {
     }
 
     getBlock (pos) {
-      var block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos))
+      const block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos))
       block.light = this.getBlockLight(pos)
       block.skyLight = this.getSkyLight(pos)
       return block
