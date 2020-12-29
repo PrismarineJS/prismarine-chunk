@@ -1,5 +1,10 @@
 ## History
 
+## 1.21.0
+
+* fix initialize in all versions but 1.8 (@rom1504)
+* add typescript typings (@Darkflame72)
+
 ## 1.20.3
 
 * Several bug fix (thanks @IdanHo)
