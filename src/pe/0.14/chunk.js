@@ -84,6 +84,9 @@ class Chunk {
       for (p.z = 0; p.z < w; p.z++) {
         for (p.x = 0; p.x < l; p.x++) {
           const block = iniFunc(p.x, p.y, p.z)
+          if (block === null) {
+            continue
+          }
           this.setBlock(p, block)
         }
       }

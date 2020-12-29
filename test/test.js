@@ -40,6 +40,12 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     chunk.initialize((x, y, z, n) => new Block(0, 0, 0))
   })
 
+  test('Initializes ignore null correctly', () => {
+    const chunk = new Chunk()
+
+    chunk.initialize((x, y, z, n) => null)
+  })
+
   test('Defaults to all blocks being air', function () {
     const chunk = new Chunk()
 

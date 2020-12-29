@@ -50,6 +50,9 @@ module.exports = (Block, mcData) => {
         for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
           for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
             const block = func(p.x, p.y, p.z)
+            if (block === null) {
+              continue
+            }
             this.setBlock(p, block)
           }
         }
