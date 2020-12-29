@@ -1,5 +1,9 @@
 ## History
 
+## 1.22.0
+
+* optimize for browser by inlining getSectionIndex and removing asserts (@rom1504)
+
 ## 1.21.0
 
 * fix initialize in all versions but 1.8 (@rom1504)
