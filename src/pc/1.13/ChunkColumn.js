@@ -49,7 +49,7 @@ module.exports = (Block, mcData) => {
     }
 
     getBlock (pos) {
-      const section = this.sections[getSectionIndex(pos)]
+      const section = this.sections[pos.y >> 4]
       const biome = this.getBiome(pos)
       if (!section) {
         return Block.fromStateId(0, biome)
@@ -87,17 +87,17 @@ module.exports = (Block, mcData) => {
     }
 
     getBlockStateId (pos) {
-      const section = this.sections[getSectionIndex(pos)]
+      const section = this.sections[pos.y >> 4]
       return section ? section.getBlock(toSectionPos(pos)) : 0
     }
 
     getBlockLight (pos) {
-      const section = this.sections[getSectionIndex(pos)]
+      const section = this.sections[pos.y >> 4]
       return section ? section.getBlockLight(toSectionPos(pos)) : 15
     }
 
     getSkyLight (pos) {
-      const section = this.sections[getSectionIndex(pos)]
+      const section = this.sections[pos.y >> 4]
       return section ? section.getSkyLight(toSectionPos(pos)) : 15
     }
 
@@ -119,7 +119,7 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockStateId (pos, stateId) {
-      const sectionIndex = getSectionIndex(pos)
+      const sectionIndex = pos.y >> 4
       if (sectionIndex < 0 || sectionIndex >= 16) return
 
       let section = this.sections[sectionIndex]
@@ -137,12 +137,12 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockLight (pos, light) {
-      const section = this.sections[getSectionIndex(pos)]
+      const section = this.sections[pos.y >> 4]
       return section && section.setBlockLight(toSectionPos(pos), light)
     }
 
     setSkyLight (pos, light) {
-      const section = this.sections[getSectionIndex(pos)]
+      const section = this.sections[pos.y >> 4]
       return section && section.setSkyLight(toSectionPos(pos), light)
     }
 
@@ -266,10 +266,6 @@ module.exports = (Block, mcData) => {
       }
     }
   }
-}
-
-function getSectionIndex (pos) {
-  return Math.floor(pos.y / 16)
 }
 
 function getBiomeIndex (pos) {

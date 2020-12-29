@@ -59,7 +59,7 @@ module.exports = (Block, mcData) => {
     }
 
     getBlock (pos) {
-      const section = this.sections[getSectionIndex(pos)]
+      const section = this.sections[pos.y >> 4]
       const biome = this.getBiome(pos)
       if (!section) {
         return Block.fromStateId(0, biome)
@@ -97,7 +97,7 @@ module.exports = (Block, mcData) => {
     }
 
     getBlockStateId (pos) {
-      const section = this.sections[getSectionIndex(pos)]
+      const section = this.sections[pos.y >> 4]
       return section ? section.getBlock(toSectionPos(pos)) : 0
     }
 
@@ -130,7 +130,7 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockStateId (pos, stateId) {
-      const sectionIndex = getSectionIndex(pos)
+      const sectionIndex = pos.y >> 4
       if (sectionIndex < 0 || sectionIndex >= 16) return
 
       let section = this.sections[sectionIndex]
@@ -318,10 +318,6 @@ module.exports = (Block, mcData) => {
       return smartBuffer.toBuffer()
     }
   }
-}
-
-function getSectionIndex (pos) {
-  return Math.floor(pos.y / 16)
 }
 
 function getLightSectionIndex (pos) {

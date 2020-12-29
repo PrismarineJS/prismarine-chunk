@@ -1,4 +1,4 @@
-const assert = require('assert')
+// const assert = require('assert')
 const neededBits = require('./neededBits')
 
 class BitArray {
@@ -6,8 +6,8 @@ class BitArray {
     if (options === null) {
       return
     }
-    assert(options.bitsPerValue > 0, 'bits per value must at least 1')
-    assert(options.bitsPerValue <= 32, 'bits per value exceeds 32')
+    // assert(options.bitsPerValue > 0, 'bits per value must at least 1')
+    // assert(options.bitsPerValue <= 32, 'bits per value exceeds 32')
 
     const valuesPerLong = Math.floor(64 / options.bitsPerValue)
 
@@ -46,7 +46,7 @@ class BitArray {
   }
 
   get (index) {
-    assert(index >= 0 && index < this.capacity, 'index is out of bounds')
+    // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
 
     const startLongIndex = Math.floor(index / this.valuesPerLong)
     const indexInLong = (index - startLongIndex * this.valuesPerLong) * this.bitsPerValue
@@ -68,8 +68,8 @@ class BitArray {
   }
 
   set (index, value) {
-    assert(index >= 0 && index < this.capacity, 'index is out of bounds')
-    assert(value <= this.valueMask, 'value does not fit into bits per value')
+    // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
+    // assert(value <= this.valueMask, 'value does not fit into bits per value')
 
     const startLongIndex = Math.floor(index / this.valuesPerLong)
     const indexInLong = (index - startLongIndex * this.valuesPerLong) * this.bitsPerValue
@@ -97,8 +97,8 @@ class BitArray {
   }
 
   resizeTo (newBitsPerValue) {
-    assert(newBitsPerValue > 0, 'bits per value must at least 1')
-    assert(newBitsPerValue <= 32, 'bits per value exceeds 32')
+    // assert(newBitsPerValue > 0, 'bits per value must at least 1')
+    // assert(newBitsPerValue <= 32, 'bits per value exceeds 32')
 
     const newArr = new BitArray({
       bitsPerValue: newBitsPerValue,
