@@ -40,6 +40,40 @@ class BitArray {
     return bitarray
   }
 
+  toArray () {
+    const array = []
+    for (let i = 0; i < this.capacity; i++) {
+      array.push(this.get(i))
+    }
+    return array
+  }
+
+  static fromArray (array, bitsPerValue) {
+    const data = []
+    let i = 0
+    let curLong = 0
+    let curBit = 0
+    while (i < array.length) {
+      curLong |= array[i] << curBit
+      curBit += bitsPerValue
+      if (curBit > 32) {
+        data.push(curLong & 0xffffffff)
+        curBit -= 32
+        curLong = array[i] >>> (bitsPerValue - curBit)
+      }
+      i++
+    }
+    if (curBit > 0) {
+      data.push(curLong)
+    }
+    const bitarray = new BitArray(null)
+    bitarray.data = data
+    bitarray.capacity = array.length
+    bitarray.bitsPerValue = bitsPerValue
+    bitarray.valueMask = (1 << bitsPerValue) - 1
+    return bitarray
+  }
+
   get (index) {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
 

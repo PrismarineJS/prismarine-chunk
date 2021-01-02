@@ -45,6 +45,25 @@ class BitArray {
     return bitarray
   }
 
+  toArray () {
+    const array = []
+    for (let i = 0; i < this.capacity; i++) {
+      array.push(this.get(i))
+    }
+    return array
+  }
+
+  static fromArray (array, bitsPerValue) {
+    const bitarray = new BitArray({
+      capacity: array.length,
+      bitsPerValue
+    })
+    for (let i = 0; i < array.length; i++) {
+      bitarray.set(i, array[i])
+    }
+    return bitarray
+  }
+
   get (index) {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
 
