@@ -140,5 +140,17 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
         bitArr.resizeTo(3)
       })
     }) */
+    test('convert from array cycle', () => {
+      const array = []
+      for (let i = 0; i < 4096; i++) array.push(i % 32)
+      const bitArr = BitArray.fromArray(array, 5)
+      const array2 = bitArr.toArray()
+      assert.strictEqual(array.length, array2.length)
+      assert.strictEqual(array.length, bitArr.capacity)
+      for (let i = 0; i < 4096; i++) {
+        assert.strictEqual(bitArr.get(i), array[i])
+        assert.strictEqual(array[i], array2[i])
+      }
+    })
   })
 })
