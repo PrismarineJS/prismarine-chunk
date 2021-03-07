@@ -1,19 +1,15 @@
 class BitArray {
-  constructor ({ capacity, bitsPerValue, data } = {}) {
-    // assert(options.bitsPerValue > 0, 'bits per value must at least 1')
-    // assert(options.bitsPerValue <= 32, 'bits per value exceeds 32')
-    this.capacity = capacity | 0
-    this.bitsPerValue = bitsPerValue | 0
-    this.length = (this.capacity * this.bitsPerValue + 31) >> 5
-    this.valueMask = (1 << this.bitsPerValue) - 1
-    this.data = data
-      ? (data.buffer ? new Uint32Array(data.buffer) : Uint32Array.from(data))
-      : new Uint32Array(length)
-  }
+  	constructor ({ bitsPerValue, capacity, data }) {
+		this.bitsPerValue = bitsPerValue | 0
+		this.capacity = capacity | 0
+		this.data = data
+			? (data.buffer ? new Uint32Array(data.buffer) : Uint32Array.from(data))
+			: new Uint32Array((this.capacity * this.bitsPerValue + 31) >> 5)
+		this.valueMask = (1 << this.bitsPerValue) - 1
+	}
 
-  destructor () { this.data = null }
   length () { return this.data.length >> 1 }
-  getBitsPerValue() { return bitsPerValue }
+  getBitsPerValue () { return this.bitsPerValue }
 
   get (index) {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
