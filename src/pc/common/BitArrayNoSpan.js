@@ -14,15 +14,14 @@ class BitArray {
   length () { return this.data.length >> 1 }
   getBitsPerValue () { return this.bitsPerValue }
 
-  toJSON () {
-    return {
+  toJson () {
+    return JSON.stringify({
       bitsPerValue: this.bitsPerValue,
       capacity: this.capacity,
-      data: this.data
-    }
+      data: Array.from(this.data)
+    })
   }
 
-  toJson () { return JSON.stringify(this.toJSON()) }
   static fromJson (str) { return new BitArray(JSON.parse(str)) }
 
   get (index) {
