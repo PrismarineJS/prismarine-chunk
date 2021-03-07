@@ -1,5 +1,5 @@
 class BitArray {
-  constructor ({ bitsPerValue, capacity, data }) {
+  constructor ({ bitsPerValue, capacity, data } = {}) {
     this.bitsPerValue = bitsPerValue | 0
     this.capacity = capacity | 0
     this.data = data
@@ -92,28 +92,13 @@ class BitArray {
   }
 
   static fromArray (array, bitsPerValue) {
-    const data = []
-    let i = 0
-    let curLong = 0
-    let curBit = 0
-    while (i < array.length) {
-      curLong |= array[i] << curBit
-      curBit += bitsPerValue
-      if (curBit > 32) {
-        data.push(curLong & 0xffffffff)
-        curBit -= 32
-        curLong = array[i] >>> (bitsPerValue - curBit)
-      }
-      i++
+    const bitarray = new BitArray({
+      capacity: array.length,
+      bitsPerValue
+    })
+    for (let i = 0; i < array.length; i++) {
+      bitarray.set(i, array[i])
     }
-    if (curBit > 0) {
-      data.push(curLong)
-    }
-    const bitarray = new BitArray(null)
-    bitarray.data = data
-    bitarray.capacity = array.length
-    bitarray.bitsPerValue = bitsPerValue
-    bitarray.valueMask = (1 << bitsPerValue) - 1
     return bitarray
   }
 }
