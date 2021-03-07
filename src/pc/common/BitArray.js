@@ -1,12 +1,12 @@
 class BitArray {
-  	constructor ({ bitsPerValue, capacity, data }) {
-		this.bitsPerValue = bitsPerValue | 0
-		this.capacity = capacity | 0
-		this.data = data
-			? (data.buffer ? new Uint32Array(data.buffer) : Uint32Array.from(data))
-			: new Uint32Array((this.capacity * this.bitsPerValue + 31) >> 5)
-		this.valueMask = (1 << this.bitsPerValue) - 1
-	}
+  constructor ({ bitsPerValue, capacity, data }) {
+    this.bitsPerValue = bitsPerValue | 0
+    this.capacity = capacity | 0
+    this.data = data
+      ? (data.buffer ? new Uint32Array(data.buffer) : Uint32Array.from(data))
+      : new Uint32Array((this.capacity * this.bitsPerValue + 31) >> 5)
+    this.valueMask = (1 << this.bitsPerValue) - 1
+  }
 
   length () { return this.data.length >> 1 }
   getBitsPerValue () { return this.bitsPerValue }
@@ -50,13 +50,7 @@ class BitArray {
     }
   }
 
-  static fromJSON (value) {
-    if (value.data) {
-      value.data = Uint32Array.from(value.data)
-    }
-    return new BitArray(value)
-  }
-
+  static fromJSON (value) { return new BitArray(value) }
   toJson () { return JSON.stringify(this.toJSON()) }
   static fromJson (str) { return BitArray.fromJSON(JSON.parse(str)) }
 
@@ -74,15 +68,17 @@ class BitArray {
   }
 
   readBuffer (smartBuffer) {
-    for (let i = 0; i < this.data.length; i++) {
-      this.data[i] = smartBuffer.readBigUInt64BE()
+    for (let i = 0; i < this.data.length; i += 2) {
+      this.data[i + 1] = smartBuffer.readUInt32BE()
+      this.data[i] = smartBuffer.readUInt32BE()
     }
     return this
   }
 
   writeBuffer (smartBuffer) {
-    for (let i = 0; i < this.data.length; i++) {
-      smartBuffer.writeBigUInt64BE(this.data[i])
+    for (let i = 0; i < this.data.length; i += 2) {
+      smartBuffer.writeUInt32BE(this.data[i + 1])
+      smartBuffer.writeUInt32BE(this.data[i])
     }
     return this
   }
