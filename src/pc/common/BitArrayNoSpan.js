@@ -2,16 +2,16 @@ class BitArray {
   constructor ({ bitsPerValue, capacity, data } = {}) {
     // assert(options.bitsPerValue > 0, 'bits per value must at least 1')
     // assert(options.bitsPerValue <= 32, 'bits per value exceeds 32')
-    this.capacity = capacity | 0
-    this.bitsPerValue = bitsPerValue | 0
-    this.valueMask = (1 << this.bitsPerValue) - 1
-    this.valuesPerLong = (64 / this.bitsPerValue) | 0
+    this.bitsPerValue = bitsPerValue >>> 0
+    this.capacity = capacity >>> 0
     this.data = data
       ? (data.buffer ? new Uint32Array(data.buffer) : Uint32Array.from(data))
-      : new Uint32Array(Math.ceil(this.capacity / this.valuesPerLong) * 2)
+      : new Uint32Array((this.capacity * this.bitsPerValue + 31) >>> 5)
+    this.valueMask = (1 << this.bitsPerValue) - 1
+    this.valuesPerLong = (64 / this.bitsPerValue) >>> 0
   }
 
-  length () { return this.data.length >> 1 }
+  length () { return this.data.length >>> 1 }
   getBitsPerValue () { return this.bitsPerValue }
 
   toJson () {
@@ -26,8 +26,8 @@ class BitArray {
 
   get (index) {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
-    const startLongIndex = Math.floor(index / this.valuesPerLong) * 2
-    const indexInLong = (index - (startLongIndex / 2) * this.valuesPerLong) * this.bitsPerValue
+    const startLongIndex = (index / this.valuesPerLong) << 1
+    const indexInLong = (index - (startLongIndex >>> 1) * this.valuesPerLong) * this.bitsPerValue
     if (indexInLong >= 32) {
       return (this.data[startLongIndex + 1] >>> (indexInLong - 32)) & this.valueMask
     }
@@ -42,8 +42,8 @@ class BitArray {
   set (index, value) {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
     // assert(value <= this.valueMask, 'value does not fit into bits per value')
-    const startLongIndex = Math.floor(index / this.valuesPerLong) * 2
-    const indexInLong = (index - (startLongIndex / 2) * this.valuesPerLong) * this.bitsPerValue
+    const startLongIndex = (index / this.valuesPerLong) << 1
+    const indexInLong = (index - (startLongIndex >>> 1) * this.valuesPerLong) * this.bitsPerValue
     if (indexInLong >= 32) {
       const indexInStartLong = indexInLong - 32
       this.data[startLongIndex + 1] =
@@ -68,11 +68,12 @@ class BitArray {
   resizeTo (bitsPerValue) {
     // assert(bitsPerValue > 0, 'bits per value must at least 1')
     // assert(bitsPerValue <= 32, 'bits per value exceeds 32')
-    bitsPerValue |= 0
+    bitsPerValue >>>= 0
     const newArr = new BitArray({ bitsPerValue, capacity: this.capacity })
+    bitsPerValue = 32 - bitsPerValue
     for (let i = 0; i < this.capacity; i++) {
       const value = this.get(i)
-      if ((32 - Math.clz32(value)) > bitsPerValue) {
+      if (Math.clz32(value) < bitsPerValue) {
         throw new Error("existing value in BitArray can't fit in new bits per value")
       }
       newArr.set(i, value)
