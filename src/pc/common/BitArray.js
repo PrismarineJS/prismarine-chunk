@@ -1,14 +1,14 @@
 class BitArray {
   constructor ({ bitsPerValue, capacity, data } = {}) {
-    this.bitsPerValue = bitsPerValue | 0
-    this.capacity = capacity | 0
+    this.bitsPerValue = bitsPerValue >>> 0
+    this.capacity = capacity >>> 0
     this.data = data
       ? (data.buffer ? new Uint32Array(data.buffer) : Uint32Array.from(data))
-      : new Uint32Array((this.capacity * this.bitsPerValue + 31) >> 5)
+      : new Uint32Array((this.capacity * this.bitsPerValue + 31) >>> 5)
     this.valueMask = (1 << this.bitsPerValue) - 1
   }
 
-  length () { return this.data.length >> 1 }
+  length () { return this.data.length >>> 1 }
   getBitsPerValue () { return this.bitsPerValue }
 
   get (index) {
@@ -55,11 +55,12 @@ class BitArray {
   static fromJson (str) { return BitArray.fromJSON(JSON.parse(str)) }
 
   resizeTo (bitsPerValue) {
-    bitsPerValue |= 0
+    bitsPerValue >>>= 0
     const newArr = new BitArray({ bitsPerValue, capacity: this.capacity })
+    bitsPerValue = 32 - bitsPerValue
     for (let i = 0; i < this.capacity; i++) {
       const value = this.get(i)
-      if ((32 - Math.clz32(value)) > bitsPerValue) {
+      if (Math.clz32(value) < bitsPerValue) {
         throw new Error("existing value in BitArray can't fit in new bits per value")
       }
       newArr.set(i, value)
