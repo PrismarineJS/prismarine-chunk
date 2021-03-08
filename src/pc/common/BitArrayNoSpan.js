@@ -7,7 +7,7 @@ class BitArray {
     this.valuesPerLong = (64 / this.bitsPerValue) >>> 0
     this.data = data
       ? (data.buffer ? new Uint32Array(data.buffer) : Uint32Array.from(data))
-      : new Uint32Array((this.capacity / this.valuesPerLong + 1) << 1)
+      : new Uint32Array((this.capacity / this.valuesPerLong + 0.99) << 1)
     this.valueMask = (1 << this.bitsPerValue) - 1
   }
 
