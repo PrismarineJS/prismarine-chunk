@@ -4,11 +4,11 @@ class BitArray {
     // assert(options.bitsPerValue <= 32, 'bits per value exceeds 32')
     this.bitsPerValue = bitsPerValue >>> 0
     this.capacity = capacity >>> 0
+    this.valuesPerLong = (64 / this.bitsPerValue) >>> 0
     this.data = data
       ? (data.buffer ? new Uint32Array(data.buffer) : Uint32Array.from(data))
-      : new Uint32Array((this.capacity * this.bitsPerValue + 31) >>> 5)
+      : new Uint32Array((this.capacity / this.valuesPerLong + 1) << 1)
     this.valueMask = (1 << this.bitsPerValue) - 1
-    this.valuesPerLong = (64 / this.bitsPerValue) >>> 0
   }
 
   length () { return this.data.length >>> 1 }
