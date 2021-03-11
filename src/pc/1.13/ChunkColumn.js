@@ -14,13 +14,15 @@ module.exports = (Block, mcData) => {
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
       ).fill(1)
+      this.blockEntities = []
     }
 
     toJson () {
       return JSON.stringify({
         biomes: this.biomes,
         sectionMask: this.sectionMask,
-        sections: this.sections.map(section => section === null ? null : section.toJson())
+        sections: this.sections.map(section => section === null ? null : section.toJson()),
+        blockEntities: this.blockEntities
       })
     }
 
@@ -30,6 +32,7 @@ module.exports = (Block, mcData) => {
       chunk.biomes = parsed.biomes
       chunk.sectionMask = parsed.sectionMask
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
+      chunk.blockEntities = parsed.blockEntities
       return chunk
     }
 
