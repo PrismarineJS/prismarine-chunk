@@ -3,6 +3,7 @@
   "version": "1.22.0",
   "description": "A class to hold chunk data for prismarine",
   "main": "index.js",
+  "types": "./types/index.d.ts",
   "scripts": {
     "test": "jest --verbose",
     "fix": "standard --fix",
