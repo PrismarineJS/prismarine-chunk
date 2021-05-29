@@ -11,7 +11,7 @@ class BitArray {
 
     const valuesPerLong = Math.floor(64 / options.bitsPerValue)
     if (!options.data) {
-      options.data = new UInt32Array(Math.ceil(options.capacity / valuesPerLong) * 2)
+      options.data = new Uint32Array(Math.ceil(options.capacity / valuesPerLong) * 2)
     }
     const valueMask = (1 << options.bitsPerValue) - 1
 
