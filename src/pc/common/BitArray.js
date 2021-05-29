@@ -30,13 +30,7 @@ class BitArray {
   }
 
   static fromJson (j) {
-    const parsed = JSON.parse(j)
-    const bitarray = new BitArray(null)
-    bitarray.data = parsed.data
-    bitarray.capacity = parsed.capacity
-    bitarray.bitsPerValue = parsed.bitsPerValue
-    bitarray.valueMask = parsed.valueMask
-    return bitarray
+    return new BitArray(JSON.parse(j))
   }
 
   toArray () {
