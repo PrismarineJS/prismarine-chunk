@@ -9,6 +9,8 @@ const exists = val => val !== undefined
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
     constructor () {
+      this.minWorldHeight = 0
+      this.maxWorldHeight = constants.CHUNK_HEIGHT
       this.sectionMask = 0
       this.skyLightSent = true
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
