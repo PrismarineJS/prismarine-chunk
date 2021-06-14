@@ -10,10 +10,16 @@ module.exports = (Block, mcData) => {
     constructor (options) {
       this.minWorldHeight = options.minWorldHeight ?? 0
       this.maxWorldHeight = options.maxWorldHeight ?? constants.CHUNK_HEIGHT
-
       this.sectionMask = 0
-      this.sections = Array(this.countVerticalSections()).fill(null)
+
+      const verticalSections = this.countVerticalSections()
+      this.sections = Array(verticalSections).fill(null)
       this.biomes = Array(4 * 4 * this.countVerticalBiomeGridSize()).fill(0)
+
+      this.skyLightSections = Array(verticalSections + 2).fill(null)
+      this.blockLightSections = Array(verticalSections + 2).fill(null)
+      this.skyLightMask = 0
+      this.blockLightMask = 0
     }
 
     initialize (func) {
@@ -38,7 +44,12 @@ module.exports = (Block, mcData) => {
         maxWorldHeight: this.maxWorldHeight,
         biomes: this.biomes,
         sectionMask: this.sectionMask,
-        sections: this.sections.map(section => section === null ? null : section.toJson())
+        sections: this.sections.map(section => section === null ? null : section.toJson()),
+
+        skyLightMask: this.skyLightMask,
+        blockLightMask: this.blockLightMask,
+        skyLightSections: this.skyLightSections.map(section => section === null ? null : section.toJson()),
+        blockLightSections: this.blockLightSections.map(section => section === null ? null : section.toJson())
       })
     }
 
@@ -48,6 +59,11 @@ module.exports = (Block, mcData) => {
       chunk.biomes = parsed.biomes
       chunk.sectionMask = parsed.sectionMask
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
+
+      chunk.skyLightMask = parsed.skyLightMask
+      chunk.blockLightMask = parsed.blockLightMask
+      chunk.skyLightSections = parsed.skyLightSections.map(s => s === null ? null : BitArray.fromJson(s))
+      chunk.blockLightSections = parsed.blockLightSections.map(s => s === null ? null : BitArray.fromJson(s))
 
       if (parsed.minWorldHeight) {
         chunk.minWorldHeight = parsed.minWorldHeight
@@ -76,6 +92,13 @@ module.exports = (Block, mcData) => {
       const sectionCoord = getSectionCoord(blockY)
       const bottomSectionCoord = this.getBottomSectionCoord()
       return sectionCoord - bottomSectionCoord
+    }
+
+    getLightSectionIndex (blockY) {
+      const lightSectionCoord = getLightSectionCoord(blockY)
+      const bottomSectionCoord = this.getBottomSectionCoord()
+
+      return lightSectionCoord - bottomSectionCoord
     }
 
     getBiomeIndex (pos) {
@@ -147,7 +170,12 @@ module.exports = (Block, mcData) => {
       const biome = this.getBiome(pos)
       const stateId = this.getBlockStateId(pos)
 
-      return Block.fromStateId(stateId, biome)
+      const block = Block.fromStateId(stateId, biome)
+
+      block.light = this.getBlockLight(pos)
+      block.skyLight = this.getSkyLight(pos)
+
+      return block
     }
 
     setBlock (pos, block) {
@@ -156,6 +184,13 @@ module.exports = (Block, mcData) => {
       }
       if (typeof block.biome !== 'undefined') {
         this.setBiome(pos, block.biome.id)
+      }
+
+      if (typeof block.skyLight !== 'undefined') {
+        this.setSkyLight(pos, block.skyLight)
+      }
+      if (typeof block.light !== 'undefined') {
+        this.setBlockLight(pos, block.light)
       }
     }
 
@@ -180,18 +215,54 @@ module.exports = (Block, mcData) => {
 
     // Skylight data has been removed in 1.17, now it is computed client-side automatically
     // and never synced from the server in chunk packets
+    // We still store it internally for other projects to use and to avoid making a breaking change
+
     getBlockLight (pos) {
-      return 0
+      const section = this.blockLightSections[this.getLightSectionIndex(pos.y)]
+      return section ? section.get(toSectionPos(pos)) : 0
     }
 
     getSkyLight (pos) {
-      return 15
+      const section = this.skyLightSections[this.getLightSectionIndex(pos.y)]
+      return section ? section.get(toSectionPos(pos)) : 0
     }
 
     setBlockLight (pos, light) {
+      const sectionIndex = this.getLightSectionIndex(pos)
+      let section = this.blockLightSections[sectionIndex]
+
+      if (section === null) {
+        if (light === 0) {
+          return
+        }
+        section = new BitArray({
+          bitsPerValue: 4,
+          capacity: 4096
+        })
+        this.blockLightMask |= 1 << sectionIndex
+        this.blockLightSections[sectionIndex] = section
+      }
+
+      section.set(getSectionBlockIndex(pos), light)
     }
 
     setSkyLight (pos, light) {
+      const sectionIndex = this.getLightSectionIndex(pos)
+      let section = this.skyLightSections[sectionIndex]
+
+      if (section === null) {
+        if (light === 0) {
+          return
+        }
+        section = new BitArray({
+          bitsPerValue: 4,
+          capacity: 4096
+        })
+        this.skyLightMask |= 1 << sectionIndex
+        this.skyLightSections[sectionIndex] = section
+      }
+
+      section.set(getSectionBlockIndex(pos), light)
     }
 
     // This functionality is PE-only according to docs
@@ -263,7 +334,65 @@ module.exports = (Block, mcData) => {
         })
       }
     }
+
+    loadLight (data, skyLightMask, blockLightMask) {
+      const reader = SmartBuffer.fromBuffer(data)
+
+      // Read sky light
+      this.skyLightMask |= skyLightMask
+      for (let y = 0; y < this.countVerticalSections() + 2; y++) {
+        if (!((skyLightMask >> y) & 1)) {
+          continue
+        }
+        varInt.read(reader) // always 2048
+        this.skyLightSections[y] = new BitArray({
+          bitsPerValue: 4,
+          capacity: 4096
+        }).readBuffer(reader)
+      }
+
+      // Read block light
+      this.blockLightMask |= blockLightMask
+      for (let y = 0; y < this.countVerticalSections() + 2; y++) {
+        if (!((blockLightMask >> y) & 1)) {
+          continue
+        }
+        varInt.read(reader) // always 2048
+        this.blockLightSections[y] = new BitArray({
+          bitsPerValue: 4,
+          capacity: 4096
+        }).readBuffer(reader)
+      }
+    }
+
+    dumpLight () {
+      const smartBuffer = new SmartBuffer()
+
+      this.skyLightSections.forEach((section) => {
+        if (section !== null) {
+          varInt.write(smartBuffer, 2048)
+          section.writeBuffer(smartBuffer)
+        }
+      })
+
+      this.blockLightSections.forEach((section) => {
+        if (section !== null) {
+          varInt.write(smartBuffer, 2048)
+          section.writeBuffer(smartBuffer)
+        }
+      })
+
+      return smartBuffer.toBuffer()
+    }
   }
+}
+
+function getSectionBlockIndex (pos) {
+  return ((pos.y & 15) << 8) | (pos.z << 4) | pos.x
+}
+
+function getLightSectionCoord (pos) {
+  return Math.floor(pos.y / 16) + 1
 }
 
 function getSectionCoord (coord) {
