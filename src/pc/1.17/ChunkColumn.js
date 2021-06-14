@@ -348,6 +348,10 @@ module.exports = (Block, mcData) => {
       }
     }
 
+    dumpBiomes () {
+      return this.biomes
+    }
+
     dumpLight () {
       const smartBuffer = new SmartBuffer()
 
