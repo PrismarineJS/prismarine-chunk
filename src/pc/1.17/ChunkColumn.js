@@ -13,8 +13,10 @@ module.exports = (Block, mcData) => {
       this.sectionMask = 0
 
       const verticalSections = this.countVerticalSections()
+      const biomeVerticalSections = Math.floor((this.maxWorldHeight - this.minWorldHeight + 3) / 4)
+
       this.sections = Array(verticalSections).fill(null)
-      this.biomes = Array(4 * 4 * this.countVerticalBiomeGridSize()).fill(0)
+      this.biomes = Array(4 * 4 * biomeVerticalSections).fill(0)
 
       this.skyLightSections = Array(verticalSections + 2).fill(null)
       this.blockLightSections = Array(verticalSections + 2).fill(null)
@@ -76,24 +78,19 @@ module.exports = (Block, mcData) => {
       return this.sectionMask
     }
 
-    countVerticalBiomeGridSize () {
-      const worldTotalHeight = this.maxWorldHeight - this.minWorldHeight
-      return Math.floor((worldTotalHeight + 3) / 4)
-    }
-
     countVerticalSections () {
-      return this.getTopSectionCoord() - this.getBottomSectionCoord()
+      return (this.maxWorldHeight - this.minWorldHeight) >> 4
     }
 
     getSectionIndex (blockY) {
       const sectionCoord = getSectionCoord(blockY)
-      const bottomSectionCoord = this.getBottomSectionCoord()
+      const bottomSectionCoord = getSectionCoord(this.minWorldHeight)
       return sectionCoord - bottomSectionCoord
     }
 
     getLightSectionIndex (blockY) {
       const lightSectionCoord = getLightSectionCoord(blockY)
-      const bottomSectionCoord = this.getBottomSectionCoord()
+      const bottomSectionCoord = getSectionCoord(this.minWorldHeight)
 
       return lightSectionCoord - bottomSectionCoord
     }
@@ -103,14 +100,6 @@ module.exports = (Block, mcData) => {
       const j = (pos.y >> 2) - (this.minWorldHeight >> 2)
       const k = (pos.z >> 2) & 3
       return j << 4 | k << 2 | i
-    }
-
-    getBottomSectionCoord () {
-      return getSectionCoord(this.minWorldHeight)
-    }
-
-    getTopSectionCoord () {
-      return getSectionCoord(this.maxWorldHeight - 1) + 1
     }
 
     isBlockPosValid (pos) {
