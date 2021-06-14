@@ -65,12 +65,9 @@ module.exports = (Block, mcData) => {
       chunk.skyLightSections = parsed.skyLightSections.map(s => s === null ? null : BitArray.fromJson(s))
       chunk.blockLightSections = parsed.blockLightSections.map(s => s === null ? null : BitArray.fromJson(s))
 
-      if (parsed.minWorldHeight) {
-        chunk.minWorldHeight = parsed.minWorldHeight
-      }
-      if (parsed.maxWorldHeight) {
-        chunk.maxWorldHeight = parsed.maxWorldHeight
-      }
+      chunk.minWorldHeight = parsed.minWorldHeight
+      chunk.maxWorldHeight = parsed.maxWorldHeight
+
       return chunk
     }
 
