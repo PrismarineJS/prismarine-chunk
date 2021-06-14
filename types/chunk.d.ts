@@ -38,10 +38,10 @@ declare class Chunk {
     setBlockLight(pos: Vec3, light: number): Section;
     setSkyLight(pos: Vec3, light: number): Section;
     setBiome(pos: Vec3, biome: number): void;
-    dumpBiomes(): void;
-    dumpLight(): void;
-    loadLight(): void;
-    loadBiomes(): void;
+    dumpBiomes(): Array<number>;
+    dumpLight(): Buffer;
+    loadLight(data: Buffer, skyLightMask: number, blockLightMask: number, emptySkyLightMask?: number, emptyBlockLightMask?: number): void;
+    loadBiomes(newBiomesArray: Array<number>): void;
     dump(bitMap?: number, skyLightSent?: boolean): Buffer;
     load(data: Buffer, bitMap?: number, skyLightSent?: boolean, fullChunk?: boolean): void;
     getMask(): number;
