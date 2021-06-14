@@ -210,10 +210,7 @@ module.exports = (Block, mcData) => {
       this.setBlockStateId(pos, mcData.blocksByStateId[this.getBlockStateId(pos)].minStateId + data)
     }
 
-    // Skylight data has been removed in 1.17, now it is computed client-side automatically
-    // and never synced from the server in chunk packets
-    // We still store it internally for other projects to use and to avoid making a breaking change
-
+    // Lighting related functions
     getBlockLight (pos) {
       const section = this.blockLightSections[this.getLightSectionIndex(pos.y)]
       return section ? section.get(toSectionPos(pos)) : 0
