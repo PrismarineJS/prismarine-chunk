@@ -34,6 +34,8 @@ module.exports = (Block, mcData) => {
     // Json serialization/deserialization methods
     toJson () {
       return JSON.stringify({
+        minWorldHeight: this.minWorldHeight,
+        maxWorldHeight: this.maxWorldHeight,
         biomes: this.biomes,
         sectionMask: this.sectionMask,
         sections: this.sections.map(section => section === null ? null : section.toJson())
@@ -46,6 +48,13 @@ module.exports = (Block, mcData) => {
       chunk.biomes = parsed.biomes
       chunk.sectionMask = parsed.sectionMask
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
+
+      if (parsed.minWorldHeight) {
+        chunk.minWorldHeight = parsed.minWorldHeight
+      }
+      if (parsed.maxWorldHeight) {
+        chunk.maxWorldHeight = parsed.maxWorldHeight
+      }
       return chunk
     }
 
