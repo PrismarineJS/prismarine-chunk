@@ -318,6 +318,41 @@ module.exports = (Block, mcData) => {
       }
     }
 
+    // Loads light from new package format first appearing in 1.17
+    loadLightFromSectionData (skyLight, blockLight, skyLightMask, blockLightMask) {
+      // Read sky light - skyLight is array of byte arrays, one per section, 2048 bytes each
+      this.skyLightMask |= skyLightMask
+      let currentSectionIndex = 0
+
+      for (let y = 0; y < this.countVerticalSections() + 2; y++) {
+        if (!((skyLightMask >> y) & 1)) {
+          continue
+        }
+
+        const sectionReader = Buffer.from(skyLight[currentSectionIndex++])
+        this.skyLightSections[y] = new BitArray({
+          bitsPerValue: 4,
+          capacity: 4096
+        }).readBuffer(SmartBuffer.fromBuffer(sectionReader))
+      }
+
+      // Read block light - same format like sky light
+      this.blockLightMask |= blockLightMask
+      currentSectionIndex = 0
+
+      for (let y = 0; y < this.countVerticalSections() + 2; y++) {
+        if (!((blockLightMask >> y) & 1)) {
+          continue
+        }
+
+        const sectionReader = Buffer.from(blockLight[currentSectionIndex++])
+        this.blockLightSections[y] = new BitArray({
+          bitsPerValue: 4,
+          capacity: 4096
+        }).readBuffer(SmartBuffer.fromBuffer(sectionReader))
+      }
+    }
+
     loadLight (data, skyLightMask, blockLightMask) {
       const reader = SmartBuffer.fromBuffer(data)
 
