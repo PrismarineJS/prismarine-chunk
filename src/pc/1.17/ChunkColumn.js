@@ -8,8 +8,8 @@ const BitArray = require('../common/BitArrayNoSpan')
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
     constructor (options) {
-      this.minWorldHeight = options.minWorldHeight ?? 0
-      this.maxWorldHeight = options.maxWorldHeight ?? constants.CHUNK_HEIGHT
+      this.minWorldHeight = options?.minWorldHeight ?? 0
+      this.maxWorldHeight = options?.maxWorldHeight ?? constants.CHUNK_HEIGHT
       this.sectionMask = 0
 
       const verticalSections = this.countVerticalSections()
