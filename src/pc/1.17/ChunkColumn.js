@@ -3,6 +3,7 @@ const ChunkSection = require('./ChunkSection')
 const constants = require('../common/constants')
 const varInt = require('../common/varInt')
 const BitArray = require('../common/BitArrayNoSpan')
+const BitSet = require('../common/BitSet')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
@@ -10,7 +11,7 @@ module.exports = (Block, mcData) => {
     constructor (options) {
       this.minWorldHeight = options?.minWorldHeight ?? 0
       this.maxWorldHeight = options?.maxWorldHeight ?? constants.CHUNK_HEIGHT
-      this.sectionMask = 0
+      this.sectionMask = new BitSet()
 
       const verticalSections = this.countVerticalSections()
       const biomeVerticalSections = Math.floor((this.maxWorldHeight - this.minWorldHeight + 3) / 4)
@@ -20,8 +21,8 @@ module.exports = (Block, mcData) => {
 
       this.skyLightSections = Array(verticalSections + 2).fill(null)
       this.blockLightSections = Array(verticalSections + 2).fill(null)
-      this.skyLightMask = 0
-      this.blockLightMask = 0
+      this.skyLightMask = new BitSet()
+      this.blockLightMask = new BitSet()
     }
 
     initialize (func) {
@@ -45,11 +46,11 @@ module.exports = (Block, mcData) => {
         minWorldHeight: this.minWorldHeight,
         maxWorldHeight: this.maxWorldHeight,
         biomes: this.biomes,
-        sectionMask: this.sectionMask,
+        sectionMask: this.sectionMask.toArray(),
         sections: this.sections.map(section => section === null ? null : section.toJson()),
 
-        skyLightMask: this.skyLightMask,
-        blockLightMask: this.blockLightMask,
+        skyLightMask: this.skyLightMask.toArray(),
+        blockLightMask: this.blockLightMask.toArray(),
         skyLightSections: this.skyLightSections.map(section => section === null ? null : section.toJson()),
         blockLightSections: this.blockLightSections.map(section => section === null ? null : section.toJson())
       })
@@ -59,11 +60,11 @@ module.exports = (Block, mcData) => {
       const parsed = JSON.parse(j)
       const chunk = new ChunkColumn()
       chunk.biomes = parsed.biomes
-      chunk.sectionMask = parsed.sectionMask
+      chunk.sectionMask = BitSet.fromArray(parsed.sectionMask)
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
 
-      chunk.skyLightMask = parsed.skyLightMask
-      chunk.blockLightMask = parsed.blockLightMask
+      chunk.skyLightMask = BitSet.fromArray(parsed.skyLightMask)
+      chunk.blockLightMask = BitSet.fromArray(parsed.blockLightMask)
       chunk.skyLightSections = parsed.skyLightSections.map(s => s === null ? null : BitArray.fromJson(s))
       chunk.blockLightSections = parsed.blockLightSections.map(s => s === null ? null : BitArray.fromJson(s))
 
@@ -75,7 +76,11 @@ module.exports = (Block, mcData) => {
 
     // Utility methods used for retrieving section indices and checking block positions
     getMask () {
-      return this.sectionMask
+      return this.sectionMask.getWordAt(0)
+    }
+
+    getMaskArray () {
+      return this.sectionMask.toArray()
     }
 
     countVerticalSections () {
@@ -131,7 +136,7 @@ module.exports = (Block, mcData) => {
           return
         }
         section = new ChunkSection()
-        this.sectionMask |= 1 << sectionIndex
+        this.sectionMask.set(sectionIndex)
         this.sections[sectionIndex] = section
       }
       section.setBlock(toSectionPos(pos), stateId)
@@ -272,11 +277,13 @@ module.exports = (Block, mcData) => {
 
     load (data, bitMap = 0xffff) {
       const reader = SmartBuffer.fromBuffer(data)
-      this.sectionMask |= bitMap
+      const packetBitSet = makeBitSetFromBitMap(bitMap)
+
+      this.sectionMask.merge(packetBitSet)
 
       for (let y = 0; y < this.countVerticalSections(); ++y) {
         // skip sections not present in the data
-        if (!((bitMap >> y) & 1)) {
+        if (!packetBitSet.get(y)) {
           continue
         }
 
@@ -320,12 +327,15 @@ module.exports = (Block, mcData) => {
 
     // Loads light from new package format first appearing in 1.17
     loadLightFromSectionData (skyLight, blockLight, skyLightMask, blockLightMask) {
+      const skyLightBitSet = makeBitSetFromBitMap(skyLightMask)
+      const blockLightBitSet = makeBitSetFromBitMap(blockLightMask)
+
       // Read sky light - skyLight is array of byte arrays, one per section, 2048 bytes each
-      this.skyLightMask |= skyLightMask
+      this.skyLightMask.merge(skyLightBitSet)
       let currentSectionIndex = 0
 
       for (let y = 0; y < this.countVerticalSections() + 2; y++) {
-        if (!((skyLightMask >> y) & 1)) {
+        if (!skyLightBitSet.get(y)) {
           continue
         }
 
@@ -337,11 +347,11 @@ module.exports = (Block, mcData) => {
       }
 
       // Read block light - same format like sky light
-      this.blockLightMask |= blockLightMask
+      this.blockLightMask.merge(blockLightBitSet)
       currentSectionIndex = 0
 
       for (let y = 0; y < this.countVerticalSections() + 2; y++) {
-        if (!((blockLightMask >> y) & 1)) {
+        if (!blockLightBitSet.get(y)) {
           continue
         }
 
@@ -355,11 +365,13 @@ module.exports = (Block, mcData) => {
 
     loadLight (data, skyLightMask, blockLightMask) {
       const reader = SmartBuffer.fromBuffer(data)
+      const skyLightBitSet = makeBitSetFromBitMap(skyLightMask)
+      const blockLightBitSet = makeBitSetFromBitMap(blockLightMask)
 
       // Read sky light
       this.skyLightMask |= skyLightMask
       for (let y = 0; y < this.countVerticalSections() + 2; y++) {
-        if (!((skyLightMask >> y) & 1)) {
+        if (!skyLightBitSet.get(y)) {
           continue
         }
         varInt.read(reader) // always 2048
@@ -372,7 +384,7 @@ module.exports = (Block, mcData) => {
       // Read block light
       this.blockLightMask |= blockLightMask
       for (let y = 0; y < this.countVerticalSections() + 2; y++) {
-        if (!((blockLightMask >> y) & 1)) {
+        if (!blockLightBitSet.get(y)) {
           continue
         }
         varInt.read(reader) // always 2048
@@ -406,6 +418,16 @@ module.exports = (Block, mcData) => {
 
       return smartBuffer.toBuffer()
     }
+  }
+}
+
+function makeBitSetFromBitMap (bitMap) {
+  if (Array.isArray(bitMap)) {
+    return BitSet.fromArray(bitMap)
+  } else if (typeof bitMap === 'number') {
+    return BitSet.fromArray([bitMap])
+  } else {
+    throw new Error('Unsupported type of bitMap: not an array or number')
   }
 }
 

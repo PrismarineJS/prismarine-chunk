@@ -160,6 +160,14 @@ module.exports = (Block, mcData) => {
       return this.sectionMask
     }
 
+    getMaskArray () {
+      return [this.getMask()]
+    }
+
+    countVerticalSections () {
+      return constants.NUM_SECTIONS
+    }
+
     // These methods do nothing, and are present only for API compatibility
     dumpBiomes () {
 
