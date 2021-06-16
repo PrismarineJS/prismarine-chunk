@@ -207,12 +207,12 @@ module.exports = (Block, mcData) => {
     // Lighting related functions
     getBlockLight (pos) {
       const section = this.blockLightSections[this.getLightSectionIndex(pos.y)]
-      return section ? section.get(toSectionPos(pos)) : 0
+      return section ? section.get(getSectionBlockIndex(pos)) : 0
     }
 
     getSkyLight (pos) {
       const section = this.skyLightSections[this.getLightSectionIndex(pos.y)]
-      return section ? section.get(toSectionPos(pos)) : 0
+      return section ? section.get(getSectionBlockIndex(pos)) : 0
     }
 
     setBlockLight (pos, light) {
@@ -435,8 +435,8 @@ function getSectionBlockIndex (pos) {
   return ((pos.y & 15) << 8) | (pos.z << 4) | pos.x
 }
 
-function getLightSectionCoord (pos) {
-  return Math.floor(pos.y / 16) + 1
+function getLightSectionCoord (coord) {
+  return Math.floor(coord / 16) + 1
 }
 
 function getSectionCoord (coord) {
