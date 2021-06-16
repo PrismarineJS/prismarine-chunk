@@ -1,4 +1,5 @@
-const ADDRESS_BITS_PER_WORD = 32
+// we use 5 address bits for word since JS bit operations treat numbers as 32-bit integers
+const ADDRESS_BITS_PER_WORD = 5
 
 // Returns index of the word containing given bit
 function getWordIndex (bitIndex) {
