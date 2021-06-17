@@ -216,7 +216,7 @@ module.exports = (Block, mcData) => {
     }
 
     setBlockLight (pos, light) {
-      const sectionIndex = this.getLightSectionIndex(pos)
+      const sectionIndex = this.getLightSectionIndex(pos.y)
       let section = this.blockLightSections[sectionIndex]
 
       if (section === null) {
@@ -227,7 +227,7 @@ module.exports = (Block, mcData) => {
           bitsPerValue: 4,
           capacity: 4096
         })
-        this.blockLightMask |= 1 << sectionIndex
+        this.blockLightMask.set(sectionIndex)
         this.blockLightSections[sectionIndex] = section
       }
 
@@ -235,7 +235,7 @@ module.exports = (Block, mcData) => {
     }
 
     setSkyLight (pos, light) {
-      const sectionIndex = this.getLightSectionIndex(pos)
+      const sectionIndex = this.getLightSectionIndex(pos.y)
       let section = this.skyLightSections[sectionIndex]
 
       if (section === null) {
@@ -246,7 +246,7 @@ module.exports = (Block, mcData) => {
           bitsPerValue: 4,
           capacity: 4096
         })
-        this.skyLightMask |= 1 << sectionIndex
+        this.skyLightMask.set(sectionIndex)
         this.skyLightSections[sectionIndex] = section
       }
 
@@ -369,7 +369,7 @@ module.exports = (Block, mcData) => {
       const blockLightBitSet = makeBitSetFromBitMap(blockLightMask)
 
       // Read sky light
-      this.skyLightMask |= skyLightMask
+      this.skyLightMask.merge(skyLightBitSet)
       for (let y = 0; y < this.countVerticalSections() + 2; y++) {
         if (!skyLightBitSet.get(y)) {
           continue
@@ -382,7 +382,7 @@ module.exports = (Block, mcData) => {
       }
 
       // Read block light
-      this.blockLightMask |= blockLightMask
+      this.blockLightMask.merge(blockLightBitSet)
       for (let y = 0; y < this.countVerticalSections() + 2; y++) {
         if (!blockLightBitSet.get(y)) {
           continue
