@@ -26,6 +26,8 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
   const serializesLightingDataSeparately = version.startsWith('1.14') || version.startsWith('1.15') ||
     version.startsWith('1.16') || version.startsWith('1.17')
 
+  const newLightingDataFormat = version.startsWith('1.17')
+
   const serializesBiomesSeparately = version.startsWith('1.15') || version.startsWith('1.16') ||
     version.startsWith('1.17')
 
@@ -219,7 +221,12 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         const chunk = new Chunk()
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (serializesLightingDataSeparately) {
-          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          if (newLightingDataFormat) {
+            const lightDumpObject = JSON.parse(lightDump.toString())
+            chunk.loadLightFromSectionData(lightDumpObject.skyLight, lightDumpObject.blockLight, lightData.skyLightMask, lightData.blockLightMask)
+          } else {
+            chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          }
         }
       })
 
@@ -232,9 +239,17 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         chunk2.load(buffer, bitmap, data.skyLightSent)
 
         if (serializesLightingDataSeparately) {
-          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
-          const lightBuffer = chunk.dumpLight()
-          chunk2.loadLight(lightBuffer, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          if (newLightingDataFormat) {
+            const lightDumpObject = JSON.parse(lightDump.toString())
+            chunk.loadLightFromSectionData(lightDumpObject.skyLight, lightDumpObject.blockLight, lightData.skyLightMask, lightData.blockLightMask)
+
+            const lightChunkData = chunk.dumpLightToSectionData()
+            chunk2.loadLightFromSectionData(lightChunkData.skyLight, lightChunkData.blockLight, lightData.skyLightMask, lightData.blockLightMask)
+          } else {
+            chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+            const lightBuffer = chunk.dumpLight()
+            chunk2.loadLight(lightBuffer, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          }
         }
 
         if (serializesBiomesSeparately) {
@@ -294,7 +309,12 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         }
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (serializesLightingDataSeparately) {
-          chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          if (newLightingDataFormat) {
+            const lightDumpObject = JSON.parse(lightDump.toString())
+            chunk.loadLightFromSectionData(lightDumpObject.skyLight, lightDumpObject.blockLight, lightData.skyLightMask, lightData.blockLightMask)
+          } else {
+            chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          }
         }
 
         if (serializesBiomesSeparately) {

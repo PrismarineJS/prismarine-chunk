@@ -363,6 +363,32 @@ module.exports = (Block, mcData) => {
       }
     }
 
+    dumpLightToSectionData () {
+      const skyLight = []
+      const blockLight = []
+
+      this.skyLightSections.forEach((section) => {
+        if (section !== null) {
+          const smartBuffer = new SmartBuffer()
+          section.writeBuffer(smartBuffer)
+          skyLight.push(Uint8Array.from(smartBuffer.toBuffer()))
+        }
+      })
+
+      this.blockLightSections.forEach((section) => {
+        if (section !== null) {
+          const smartBuffer = new SmartBuffer()
+          section.writeBuffer(smartBuffer)
+          blockLight.push(Uint8Array.from(smartBuffer.toBuffer()))
+        }
+      })
+
+      return {
+        skyLight: skyLight,
+        blockLight: blockLight
+      }
+    }
+
     loadLight (data, skyLightMask, blockLightMask) {
       const reader = SmartBuffer.fromBuffer(data)
       const skyLightBitSet = makeBitSetFromBitMap(skyLightMask)
