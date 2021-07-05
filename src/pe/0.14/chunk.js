@@ -23,6 +23,7 @@ function loader (mcVersion) {
   Chunk.l = l
   Chunk.h = h
   Chunk.BUFFER_SIZE = BUFFER_SIZE
+  Chunk.version = mcVersion
   return Chunk
 }
 

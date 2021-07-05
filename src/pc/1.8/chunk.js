@@ -16,6 +16,7 @@ function loader (mcVersion) {
   Chunk.w = w
   Chunk.l = l
   Chunk.h = h
+  Chunk.version = mcVersion
   return Chunk
 }
 

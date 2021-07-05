@@ -16,6 +16,7 @@ function loader (mcVersion) {
   Chunk.l = 16
   Chunk.h = 256
   Chunk.BUFFER_SIZE = 3 + 256 + 512 + (16 * 10241)
+  Chunk.version = mcVersion
   return Chunk
 }
 

@@ -53,6 +53,10 @@ Initialize a chunk.
 
 That function is faster than iterating and calling the setBlock* manually. It is useful to generate a whole chunk and load a whole chunk.
 
+#### Chunk.version
+
+returns the version the chunk loader was called with
+
 #### Chunk.getBlock(pos)
 
 Get the [Block](https://github.com/PrismarineJS/prismarine-block) at [pos](https://github.com/andrewrk/node-vec3)
