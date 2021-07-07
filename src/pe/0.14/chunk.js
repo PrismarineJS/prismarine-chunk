@@ -23,7 +23,7 @@ function loader (mcVersion) {
   Chunk.l = l
   Chunk.h = h
   Chunk.BUFFER_SIZE = BUFFER_SIZE
-  Chunk.version = mcVersion
+  Chunk.version = require('minecraft-data')(mcVersion).version
   return Chunk
 }
 

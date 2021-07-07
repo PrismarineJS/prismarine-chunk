@@ -7,7 +7,7 @@ function loader (mcVersion) {
   const Chunk = require('./ChunkColumn')(Block, mcData)
   // expose for test purposes
   Chunk.h = constants.CHUNK_HEIGHT
-  Chunk.version = mcVersion
+  Chunk.version = mcData.version
   return Chunk
 }
 

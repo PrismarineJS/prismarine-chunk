@@ -16,7 +16,7 @@ function loader (mcVersion) {
   Chunk.w = w
   Chunk.l = l
   Chunk.h = h
-  Chunk.version = mcVersion
+  Chunk.version = require('minecraft-data')(mcVersion).version
   return Chunk
 }
 
