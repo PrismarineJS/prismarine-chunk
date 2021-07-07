@@ -9,13 +9,12 @@ class BitArray {
     // assert(options.bitsPerValue > 0, 'bits per value must at least 1')
     // assert(options.bitsPerValue <= 32, 'bits per value exceeds 32')
 
-    const length = Math.ceil((options.capacity * options.bitsPerValue) / 64)
     if (!options.data) {
-      options.data = Array(length * 2).fill(0)
+      options.data = new Uint32Array(Math.ceil((options.capacity * options.bitsPerValue) / 64) * 2)
     }
     const valueMask = (1 << options.bitsPerValue) - 1
 
-    this.data = options.data
+    this.data = options.data.buffer ? new Uint32Array(options.data.buffer) : Uint32Array.from(options.data)
     this.capacity = options.capacity
     this.bitsPerValue = options.bitsPerValue
     this.valueMask = valueMask
@@ -23,7 +22,7 @@ class BitArray {
 
   toJson () {
     return JSON.stringify({
-      data: this.data,
+      data: Array.from(this.data),
       capacity: this.capacity,
       bitsPerValue: this.bitsPerValue,
       valueMask: this.valueMask
@@ -31,13 +30,7 @@ class BitArray {
   }
 
   static fromJson (j) {
-    const parsed = JSON.parse(j)
-    const bitarray = new BitArray(null)
-    bitarray.data = parsed.data
-    bitarray.capacity = parsed.capacity
-    bitarray.bitsPerValue = parsed.bitsPerValue
-    bitarray.valueMask = parsed.valueMask
-    return bitarray
+    return new BitArray(JSON.parse(j))
   }
 
   toArray () {
@@ -123,7 +116,7 @@ class BitArray {
     })
     for (let i = 0; i < this.capacity; ++i) {
       const value = this.get(i)
-      if (neededBits(value) > newArr.getBitsPerValue()) {
+      if (neededBits(value) > newBitsPerValue) {
         throw new Error(
           "existing value in BitArray can't fit in new bits per value"
         )
