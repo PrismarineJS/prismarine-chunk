@@ -1,5 +1,12 @@
 ## History
 
+## 1.23.0
+
+* Add toArray/fromArray to BitArrays (@Karang)
+* Use Uint32Array instead of Array (@Saiv46)
+* add version property to chunk object (@u9g)
+* Fix pe -> bedrock (@nickelpro)
+
 ## 1.22.0
 
 * optimize for browser by inlining getSectionIndex and removing asserts (@rom1504)
