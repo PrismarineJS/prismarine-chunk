@@ -8,7 +8,7 @@ const prismarineBlockLoader = require('prismarine-block')
 const chunkLoader = require('../index')
 const { performance } = require('perf_hooks')
 
-const versions = ['pe_0.14', 'pe_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1']
+const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1']
 const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1']
 
 const depsByVersion = versions.map((version) => {
@@ -134,7 +134,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     }
   })
 
-  if (version !== 'pe_1.0' && version !== '1.9') {
+  if (version !== 'bedrock_1.0' && version !== '1.9') {
     test('Fails safely when loading bad input', function () {
       const chunk = new Chunk()
 
@@ -151,7 +151,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     })
   }
 
-  if (version !== 'pe_1.0') {
+  if (version !== 'bedrock_1.0') {
     test('Loads and dumps fake data consistently', function () {
       const chunk = new Chunk()
 
