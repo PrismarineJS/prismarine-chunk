@@ -8,7 +8,7 @@ const prismarineBlockLoader = require('prismarine-block')
 const chunkLoader = require('../index')
 const { performance } = require('perf_hooks')
 
-const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1']
+const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17']
 const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17']
 
 const depsByVersion = versions.map((version) => {
