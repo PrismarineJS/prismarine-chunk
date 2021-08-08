@@ -1,5 +1,9 @@
 ## History
 
+## 1.24.0
+
+* 1.17 support (thanks @nickelpro @Archengius @u9g)
+
 ## 1.23.0
 
 * Add toArray/fromArray to BitArrays (@Karang)
