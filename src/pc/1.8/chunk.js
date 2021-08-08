@@ -1,6 +1,5 @@
 const Section = require('./section')
 const Vec3 = require('vec3').Vec3
-const constants = require('../common/constants')
 
 const w = Section.w
 const l = Section.l
@@ -47,8 +46,6 @@ function parseBitMap (bitMap) {
 
 class Chunk {
   constructor () {
-    this.minWorldHeight = 0
-    this.maxWorldHeight = constants.CHUNK_HEIGHT
     this.skyLightSent = true
     this.sections = new Array(sectionCount)
     for (let i = 0; i < sectionCount; i++) { this.sections[i] = new Section() }
@@ -242,13 +239,5 @@ class Chunk {
 
   getMask () {
     return 0xFFFF
-  }
-
-  getMaskArray () {
-    return [this.getMask()]
-  }
-
-  countVerticalSections () {
-    return constants.NUM_SECTIONS
   }
 }

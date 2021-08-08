@@ -5,16 +5,11 @@ import Section from "./section";
 export = loader;
 declare function loader(mcVersion: number): typeof Chunk;
 
-declare class ChunkInitData {
-    minWorldHeight: number | null;
-    maxWorldHeight: number | null;
-}
-
 declare class Chunk {
     constructor(initData: ChunkInitData | null)
     static fromJson(j: any): Chunk;
     skyLightSent: boolean;
-    sections: Section[]; 
+    sections: Section[];
     biome: Buffer;
     toJson(): string;
     initialize(iniFunc: any): void;

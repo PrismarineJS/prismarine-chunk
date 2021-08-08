@@ -8,8 +8,6 @@ const varInt = require('../common/varInt')
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
     constructor () {
-      this.minWorldHeight = 0
-      this.maxWorldHeight = constants.CHUNK_HEIGHT
       this.sectionMask = 0
       this.skyLightSent = true
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
@@ -158,14 +156,6 @@ module.exports = (Block, mcData) => {
 
     getMask () {
       return this.sectionMask
-    }
-
-    getMaskArray () {
-      return [this.getMask()]
-    }
-
-    countVerticalSections () {
-      return constants.NUM_SECTIONS
     }
 
     // These methods do nothing, and are present only for API compatibility

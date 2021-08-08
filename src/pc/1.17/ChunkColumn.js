@@ -239,14 +239,6 @@ module.exports = (Block, mcData) => {
       return this.sectionMask.toLongArray()
     }
 
-    getMaskArray () {
-      return [this.getMask()]
-    }
-
-    countVerticalSections () {
-      return this.numSections
-    }
-
     dump () {
       const smartBuffer = new SmartBuffer()
       this.sections.forEach((section, i) => {

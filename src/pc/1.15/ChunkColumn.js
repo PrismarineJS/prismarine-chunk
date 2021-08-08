@@ -8,8 +8,6 @@ const varInt = require('../common/varInt')
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
     constructor () {
-      this.minWorldHeight = 0
-      this.maxWorldHeight = constants.CHUNK_HEIGHT
       this.sectionMask = 0
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
       this.biomes = Array(4 * 4 * 64).fill(127)
@@ -197,14 +195,6 @@ module.exports = (Block, mcData) => {
 
     getMask () {
       return this.sectionMask
-    }
-
-    getMaskArray () {
-      return [this.getMask()]
-    }
-
-    countVerticalSections () {
-      return constants.NUM_SECTIONS
     }
 
     dump () {
