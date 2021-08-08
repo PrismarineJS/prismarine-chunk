@@ -307,7 +307,7 @@ module.exports = (Block, mcData) => {
       }
     }
 
-    loadLight (skyLight, blockLight, skyLightMask, blockLightMask, emptySkyLightMask, emptyBlockLightMask) {
+    loadParsedLight (skyLight, blockLight, skyLightMask, blockLightMask, emptySkyLightMask, emptyBlockLightMask) {
       skyLightMask = BitArray.fromLongArray(skyLightMask, 1)
       this.skyLightMask = BitArray.or(this.skyLightMask, skyLightMask)
       let currentSectionIndex = 0
