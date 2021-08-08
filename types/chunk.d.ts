@@ -4,10 +4,12 @@ import Section from "./section";
 
 export = loader;
 declare function loader(mcVersion: number): typeof Chunk;
+
 declare class Chunk {
+    constructor(initData: ChunkInitData | null)
     static fromJson(j: any): Chunk;
     skyLightSent: boolean;
-    sections: Section[]; 
+    sections: Section[];
     biome: Buffer;
     toJson(): string;
     initialize(iniFunc: any): void;
@@ -31,10 +33,10 @@ declare class Chunk {
     setBlockLight(pos: Vec3, light: number): Section;
     setSkyLight(pos: Vec3, light: number): Section;
     setBiome(pos: Vec3, biome: number): void;
-    dumpBiomes(): void;
-    dumpLight(): void;
-    loadLight(): void;
-    loadBiomes(): void;
+    dumpBiomes(): Array<number>;
+    dumpLight(): Buffer;
+    loadLight(data: Buffer, skyLightMask: number, blockLightMask: number, emptySkyLightMask?: number, emptyBlockLightMask?: number): void;
+    loadBiomes(newBiomesArray: Array<number>): void;
     dump(bitMap?: number, skyLightSent?: boolean): Buffer;
     load(data: Buffer, bitMap?: number, skyLightSent?: boolean, fullChunk?: boolean): void;
     getMask(): number;

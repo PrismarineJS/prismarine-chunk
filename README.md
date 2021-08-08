@@ -141,6 +141,10 @@ Returns the chunk raw light data (starting from 1.14)
 
 Load lights into the chunk (starting from 1.14)
 
+#### Chunk.loadParsedLight (skyLight, blockLight, skyLightMask, blockLightMask, emptySkyLightMask, emptyBlockLightMask)
+
+Load lights into the chunk (starting from 1.17)
+
 #### Chunk.dumpBiomes()
 
 Returns the biomes as an array (starting from 1.15)
