@@ -158,7 +158,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       })
 
       assert.throws(function () {
-        chunk.load(notABuffer, 0xFFFF)
+        chunk.load(notABuffer)
       })
     })
   }
@@ -186,7 +186,16 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
 
       const buf2 = chunk2.dump()
       const chunk2Mask = chunk.getMask()
-      assert.strictEqual(chunk1Mask, chunk2Mask)
+
+      if (version === '1.17') {
+        assert.strictEqual(chunk1Mask.length, chunk2Mask.length)
+        for (let i = 0; i < chunk1Mask.length; i++) {
+          assert.strictEqual(chunk1Mask[i][0], chunk2Mask[i][0])
+          assert.strictEqual(chunk1Mask[i][1], chunk2Mask[i][1])
+        }
+      } else {
+        assert.strictEqual(chunk1Mask, chunk2Mask)
+      }
 
       if (!buf.equals(buf2)) {
         assert.strictEqual(buf, buf2)
@@ -224,7 +233,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (serializesLightingDataSeparately) {
           if (newLightingDataFormat) {
-            chunk.loadLightFromSectionData(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask)
+            chunk.loadLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           } else {
             chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           }
@@ -241,10 +250,10 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
 
         if (serializesLightingDataSeparately) {
           if (newLightingDataFormat) {
-            chunk.loadLightFromSectionData(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask)
+            chunk.loadLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
 
-            const lightChunkData = chunk.dumpLightToSectionData()
-            chunk2.loadLightFromSectionData(lightChunkData.skyLight, lightChunkData.blockLight, lightData.skyLightMask, lightData.blockLightMask)
+            const lightChunkData = chunk.dumpLight()
+            chunk2.loadLight(lightChunkData.skyLight, lightChunkData.blockLight, lightChunkData.skyLightMask, lightChunkData.blockLightMask, lightChunkData.emptySkyLightMask, lightChunkData.emptyBlockLightMask)
           } else {
             chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
             const lightBuffer = chunk.dumpLight()
@@ -310,7 +319,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (serializesLightingDataSeparately) {
           if (newLightingDataFormat) {
-            chunk.loadLightFromSectionData(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask)
+            chunk.loadLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           } else {
             chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           }

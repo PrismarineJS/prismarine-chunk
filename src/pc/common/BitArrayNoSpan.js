@@ -10,12 +10,10 @@ class BitArray {
     // assert(options.bitsPerValue <= 32, 'bits per value exceeds 32')
 
     const valuesPerLong = Math.floor(64 / options.bitsPerValue)
-    if (!options.data) {
-      options.data = new Uint32Array(Math.ceil(options.capacity / valuesPerLong) * 2)
-    }
+    const bufferSize = Math.ceil(options.capacity / valuesPerLong) * 2
     const valueMask = (1 << options.bitsPerValue) - 1
 
-    this.data = options.data.buffer ? new Uint32Array(options.data.buffer) : Uint32Array.from(options.data)
+    this.data = new Uint32Array(options?.data ?? bufferSize)
     this.capacity = options.capacity
     this.bitsPerValue = options.bitsPerValue
     this.valuesPerLong = valuesPerLong
@@ -53,6 +51,40 @@ class BitArray {
       bitarray.set(i, array[i])
     }
     return bitarray
+  }
+
+  // [[MSB, LSB]]
+  toLongArray () {
+    const array = []
+    for (let i = 0; i < this.data.length; i += 2) {
+      array.push([this.data[i + 1], this.data[i]])
+    }
+    return array
+  }
+
+  static fromLongArray (array, bitsPerValue) {
+    const bitArray = new BitArray({
+      capacity: Math.floor(64 / bitsPerValue) * array.length,
+      bitsPerValue
+    })
+    for (let i = 0; i < array.length * 2; i += 2) {
+      bitArray.data[i + 1] = array[i][0]
+      bitArray.data[i] = array[i][1]
+    }
+    return bitArray
+  }
+
+  static or (a, b) {
+    const long = a.data.length > b.data.length ? a.data : b.data
+    const short = a.data.length > b.data.length ? b.data : a.data
+    const array = new Uint32Array(long.buffer)
+    for (let i = 0; i < short.length; i++) {
+      array[i] = array[i] | short[i]
+    }
+    return new BitArray({
+      data: array.buffer,
+      bitsPerValue: Math.max(a.bitsPerValue, b.bitsPerValue)
+    })
   }
 
   get (index) {
@@ -104,6 +136,18 @@ class BitArray {
           ~((1 << (endBitOffset - 32)) - 1)) |
         (value >> (32 - indexInStartLong))) >>> 0
     }
+  }
+
+  resize (newCapacity) {
+    const newArr = new BitArray({
+      bitsPerValue: this.bitsPerValue,
+      capacity: newCapacity
+    })
+    for (let i = 0; i < Math.min(newCapacity, this.capacity); ++i) {
+      newArr.set(i, this.get(i))
+    }
+
+    return newArr
   }
 
   resizeTo (newBitsPerValue) {
