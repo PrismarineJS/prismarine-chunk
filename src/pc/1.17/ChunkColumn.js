@@ -148,6 +148,7 @@ module.exports = (Block, mcData) => {
     }
 
     getBiome (pos) {
+      if (pos.y < this.minY || pos.y >= (this.minY + this.worldHeight)) return 0
       return this.biomes[getBiomeIndex(pos, this.minY)]
     }
 
@@ -166,7 +167,7 @@ module.exports = (Block, mcData) => {
 
     setBlockStateId (pos, stateId) {
       const sectionIndex = (pos.y - this.minY) >> 4
-      if (sectionIndex < 0) return
+      if (sectionIndex < 0 || sectionIndex >= this.numSections) return
 
       let section = this.sections[sectionIndex]
       if (!section) {
@@ -227,7 +228,7 @@ module.exports = (Block, mcData) => {
     }
 
     setBiome (pos, biome) {
-      if (pos.y < 0) return
+      if (pos.y < this.minY || pos.y >= (this.minY + this.worldHeight)) return
       this.biomes[getBiomeIndex(pos, this.minY)] = biome
     }
 
