@@ -220,7 +220,7 @@ module.exports = (Block, mcData) => {
           bitsPerValue: 4,
           capacity: 4096
         })
-        this.skyLightMask |= 1 << sectionIndex
+        this.skyLightMask.set(sectionIndex, 1)
         this.skyLightSections[sectionIndex] = section
       }
 
