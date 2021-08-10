@@ -22,7 +22,7 @@ const MAX_BITS_PER_BLOCK = 8
 
 // number of bits used for each block in the global palette.
 // this value should not be hardcoded according to wiki.vg
-const GLOBAL_BITS_PER_BLOCK = 14
+const GLOBAL_BITS_PER_BLOCK = 16
 
 module.exports = {
   CHUNK_HEIGHT,
