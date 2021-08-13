@@ -17,7 +17,6 @@ function loader (mcVersion) {
   Chunk.l = l
   Chunk.h = h
   Chunk.version = require('minecraft-data')(mcVersion).version
-  Chunk.section = Section
   return Chunk
 }
 
@@ -46,6 +45,7 @@ function parseBitMap (bitMap) {
 }
 
 class Chunk {
+  static section = Section
   constructor () {
     this.skyLightSent = true
     this.sections = new Array(sectionCount)

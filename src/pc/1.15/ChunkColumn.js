@@ -7,6 +7,7 @@ const varInt = require('../common/varInt')
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
+    static section = ChunkSection
     constructor () {
       this.sectionMask = 0
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
@@ -318,8 +319,6 @@ module.exports = (Block, mcData) => {
     }
   }
 }
-
-module.exports.section = ChunkSection
 
 function getLightSectionIndex (pos) {
   return Math.floor(pos.y / 16) + 1

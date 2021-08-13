@@ -8,6 +8,7 @@ const exists = val => val !== undefined
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
+    static section = ChunkSection
     constructor () {
       this.sectionMask = 0
       this.skyLightSent = true
@@ -257,8 +258,6 @@ module.exports = (Block, mcData) => {
     }
   }
 }
-
-module.exports.section = ChunkSection
 
 function getBiomeIndex (pos) {
   return (pos.z * 16) | pos.x
