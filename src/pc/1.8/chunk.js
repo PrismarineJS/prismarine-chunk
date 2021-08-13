@@ -17,10 +17,9 @@ function loader (mcVersion) {
   Chunk.l = l
   Chunk.h = h
   Chunk.version = require('minecraft-data')(mcVersion).version
+  Chunk.section = Section
   return Chunk
 }
-
-loader.section = Section
 
 let Block
 
