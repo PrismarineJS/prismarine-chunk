@@ -20,6 +20,8 @@ function loader (mcVersion) {
   return Chunk
 }
 
+loader.section = Section
+
 let Block
 
 const exists = function (val) {

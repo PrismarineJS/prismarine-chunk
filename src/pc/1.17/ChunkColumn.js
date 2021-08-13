@@ -380,6 +380,8 @@ module.exports = (Block, mcData) => {
   }
 }
 
+module.exports.section = ChunkSection
+
 function getLightSectionIndex (pos, minY) {
   return Math.floor((pos.y - minY) / 16) + 1
 }

@@ -268,6 +268,8 @@ module.exports = (Block, mcData) => {
   }
 }
 
+module.exports.section = ChunkSection
+
 function getBiomeIndex (pos) {
   return (pos.z * 16) | pos.x
 }
