@@ -4,6 +4,7 @@ const ChunkSection = require('../common/CommonChunkSection')(BitArray)
 const constants = require('../common/constants')
 const varInt = require('../common/varInt')
 
+module.exports.section = ChunkSection
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
