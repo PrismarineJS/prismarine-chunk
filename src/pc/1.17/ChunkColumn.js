@@ -7,6 +7,7 @@ const varInt = require('../common/varInt')
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
+    static get section () { return ChunkSection }
     constructor (options) {
       this.minY = options?.minY ?? 0
       this.worldHeight = options?.worldHeight ?? constants.CHUNK_HEIGHT

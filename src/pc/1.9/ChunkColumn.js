@@ -8,6 +8,7 @@ const exists = val => val !== undefined
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
   return class ChunkColumn {
+    static get section () { return ChunkSection }
     constructor () {
       this.sectionMask = 0
       this.skyLightSent = true

@@ -57,6 +57,10 @@ That function is faster than iterating and calling the setBlock* manually. It is
 
 returns the version the chunk loader was called with
 
+#### Chunk.section
+
+returns ChunkSection class for version
+
 #### Chunk.getBlock(pos)
 
 Get the [Block](https://github.com/PrismarineJS/prismarine-block) at [pos](https://github.com/andrewrk/node-vec3)
@@ -168,3 +172,26 @@ Array of y => section
 Can be used to identify whether a section is empty or not (will be null if it's the case)
 For version >= 1.9, contains a .palette property which contains all the stateId of this section, can be used to check quickly whether a given block
 is in this section.
+
+### ChunkSection
+
+#### static fromJson(j: any): ChunkSection
+#### static sectionSize(skyLightSent?: boolean): number
+#### constructor(skyLightSent?: boolean)
+#### data: Buffer
+#### toJson(): { type: "Buffer"; data: number[]; }
+#### initialize(iniFunc: any): void
+#### getBiomeColor(pos: Vec3): { r: number; g: number; b: number; }
+#### setBiomeColor(pos: Vec3, r: number, g: number, b: number): void
+#### getBlockStateId(pos: Vec3): number
+#### getBlockType(pos: Vec3): number
+#### getBlockData(pos: Vec3): number
+#### getBlockLight(pos: Vec3): number
+#### getSkyLight(pos: Vec3): number
+#### setBlockStateId(pos: Vec3, stateId: number): void
+#### setBlockType(pos: Vec3, id: number): void
+#### setBlockData(pos: Vec3, data: Buffer): void
+#### setBlockLight(pos: Vec3, light: number): void
+#### setSkyLight(pos: Vec3, light: number): void
+#### dump(): Buffer
+#### load(data: Buffer, skyLightSent?: boolean): void
