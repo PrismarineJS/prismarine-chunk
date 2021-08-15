@@ -1,5 +1,12 @@
 ## History
 
+## 1.25.0
+
+* Add type info and bounds checks (@nickelpro)
+* Fix skyLightMask bookkeeping (@nickelpro)
+* Set GLOBAL_BITS_PER_BLOCK to 16 (@nickelpro)
+* Expose ChunkSections (@extremeheat)
+
 ## 1.24.0
 
 * 1.17 support (thanks @nickelpro @Archengius @u9g)
