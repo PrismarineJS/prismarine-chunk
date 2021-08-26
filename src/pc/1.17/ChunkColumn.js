@@ -310,7 +310,8 @@ module.exports = (Block, mcData) => {
     }
 
     loadParsedLight (skyLight, blockLight, skyLightMask, blockLightMask, emptySkyLightMask, emptyBlockLightMask) {
-      let blm = 0n, slm = 0n
+      let blm = 0n
+      let slm = 0n
       for (let i = 0, j = 0n; i < blockLightMask.length; i++, j++) blm |= ((j * 64n) << blockLightMask[i].valueOf())
       for (let i = 0, j = 0n; i < skyLightMask.length; i++, j++) slm |= ((j * 64n) << skyLightMask[i].valueOf())
 
