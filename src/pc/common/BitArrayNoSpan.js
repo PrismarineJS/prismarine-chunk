@@ -78,9 +78,10 @@ class BitArray {
   static or (a, b) {
     const long = a.data.length > b.data.length ? a.data : b.data
     const short = a.data.length > b.data.length ? b.data : a.data
-    const array = new Uint32Array(long.buffer)
+    const array = new Uint32Array(long.length)
+    array.set(long)
     for (let i = 0; i < short.length; i++) {
-      array[i] = array[i] | short[i]
+      array[i] |= short[i]
     }
     return new BitArray({
       data: array.buffer,
