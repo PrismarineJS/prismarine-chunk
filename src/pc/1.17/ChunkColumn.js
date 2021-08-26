@@ -243,7 +243,7 @@ module.exports = (Block, mcData) => {
 
     dump () {
       const smartBuffer = new SmartBuffer()
-      this.sections.forEach((section, i) => {
+      this.sections.forEach((section) => {
         if (section !== null && !section.isEmpty()) {
           section.write(smartBuffer)
         }
@@ -310,59 +310,51 @@ module.exports = (Block, mcData) => {
     }
 
     loadParsedLight (skyLight, blockLight, skyLightMask, blockLightMask, emptySkyLightMask, emptyBlockLightMask) {
-      skyLightMask = BitArray.fromLongArray(skyLightMask, 1)
-      this.skyLightMask = BitArray.or(this.skyLightMask, skyLightMask)
-      let currentSectionIndex = 0
+      function readSection (sections, data, lightMask, pLightMask, emptyMask, pEmptyMask) {
+        let currentSectionIndex = 0
+        const incomingLightMask = BitArray.fromLongArray(pLightMask, 1)
+        const incomingEmptyMask = BitArray.fromLongArray(pEmptyMask, 1)
 
-      for (let y = 0; y < this.numSections + 2; y++) {
-        if (!skyLightMask.get(y)) {
-          continue
+        for (let y = 0; y < sections.length; y++) {
+          const isEmpty = incomingEmptyMask.get(y)
+          if (!incomingLightMask.get(y) && !isEmpty) {
+            continue
+          }
+
+          emptyMask.set(y, isEmpty)
+          lightMask.set(y, 1 - isEmpty)
+
+          const bitArray = new BitArray({
+            bitsPerValue: 4,
+            capacity: 4096
+          })
+          sections[y] = bitArray
+
+          if (!isEmpty) {
+            const sectionReader = Buffer.from(data[currentSectionIndex++])
+            bitArray.readBuffer(SmartBuffer.fromBuffer(sectionReader))
+          }
         }
-
-        const sectionReader = Buffer.from(skyLight[currentSectionIndex++])
-        this.skyLightSections[y] = new BitArray({
-          bitsPerValue: 4,
-          capacity: 4096
-        }).readBuffer(SmartBuffer.fromBuffer(sectionReader))
       }
 
-      blockLightMask = BitArray.fromLongArray(blockLightMask, 1)
-      this.blockLightMask = BitArray.or(this.blockLightMask, blockLightMask)
-      currentSectionIndex = 0
-
-      for (let y = 0; y < this.numSections + 2; y++) {
-        if (!blockLightMask.get(y)) {
-          continue
-        }
-
-        const sectionReader = Buffer.from(blockLight[currentSectionIndex++])
-        this.blockLightSections[y] = new BitArray({
-          bitsPerValue: 4,
-          capacity: 4096
-        }).readBuffer(SmartBuffer.fromBuffer(sectionReader))
-      }
-
-      emptySkyLightMask = BitArray.fromLongArray(emptySkyLightMask, 1)
-      this.emptySkyLightMask = BitArray.or(this.emptySkyLightMask, emptySkyLightMask)
-
-      emptyBlockLightMask = BitArray.fromLongArray(emptyBlockLightMask, 1)
-      this.emptyBlockLightMask = BitArray.or(this.emptyBlockLightMask, emptyBlockLightMask)
+      readSection(this.skyLightSections, skyLight, this.skyLightMask, skyLightMask, this.emptySkyLightMask, emptySkyLightMask)
+      readSection(this.blockLightSections, blockLight, this.blockLightMask, blockLightMask, this.emptyBlockLightMask, emptyBlockLightMask)
     }
 
     dumpLight () {
       const skyLight = []
       const blockLight = []
 
-      this.skyLightSections.forEach((section) => {
-        if (section !== null) {
+      this.skyLightSections.forEach((section, index) => {
+        if (section !== null && this.skyLightMask.get(index)) {
           const smartBuffer = new SmartBuffer()
           section.writeBuffer(smartBuffer)
           skyLight.push(Uint8Array.from(smartBuffer.toBuffer()))
         }
       })
 
-      this.blockLightSections.forEach((section) => {
-        if (section !== null) {
+      this.blockLightSections.forEach((section, index) => {
+        if (section !== null && this.blockLightMask.get(index)) {
           const smartBuffer = new SmartBuffer()
           section.writeBuffer(smartBuffer)
           blockLight.push(Uint8Array.from(smartBuffer.toBuffer()))

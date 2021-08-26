@@ -152,5 +152,14 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
         assert.strictEqual(array[i], array2[i])
       }
     })
+
+    test('no side-effects Or', () => {
+      const a = BitArrayNoSpan.fromLongArray([[0, 1]], 1)
+      const b = BitArrayNoSpan.fromLongArray([[0, 2]], 1)
+      const c = BitArrayNoSpan.or(a, b)
+      assert.strictEqual(a.data[0], 1)
+      assert.strictEqual(b.data[0], 2)
+      assert.strictEqual(c.data[0], 3)
+    })
   })
 })

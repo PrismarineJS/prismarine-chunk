@@ -67,9 +67,10 @@ class BitArray {
       capacity: Math.floor(64 / bitsPerValue) * array.length,
       bitsPerValue
     })
-    for (let i = 0; i < array.length * 2; i += 2) {
-      bitArray.data[i + 1] = array[i][0]
-      bitArray.data[i] = array[i][1]
+    for (let i = 0; i < array.length; i++) {
+      const j = i * 2
+      bitArray.data[j + 1] = array[i][0]
+      bitArray.data[j] = array[i][1]
     }
     return bitArray
   }
@@ -77,9 +78,10 @@ class BitArray {
   static or (a, b) {
     const long = a.data.length > b.data.length ? a.data : b.data
     const short = a.data.length > b.data.length ? b.data : a.data
-    const array = new Uint32Array(long.buffer)
+    const array = new Uint32Array(long.length)
+    array.set(long)
     for (let i = 0; i < short.length; i++) {
-      array[i] = array[i] | short[i]
+      array[i] |= short[i]
     }
     return new BitArray({
       data: array.buffer,
