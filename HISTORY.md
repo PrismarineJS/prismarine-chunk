@@ -1,5 +1,13 @@
 ## History
 
+## 1.26.0
+
+* Fix fromLongArray index bug (@nickelpro)
+* Fix bitArray Or bug (@nickelpro)
+* Correctly update empty light sections (@nickelpro)
+* Be more correct about updating light masks (@nickelpro)
+* Add BitArray.or test (@nickelpro)
+
 ## 1.25.0
 
 * Add type info and bounds checks (@nickelpro)
