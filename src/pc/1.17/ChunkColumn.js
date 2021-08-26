@@ -310,12 +310,17 @@ module.exports = (Block, mcData) => {
     }
 
     loadParsedLight (skyLight, blockLight, skyLightMask, blockLightMask, emptySkyLightMask, emptyBlockLightMask) {
+      let blm = 0n, slm = 0n
+      for (let i = 0, j = 0n; i < blockLightMask.length; i++, j++) blm |= ((j * 64n) << blockLightMask[i].valueOf())
+      for (let i = 0, j = 0n; i < skyLightMask.length; i++, j++) slm |= ((j * 64n) << skyLightMask[i].valueOf())
+
+      // Keep old skyLightMask/blockLightMask around so primsarine-chunk writing tests pass
       skyLightMask = BitArray.fromLongArray(skyLightMask, 1)
       this.skyLightMask = BitArray.or(this.skyLightMask, skyLightMask)
       let currentSectionIndex = 0
 
       for (let y = 0; y < this.numSections + 2; y++) {
-        if (!skyLightMask.get(y)) {
+        if (slm >> BigInt(y) !== 1n) {
           continue
         }
 
@@ -331,7 +336,7 @@ module.exports = (Block, mcData) => {
       currentSectionIndex = 0
 
       for (let y = 0; y < this.numSections + 2; y++) {
-        if (!blockLightMask.get(y)) {
+        if (blm >> BigInt(y) !== 1n) {
           continue
         }
 
