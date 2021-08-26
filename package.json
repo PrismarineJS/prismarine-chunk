@@ -1,6 +1,6 @@
 {
   "name": "prismarine-chunk",
-  "version": "1.25.0",
+  "version": "1.26.0",
   "description": "A class to hold chunk data for prismarine",
   "main": "index.js",
   "types": "./types/index.d.ts",
@@ -26,7 +26,8 @@
     "Georges Oates Larsen (flynnn)",
     "mhsjlw",
     "hornta",
-    "Karang"
+    "Karang",
+    "Vito Gamberini <vito@gamberini.email>"
   ],
   "license": "MIT",
   "bugs": {
