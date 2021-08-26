@@ -19,6 +19,11 @@ const depsByVersion = versions.map((version) => {
   ]
 })
 
+class BigIntExtended extends Array {
+  valueOf () { return BigInt.asIntN(64, BigInt(this[0]) << 32n) | BigInt.asUintN(32, BigInt(this[1])) }
+  [Symbol.for('nodejs.util.inspect.custom')] () { return this.valueOf() }
+}
+
 describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, Chunk, Block) => {
   const isPostFlattening = version.startsWith('1.13') || version.startsWith('1.14') ||
     version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17')
@@ -233,7 +238,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (serializesLightingDataSeparately) {
           if (newLightingDataFormat) {
-            chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+            chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask.map(e => new BigIntExtended(...e)), lightData.blockLightMask.map(e => new BigIntExtended(...e)), lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           } else {
             chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           }
@@ -250,10 +255,10 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
 
         if (serializesLightingDataSeparately) {
           if (newLightingDataFormat) {
-            chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+            chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask.map(e => new BigIntExtended(...e)), lightData.blockLightMask.map(e => new BigIntExtended(...e)), lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
 
             const lightChunkData = chunk.dumpLight()
-            chunk2.loadParsedLight(lightChunkData.skyLight, lightChunkData.blockLight, lightChunkData.skyLightMask, lightChunkData.blockLightMask, lightChunkData.emptySkyLightMask, lightChunkData.emptyBlockLightMask)
+            chunk2.loadParsedLight(lightChunkData.skyLight, lightChunkData.blockLight, lightChunkData.skyLightMask.map(e => new BigIntExtended(...e)), lightChunkData.blockLightMask.map(e => new BigIntExtended(...e)), lightChunkData.emptySkyLightMask, lightChunkData.emptyBlockLightMask)
           } else {
             chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
             const lightBuffer = chunk.dumpLight()
@@ -319,7 +324,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (serializesLightingDataSeparately) {
           if (newLightingDataFormat) {
-            chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+            chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask.map(e => new BigIntExtended(...e)), lightData.blockLightMask.map(e => new BigIntExtended(...e)), lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           } else {
             chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
           }
