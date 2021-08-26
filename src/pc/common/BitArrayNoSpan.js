@@ -67,9 +67,10 @@ class BitArray {
       capacity: Math.floor(64 / bitsPerValue) * array.length,
       bitsPerValue
     })
-    for (let i = 0; i < array.length * 2; i += 2) {
-      bitArray.data[i + 1] = array[i][0]
-      bitArray.data[i] = array[i][1]
+    for (let i = 0; i < array.length; i++) {
+      const j = i * 2
+      bitArray.data[j + 1] = array[i][0]
+      bitArray.data[j] = array[i][1]
     }
     return bitArray
   }
