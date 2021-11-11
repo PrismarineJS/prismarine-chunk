@@ -238,7 +238,7 @@ module.exports = (Block, mcData) => {
     }
 
     getMask () {
-      return this.sectionMask.data[0]
+      return this.sectionMask.data[0] * 0x100000000 + this.sectionMask.data[1]
     }
 
     dump () {
