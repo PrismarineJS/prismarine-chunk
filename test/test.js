@@ -187,15 +187,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       const buf2 = chunk2.dump()
       const chunk2Mask = chunk.getMask()
 
-      if (version === '1.17') {
-        assert.strictEqual(chunk1Mask.length, chunk2Mask.length)
-        for (let i = 0; i < chunk1Mask.length; i++) {
-          assert.strictEqual(chunk1Mask[i][0], chunk2Mask[i][0])
-          assert.strictEqual(chunk1Mask[i][1], chunk2Mask[i][1])
-        }
-      } else {
-        assert.strictEqual(chunk1Mask, chunk2Mask)
-      }
+      assert.strictEqual(chunk1Mask, chunk2Mask)
 
       if (!buf.equals(buf2)) {
         assert.strictEqual(buf, buf2)
