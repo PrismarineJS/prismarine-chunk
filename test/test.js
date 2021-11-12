@@ -19,7 +19,7 @@ const depsByVersion = versions.map((version) => {
   ]
 })
 
-describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, Chunk, Block) => {
+depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementation for minecraft ${version}`, () => {
   const isPostFlattening = version.startsWith('1.13') || version.startsWith('1.14') ||
     version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17')
 
@@ -32,46 +32,46 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     version.startsWith('1.17')
 
   if (version === '1.8') {
-    test('Handles {skylightSent: false}', () => {
+    it('Handles {skylightSent: false}', () => {
       const chunk = new Chunk()
 
       chunk.load(Buffer.alloc(164096), 0xFFFF, false)
     })
 
-    test('handles {skylightSent: true}', () => {
+    it('handles {skylightSent: true}', () => {
       const chunk = new Chunk()
 
       chunk.load(Buffer.alloc(196864), 0xFFFF, true)
     })
   }
 
-  test('Initializes correctly', () => {
+  it('Initializes correctly', () => {
     const chunk = new Chunk()
 
     chunk.initialize((x, y, z, n) => new Block(0, 0, 0))
   })
 
-  test('Initializes ignore null correctly', () => {
+  it('Initializes ignore null correctly', () => {
     const chunk = new Chunk()
 
     chunk.initialize((x, y, z, n) => null)
   })
 
-  test('Defaults to all blocks being air', function () {
+  it('Defaults to all blocks being air', function () {
     const chunk = new Chunk()
 
     assert.strictEqual(0, chunk.getBlock(new Vec3(0, 0, 0)).type)
     assert.strictEqual(0, chunk.getBlock(new Vec3(15, Chunk.h - 1, 15)).type)
   })
 
-  test('Out of bounds blocks being air', function () {
+  it('Out of bounds blocks being air', function () {
     const chunk = new Chunk()
 
     assert.strictEqual(0, chunk.getBlock(new Vec3(8, -1, 8)).type)
     assert.strictEqual(0, chunk.getBlock(new Vec3(8, 256, 8)).type)
   })
 
-  test('Should set a block at the given position', function () {
+  it('Should set a block at the given position', function () {
     const chunk = new Chunk()
 
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
@@ -94,7 +94,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     }
   })
 
-  test('Skylight set/get', function () {
+  it('Skylight set/get', function () {
     const chunk = new Chunk()
 
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
@@ -111,7 +111,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     }
   })
 
-  test('Block light set/get', function () {
+  it('Block light set/get', function () {
     const chunk = new Chunk()
 
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
@@ -128,7 +128,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
     }
   })
 
-  test('Overwrites blocks in place', function () {
+  it('Overwrites blocks in place', function () {
     const chunk = new Chunk()
 
     chunk.setBlock(new Vec3(0, 1, 0), new Block(42, 0, 0)) // Iron block
@@ -147,7 +147,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
   })
 
   if (version !== 'bedrock_1.0' && version !== '1.9') {
-    test('Fails safely when loading bad input', function () {
+    it('Fails safely when loading bad input', function () {
       const chunk = new Chunk()
 
       const tooShort = Buffer.alloc(3)
@@ -164,7 +164,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
   }
 
   if (version !== 'bedrock_1.0') {
-    test('Loads and dumps fake data consistently', function () {
+    it('Loads and dumps fake data consistently', function () {
       const chunk = new Chunk()
 
       chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0))
@@ -228,7 +228,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         }
       }
 
-      test('Loads chunk buffers ' + chunkDump, () => {
+      it('Loads chunk buffers ' + chunkDump, () => {
         const chunk = new Chunk()
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (serializesLightingDataSeparately) {
@@ -240,7 +240,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         }
       })
 
-      test('Correctly cycles through chunks ' + chunkDump, () => {
+      it('Correctly cycles through chunks ' + chunkDump, () => {
         const chunk = new Chunk()
         chunk.load(dump, data.bitMap, data.skyLightSent)
         const buffer = chunk.dump()
@@ -308,7 +308,7 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
         }
       })
 
-      test('Correctly cycles through chunks json ' + chunkDump, () => {
+      it('Correctly cycles through chunks json ' + chunkDump, () => {
         const measurePerformance = false
         let a = performance.now()
         const chunk = new Chunk()
@@ -364,4 +364,4 @@ describe.each(depsByVersion)('Chunk implementation for minecraft %s', (version, 
       })
     })
   }
-})
+}))

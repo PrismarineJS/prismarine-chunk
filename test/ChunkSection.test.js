@@ -1,11 +1,12 @@
-/* globals describe test */
+/* eslint-env mocha */
+
 const Vec3 = require('vec3').Vec3
-const ChunkSection = require('./ChunkSection')
-const constants = require('../common/constants')
+const ChunkSection = require('../src/pc/1.13/ChunkSection')
+const constants = require('../src/pc/common/constants')
 const assert = require('assert')
 
 describe('ChunkSection', () => {
-  test('insert into middle of palette', () => {
+  it('insert into middle of palette', () => {
     const section = new ChunkSection()
     section.setBlock(new Vec3(0, 0, 0), 14)
     section.setBlock(new Vec3(0, 1, 0), 1)
@@ -14,7 +15,7 @@ describe('ChunkSection', () => {
     assert.strictEqual(section.getBlock(new Vec3(0, 1, 0)), 1)
   })
 
-  test('switch to global palette', () => {
+  it('switch to global palette', () => {
     // Test if we can write and read 4096 distinct stateId from the section
     const section = new ChunkSection()
     const p = { x: 0, y: 0, z: 0 }

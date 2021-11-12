@@ -1,9 +1,10 @@
-/* globals test describe */
+/* eslint-env mocha */
+
 const assert = require('assert')
-const neededBits = require('./neededBits')
+const neededBits = require('../src/pc/common/neededBits')
 
 describe('neededBits', () => {
-  test('returns correct amount of needed bits to represent value', () => {
+  it('returns correct amount of needed bits to represent value', () => {
     assert(neededBits(31), 5)
     assert(neededBits(31), 5)
     assert(neededBits(255), 8)

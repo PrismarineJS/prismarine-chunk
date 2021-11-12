@@ -1,10 +1,11 @@
-/* globals describe, test */
-const varInt = require('./varInt')
+/* eslint-env mocha */
+
+const varInt = require('../src/pc/common/varInt')
 const SmartBuffer = require('smart-buffer').SmartBuffer
 const assert = require('assert')
 
 describe('varInt', () => {
-  test('writes and reads correctly', () => {
+  it('writes and reads correctly', () => {
     const writer = new SmartBuffer()
 
     // taken from https://wiki.vg/Data_types "Sample VarInts:" table

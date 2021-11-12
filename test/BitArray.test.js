@@ -1,7 +1,8 @@
-/* globals describe test */
+/* eslint-env mocha */
+
 const assert = require('assert')
-const BitArraySpan = require('./BitArray')
-const BitArrayNoSpan = require('./BitArrayNoSpan')
+const BitArraySpan = require('../src/pc/common/BitArray')
+const BitArrayNoSpan = require('../src/pc/common/BitArrayNoSpan')
 const bitarrays = {
   BitArraySpan,
   BitArrayNoSpan
@@ -9,7 +10,7 @@ const bitarrays = {
 Object.entries(bitarrays).forEach(([name, BitArray]) => {
   describe(name, () => {
     /*
-    test('throws when instantiating BitArray with bad bitsPerValue', () => {
+    it('throws when instantiating BitArray with bad bitsPerValue', () => {
       assert.throws(() => {
       // eslint-disable-next-line
       new BitArray({
@@ -45,7 +46,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       })
     }) */
 
-    test('writes and reads values correctly', () => {
+    it('writes and reads values correctly', () => {
       const bitArr = new BitArray({
         bitsPerValue: 5,
         capacity: 4096
@@ -56,7 +57,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       }
     })
 
-    test('does not overflow', () => {
+    it('does not overflow', () => {
       const bitArr = new BitArray({
         bitsPerValue: 4,
         capacity: 4096
@@ -68,7 +69,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       assert(bitArr.data[0] > 0, `${bitArr.data[0]} is negative`)
     })
 
-    /* test('throws when writing out of bounds', () => {
+    /* it('throws when writing out of bounds', () => {
       const bitArr = new BitArray({
         bitsPerValue: 4,
         capacity: 10
@@ -87,7 +88,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       })
     })
 
-    test('throws when reading out of bounds', () => {
+    it('throws when reading out of bounds', () => {
       const bitArr = new BitArray({
         bitsPerValue: 4,
         capacity: 10
@@ -106,7 +107,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       })
     })
 
-    test('throws when setting a larger value than allowed', () => {
+    it('throws when setting a larger value than allowed', () => {
       const bitArr = new BitArray({
         bitsPerValue: 3,
         capacity: 10
@@ -119,7 +120,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       })
     }) */
 
-    test('succeeds with resizing', () => {
+    it('succeeds with resizing', () => {
       const bitArr = new BitArray({
         bitsPerValue: 4,
         capacity: 10
@@ -130,7 +131,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       })
     })
     /*
-    test('fails when resizing', () => {
+    it('fails when resizing', () => {
       const bitArr = new BitArray({
         bitsPerValue: 4,
         capacity: 10
@@ -140,7 +141,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
         bitArr.resizeTo(3)
       })
     }) */
-    test('convert from array cycle', () => {
+    it('convert from array cycle', () => {
       const array = []
       for (let i = 0; i < 4096; i++) array.push(i % 32)
       const bitArr = BitArray.fromArray(array, 5)
@@ -153,7 +154,7 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       }
     })
 
-    test('no side-effects Or', () => {
+    it('no side-effects Or', () => {
       const a = BitArrayNoSpan.fromLongArray([[0, 1]], 1)
       const b = BitArrayNoSpan.fromLongArray([[0, 2]], 1)
       const c = BitArrayNoSpan.or(a, b)

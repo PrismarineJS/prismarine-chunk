@@ -1,11 +1,13 @@
-/* globals describe test expect */
+/* eslint-env mocha */
+
 const Block = require('prismarine-block')('1.13')
 const mcData = require('minecraft-data')('1.13.2')
-const ChunkColumn = require('./ChunkColumn')(Block, mcData)
-const constants = require('../common/constants')
+const ChunkColumn = require('../src/pc/1.13/ChunkColumn')(Block, mcData)
+const constants = require('../src/pc/common/constants')
+const expect = require('expect')
 
 describe('ChunkColumn', () => {
-  test('use function to initialize the chunk column', () => {
+  it('use function to initialize the chunk column', () => {
     const stateId = 20
     const block = Block.fromStateId(stateId, 1)
     const column = new ChunkColumn()
@@ -24,7 +26,7 @@ describe('ChunkColumn', () => {
     expect(different).toBe(0)
   })
 
-  test('defaults to all air', () => {
+  it('defaults to all air', () => {
     const column = new ChunkColumn()
 
     let different = 0
@@ -39,7 +41,7 @@ describe('ChunkColumn', () => {
     expect(different).toBe(0)
   })
 
-  test('loading empty chunk sections becomes air', () => {
+  it('loading empty chunk sections becomes air', () => {
     const column = new ChunkColumn()
 
     // allocate data for biomes
