@@ -6,10 +6,11 @@ const fs = require('fs')
 const path = require('path')
 const prismarineBlockLoader = require('prismarine-block')
 const chunkLoader = require('../index')
+const SingleValueContainer = require('../src/pc/common/PaletteContainer').SingleValueContainer
 const { performance } = require('perf_hooks')
 
-const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17']
-const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17']
+const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
+const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
 
 const depsByVersion = versions.map((version) => {
   return [
@@ -21,15 +22,23 @@ const depsByVersion = versions.map((version) => {
 
 depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementation for minecraft ${version}`, () => {
   const isPostFlattening = version.startsWith('1.13') || version.startsWith('1.14') ||
-    version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17')
+    version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17') ||
+    version.startsWith('1.18')
 
   const serializesLightingDataSeparately = version.startsWith('1.14') || version.startsWith('1.15') ||
-    version.startsWith('1.16') || version.startsWith('1.17')
+    version.startsWith('1.16') || version.startsWith('1.17') || version.startsWith('1.18')
 
-  const newLightingDataFormat = version.startsWith('1.17')
+  const newLightingDataFormat = version.startsWith('1.17') || version.startsWith('1.18')
 
   const serializesBiomesSeparately = version.startsWith('1.15') || version.startsWith('1.16') ||
     version.startsWith('1.17')
+
+  const unifiedPaletteFormat = version.startsWith('1.18')
+  const tallWorld = version.startsWith('1.18')
+  const chunkOptions = {
+    minY: tallWorld ? -64 : 0,
+    worldHeight: tallWorld ? 384 : 256
+  }
 
   if (version === '1.8') {
     it('Handles {skylightSent: false}', () => {
@@ -193,7 +202,7 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
           assert.strictEqual(chunk1Mask[i][0], chunk2Mask[i][0])
           assert.strictEqual(chunk1Mask[i][1], chunk2Mask[i][1])
         }
-      } else {
+      } else if (!unifiedPaletteFormat) {
         assert.strictEqual(chunk1Mask, chunk2Mask)
       }
 
@@ -211,7 +220,7 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
     const dataFiles = files.filter(file => file.includes('.meta') && !file.includes('light'))
 
     chunkFiles.forEach(chunkDump => {
-      const name = chunkDump.substr(0, chunkDump.length - 5)
+      const name = chunkDump.substring(0, chunkDump.length - 5)
       const packetData = dataFiles.find(dataFile => dataFile.includes(name))
       const dump = fs.readFileSync(path.join(folder, chunkDump))
       const data = JSON.parse(
@@ -221,7 +230,9 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
 
       let lightData, lightDump
 
-      if (serializesLightingDataSeparately) {
+      if (unifiedPaletteFormat) {
+        lightData = data
+      } else if (serializesLightingDataSeparately) {
         lightData = JSON.parse(fs.readFileSync(path.join(folder, packetData.replace('chunk', 'chunk_light'))).toString())
         if (!newLightingDataFormat) {
           lightDump = fs.readFileSync(path.join(folder, chunkDump.replace('chunk', 'chunk_light')))
@@ -229,7 +240,7 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
       }
 
       it('Loads chunk buffers ' + chunkDump, () => {
-        const chunk = new Chunk()
+        const chunk = new Chunk(chunkOptions)
         chunk.load(dump, data.bitMap, data.skyLightSent)
         if (serializesLightingDataSeparately) {
           if (newLightingDataFormat) {
@@ -241,11 +252,11 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
       })
 
       it('Correctly cycles through chunks ' + chunkDump, () => {
-        const chunk = new Chunk()
+        const chunk = new Chunk(chunkOptions)
         chunk.load(dump, data.bitMap, data.skyLightSent)
         const buffer = chunk.dump()
         const bitmap = chunk.getMask()
-        const chunk2 = new Chunk()
+        const chunk2 = new Chunk(chunkOptions)
         chunk2.load(buffer, bitmap, data.skyLightSent)
 
         if (serializesLightingDataSeparately) {
@@ -284,8 +295,9 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
           }
         }
 
-        const p = new Vec3(0, 0, 0)
-        for (p.y = 0; p.y < 256; p.y++) {
+        const p = new Vec3(0, chunkOptions.minY, 0)
+        const maxHeight = chunkOptions.worldHeight + chunkOptions.minY
+        for (p.y = 0; p.y < maxHeight; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
             for (p.x = 0; p.x < 16; p.x++) {
               const b = chunk.getBlock(p)
@@ -293,9 +305,9 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
               assert.notStrictEqual(
                 b.name,
                 '',
-                ' block state n° ' +
+                ' block state: ' +
                     b.stateId +
-                    ' type n°' +
+                    ' type: ' +
                     b.type +
                     " read, which doesn't exist"
               )
@@ -303,15 +315,27 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
             }
           }
         }
+
+        // Work around bug in Mojang's buffer size calculation that causes
+        // SingleValuePalettes for stateIds to report an extra byte of size
+        let num = 0
+        if (unifiedPaletteFormat) {
+          for (const section of chunk.sections) {
+            if (section.data instanceof SingleValueContainer) {
+              num++
+            }
+          }
+        }
+
         if (!version.startsWith('1.8')) {
-          assert(Buffer.compare(dump, buffer) === 0, 'chunk buffers are not equal')
+          assert(Buffer.compare(dump.slice(0, dump.length - num), buffer) === 0, 'chunk buffers are not equal')
         }
       })
 
       it('Correctly cycles through chunks json ' + chunkDump, () => {
         const measurePerformance = false
         let a = performance.now()
-        const chunk = new Chunk()
+        const chunk = new Chunk(chunkOptions)
         if (measurePerformance) {
           console.log('creation', version, performance.now() - a)
           a = performance.now()
@@ -342,8 +366,9 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
           console.log('loading json', version, performance.now() - a)
         }
 
-        const p = new Vec3(0, 0, 0)
-        for (p.y = 0; p.y < 256; p.y++) {
+        const p = new Vec3(0, chunkOptions.minY, 0)
+        const maxHeight = chunkOptions.worldHeight + chunkOptions.minY
+        for (p.y = 0; p.y < maxHeight; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
             for (p.x = 0; p.x < 16; p.x++) {
               const b = chunk.getBlock(p)
@@ -351,9 +376,9 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
               assert.notStrictEqual(
                 b.name,
                 '',
-                ' block state n° ' +
+                ' block state: ' +
                     b.stateId +
-                    ' type n°' +
+                    ' type: ' +
                     b.type +
                     " read, which doesn't exist"
               )
