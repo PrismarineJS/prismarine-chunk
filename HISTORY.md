@@ -1,5 +1,9 @@
 ## History
 
+## 1.27.0
+
+* Add 1.18 chunk support (@nickelpro)
+
 ## 1.26.0
 
 * Fix fromLongArray index bug (@nickelpro)
