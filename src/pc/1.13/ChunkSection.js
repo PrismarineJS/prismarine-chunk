@@ -16,7 +16,7 @@ class ChunkSection {
     if (typeof options.solidBlockCount === 'undefined') {
       options.solidBlockCount = 0
       if (options.data) {
-        for (let i = 0; i < constants.SECTION_VOLUME; i++) {
+        for (let i = 0; i < constants.BLOCK_SECTION_VOLUME; i++) {
           if (options.data.get(i) !== 0) {
             options.solidBlockCount += 1
           }
@@ -27,7 +27,7 @@ class ChunkSection {
     if (!options.data) {
       options.data = new BitArray({
         bitsPerValue: 4,
-        capacity: constants.SECTION_VOLUME
+        capacity: constants.BLOCK_SECTION_VOLUME
       })
     }
 
@@ -38,14 +38,14 @@ class ChunkSection {
     if (!options.blockLight) {
       options.blockLight = new BitArray({
         bitsPerValue: 4,
-        capacity: constants.SECTION_VOLUME
+        capacity: constants.BLOCK_SECTION_VOLUME
       })
     }
 
     if (options.skyLight === undefined) { // dont create skylight if its null
       options.skyLight = new BitArray({
         bitsPerValue: 4,
-        capacity: constants.SECTION_VOLUME
+        capacity: constants.BLOCK_SECTION_VOLUME
       })
     }
 
@@ -117,9 +117,9 @@ class ChunkSection {
             // switches to the global palette
             const newData = new BitArray({
               bitsPerValue: constants.GLOBAL_BITS_PER_BLOCK,
-              capacity: constants.SECTION_VOLUME
+              capacity: constants.BLOCK_SECTION_VOLUME
             })
-            for (let i = 0; i < constants.SECTION_VOLUME; i++) {
+            for (let i = 0; i < constants.BLOCK_SECTION_VOLUME; i++) {
               const stateId = this.palette[this.data.get(i)]
               newData.set(i, stateId)
             }

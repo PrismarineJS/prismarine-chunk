@@ -16,7 +16,7 @@ module.exports = BitArray => {
       if (typeof options.solidBlockCount === 'undefined') {
         options.solidBlockCount = 0
         if (options.data) {
-          for (let i = 0; i < constants.SECTION_VOLUME; i++) {
+          for (let i = 0; i < constants.BLOCK_SECTION_VOLUME; i++) {
             if (options.data.get(i) !== 0) {
               options.solidBlockCount += 1
             }
@@ -27,7 +27,7 @@ module.exports = BitArray => {
       if (!options.data) {
         options.data = new BitArray({
           bitsPerValue: 4,
-          capacity: constants.SECTION_VOLUME
+          capacity: constants.BLOCK_SECTION_VOLUME
         })
       }
 
@@ -97,9 +97,9 @@ module.exports = BitArray => {
               // switches to the global palette
               const newData = new BitArray({
                 bitsPerValue: constants.GLOBAL_BITS_PER_BLOCK,
-                capacity: constants.SECTION_VOLUME
+                capacity: constants.BLOCK_SECTION_VOLUME
               })
-              for (let i = 0; i < constants.SECTION_VOLUME; i++) {
+              for (let i = 0; i < constants.BLOCK_SECTION_VOLUME; i++) {
                 const stateId = this.palette[this.data.get(i)]
                 newData.set(i, stateId)
               }
