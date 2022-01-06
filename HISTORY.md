@@ -1,5 +1,9 @@
 ## History
 
+## 1.28.0
+
+* expose palette in 1.18
+
 ## 1.27.0
 
 * Add 1.18 chunk support (@nickelpro)
