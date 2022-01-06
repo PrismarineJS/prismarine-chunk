@@ -29,6 +29,7 @@ class ChunkSection {
         }
       }
     }
+    this.palette = this.data.palette
   }
 
   toJson () {
