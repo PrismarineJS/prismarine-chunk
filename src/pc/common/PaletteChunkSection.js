@@ -62,6 +62,7 @@ class ChunkSection {
     }
 
     this.data = this.data.set(blockIndex, stateId)
+    this.palette = this.data.palette
   }
 
   isEmpty () {
