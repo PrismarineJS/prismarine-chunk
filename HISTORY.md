@@ -1,5 +1,9 @@
 ## History
 
+## 1.28.1
+
+* improve the palette hack for 1.18
+
 ## 1.28.0
 
 * expose palette in 1.18
