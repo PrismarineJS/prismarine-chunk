@@ -242,6 +242,7 @@ module.exports = (Block, mcData) => {
         this.sections[i] = ChunkSection.read(reader)
         this.biomes[i] = BiomeSection.read(reader)
       }
+      this.palette = this.data.palette
     }
 
     loadParsedLight (skyLight, blockLight, skyLightMask, blockLightMask, emptySkyLightMask, emptyBlockLightMask) {
