@@ -251,6 +251,44 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
         }
       })
 
+      it('Loads chunk buffers and histogram looks ok ' + chunkDump, () => {
+        const chunk = new Chunk(chunkOptions)
+        chunk.load(dump, data.bitMap, data.skyLightSent)
+        if (serializesLightingDataSeparately) {
+          if (newLightingDataFormat) {
+            chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          } else {
+            chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+          }
+        }
+
+        const histogram = {}
+        const p = new Vec3(0, chunkOptions.minY, 0)
+        const maxHeight = chunkOptions.worldHeight + chunkOptions.minY
+        let total = 0
+        for (p.y = 0; p.y < maxHeight; p.y++) {
+          for (p.z = 0; p.z < 16; p.z++) {
+            for (p.x = 0; p.x < 16; p.x++) {
+              const b = chunk.getBlock(p)
+              histogram[b.name] = histogram[b.name] === undefined ? 1 : histogram[b.name] + 1
+              total += 1
+            }
+          }
+        }
+        Object.keys(histogram).forEach(k => { histogram[k] = histogram[k] / total })
+        // console.log(histogram)
+        const checkBlockKind = (name, value) => assert(histogram[name] > value, `${name} ${histogram[name]} <= ${value}`)
+        const checkBlockKindSome = (thresholds) => assert(
+          Object.keys(thresholds).some(name => histogram[name] > thresholds[name]),
+          Object.keys(thresholds).map(name => `${name} ${histogram[name]} <= ${thresholds[name]}`).join(' && '))
+        if (!chunkDump.includes('end') && !chunkDump.includes('nether')) {
+          checkBlockKind('stone', 0.1)
+          checkBlockKindSome({ dirt: 0.001, granite: 0.001, lava: 0.001 })
+          checkBlockKindSome({ coal_ore: 0.001, iron_ore: 0.001, diamond_ore: 0.001 })
+        }
+        checkBlockKind('air', 0.5)
+      })
+
       it('Correctly cycles through chunks ' + chunkDump, () => {
         const chunk = new Chunk(chunkOptions)
         chunk.load(dump, data.bitMap, data.skyLightSent)
