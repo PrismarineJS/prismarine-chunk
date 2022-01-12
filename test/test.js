@@ -266,7 +266,7 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
         const p = new Vec3(0, chunkOptions.minY, 0)
         const maxHeight = chunkOptions.worldHeight + chunkOptions.minY
         let total = 0
-        for (p.y = 0; p.y < maxHeight; p.y++) {
+        for (p.y = chunkOptions.minY; p.y < maxHeight; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
             for (p.x = 0; p.x < 16; p.x++) {
               const b = chunk.getBlock(p)
@@ -284,7 +284,7 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
         if (!chunkDump.includes('end') && !chunkDump.includes('nether')) {
           checkBlockKind('stone', 0.1)
           checkBlockKindSome({ dirt: 0.001, granite: 0.001, lava: 0.001 })
-          checkBlockKindSome({ coal_ore: 0.001, iron_ore: 0.001, diamond_ore: 0.001 })
+          checkBlockKindSome({ coal_ore: 0.0001, iron_ore: 0.0001, diamond_ore: 0.0001 })
         }
         checkBlockKind('air', 0.5)
       })
@@ -335,7 +335,7 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
 
         const p = new Vec3(0, chunkOptions.minY, 0)
         const maxHeight = chunkOptions.worldHeight + chunkOptions.minY
-        for (p.y = 0; p.y < maxHeight; p.y++) {
+        for (p.y = chunkOptions.minY; p.y < maxHeight; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
             for (p.x = 0; p.x < 16; p.x++) {
               const b = chunk.getBlock(p)
@@ -406,7 +406,7 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
 
         const p = new Vec3(0, chunkOptions.minY, 0)
         const maxHeight = chunkOptions.worldHeight + chunkOptions.minY
-        for (p.y = 0; p.y < maxHeight; p.y++) {
+        for (p.y = chunkOptions.minY; p.y < maxHeight; p.y++) {
           for (p.z = 0; p.z < 16; p.z++) {
             for (p.x = 0; p.x < 16; p.x++) {
               const b = chunk.getBlock(p)
