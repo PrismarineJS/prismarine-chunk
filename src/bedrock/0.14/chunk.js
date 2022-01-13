@@ -17,13 +17,13 @@ const writeUInt4LE = require('uint4').writeUInt4LE
 
 module.exports = loader
 
-function loader (mcVersion) {
-  Block = require('prismarine-block')(mcVersion)
+function loader (registry) {
+  Block = require('prismarine-block')(registry)
   Chunk.w = w
   Chunk.l = l
   Chunk.h = h
   Chunk.BUFFER_SIZE = BUFFER_SIZE
-  Chunk.version = require('minecraft-data')(mcVersion).version
+  Chunk.version = registry.version
   return Chunk
 }
 

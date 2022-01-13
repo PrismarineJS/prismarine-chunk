@@ -1,13 +1,12 @@
 const constants = require('../common/constants')
 
-function loader (mcVersion) {
-  const Block = require('prismarine-block')(mcVersion)
-  const mcData = require('minecraft-data')(mcVersion)
+function loader (registry) {
+  const Block = require('prismarine-block')(registry)
 
-  const Chunk = require('./ChunkColumn')(Block, mcData)
+  const Chunk = require('./ChunkColumn')(Block, registry)
   // expose for test purposes
   Chunk.h = constants.CHUNK_HEIGHT
-  Chunk.version = mcData.version
+  Chunk.version = registry.version
   return Chunk
 }
 
