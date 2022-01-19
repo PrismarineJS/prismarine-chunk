@@ -127,7 +127,7 @@ class IndirectPaletteContainer {
 class SingleValueContainer {
   constructor (options) {
     this.value = options?.value ?? 0
-    this.bitsPerValue = options?.bitsPerValue ?? constants.MIN_BITS_PER_BLOCK
+    this.bitsPerValue = 1
     this.capacity = options?.capacity ?? constants.BLOCK_SECTION_VOLUME
     this.maxBits = options?.maxBits ?? constants.MAX_BITS_PER_BLOCK
   }

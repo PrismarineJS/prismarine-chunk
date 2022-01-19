@@ -28,7 +28,7 @@ function loader (registryOrVersion) {
   } catch (e) {
     if (e instanceof TypeError) {
       console.error(e)
-      throw new Error(`[Prismarine-chunk] No chunk implementation for ${version.type} ${version.majorVersion} found`)
+      throw new Error(`[Prismarine-chunk] No chunk implementation for ${version?.type} ${version?.majorVersion} found`)
     } else {
       console.log(`Error while loading ${version.type} - ${version.majorVersion}`)
       throw e
