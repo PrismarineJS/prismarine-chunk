@@ -68,7 +68,7 @@ describe('ChunkColumn', () => {
     expect(different).toBe(0)
   })
 
-  const testTag = require('./testnbt.json')
+  const testTag = require('./testBlockEntity.json')
 
   it('can handle block entities', () => {
     const column = new ChunkColumn()
@@ -77,12 +77,11 @@ describe('ChunkColumn', () => {
     testTag.y = 44
     testTag.z = -1
 
-    let i = 0
     const setAt = new Set()
     for (let x = 0; x < 16; x++) {
       for (let y = 0; y < 16; y++) {
         for (let z = 0; z < 16; z++) {
-          if (i++ % Math.random() < 0.1) {
+          if (Math.random() < 0.1) {
             const fakeBlock = Block.fromStateId(mcData.blocksByName.anvil, 1)
             fakeBlock.entity = testTag
             column.setBlock({ x, y, z }, fakeBlock)
