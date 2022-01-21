@@ -70,7 +70,7 @@ module.exports = (Block, mcData) => {
       if (exists(block.skyLight)) { this.setSkyLight(pos, block.skyLight) }
       if (exists(block.light)) { this.setBlockLight(pos, block.light) }
       if (block.entity) {
-        this.getBlockEntity(pos, block.entity)
+        this.setBlockEntity(pos, block.entity)
       } else {
         this.removeBlockEntity(pos)
       }
