@@ -65,9 +65,13 @@ returns ChunkSection class for version
 
 Get the [Block](https://github.com/PrismarineJS/prismarine-block) at [pos](https://github.com/andrewrk/node-vec3)
 
+`.entity` will have entity NBT data for this block, if it exists
+
 #### Chunk.setBlock(pos,block)
 
 Set the [Block](https://github.com/PrismarineJS/prismarine-block) at [pos](https://github.com/andrewrk/node-vec3)
+
+Set `.entity` property with NBT data for this block to load block entity data for the block
 
 #### Chunk.getBlockType(pos)
 
@@ -124,6 +128,18 @@ Set the block `biome` id at `pos`
 #### Chunk.setBiomeColor(pos, biomeColor)
 
 Set the block `biomeColor` at `pos`. Does nothing for PC.
+
+#### Chunk.getBlockEntity(pos)
+
+Returns the block entity data at position if it exists
+
+#### Chunk.setBlockEntity(pos, nbt)
+
+Sets block entity data at position
+
+#### Chunk.loadBlockEntities(nbt)
+
+Loads an array of NBT data into the chunk column
 
 #### Chunk.getMask()
 

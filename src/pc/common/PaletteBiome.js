@@ -37,6 +37,22 @@ class BiomeSection {
     this.data = this.data.set(getBiomeIndex(pos), biomeId)
   }
 
+  static fromLocalPalette ({ palette, data }) {
+    return new BiomeSection({
+      data: palette.length === 1
+        ? new SingleValueContainer({
+            value: palette[0],
+            bitsPerValue: constants.MIN_BITS_PER_BIOME,
+            capacity: constants.BIOME_SECTION_VOLUME,
+            maxBits: constants.MAX_BITS_PER_BIOME
+          })
+        : new IndirectPaletteContainer({
+          palette: palette,
+          data: data
+        })
+    })
+  }
+
   write (smartBuffer) {
     this.data.write(smartBuffer)
   }

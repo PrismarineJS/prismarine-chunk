@@ -74,6 +74,22 @@ class ChunkSection {
     this.data.write(smartBuffer)
   }
 
+  static fromLocalPalette ({ data, palette }) {
+    return new ChunkSection({
+      data: palette.length === 1
+        ? new SingleValueContainer({
+            value: palette[0],
+            bitsPerValue: constants.MIN_BITS_PER_BIOME,
+            capacity: constants.BIOME_SECTION_VOLUME,
+            maxBits: constants.MAX_BITS_PER_BIOME
+          })
+        : new IndirectPaletteContainer({
+          data: data,
+          palette: palette
+        })
+    })
+  }
+
   static read (smartBuffer) {
     const solidBlockCount = smartBuffer.readInt16BE()
     const bitsPerBlock = smartBuffer.readUInt8()

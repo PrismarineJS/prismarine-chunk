@@ -67,4 +67,40 @@ describe('ChunkColumn', () => {
     }
     expect(different).toBe(0)
   })
+
+  const testTag = require('./testBlockEntity.json')
+
+  it('can handle block entities', () => {
+    const column = new ChunkColumn()
+
+    testTag.x = 102
+    testTag.y = 44
+    testTag.z = -1
+
+    const setAt = new Set()
+    for (let x = 0; x < 16; x++) {
+      for (let y = 0; y < 16; y++) {
+        for (let z = 0; z < 16; z++) {
+          if (Math.random() < 0.1) {
+            const fakeBlock = Block.fromStateId(mcData.blocksByName.anvil, 1)
+            fakeBlock.entity = testTag
+            column.setBlock({ x, y, z }, fakeBlock)
+            setAt.add(`${x},${y},${z}`)
+          }
+        }
+      }
+    }
+
+    const toJson = column.toJson()
+
+    const next = ChunkColumn.fromJson(toJson)
+    for (const entry of setAt) {
+      const [x, y, z] = entry.split(',').map(Number)
+      const block = next.getBlock({ x, y, z })
+      if (!block.entity) throw new Error('missing block entity')
+      expect(block.entity.x).toEqual(testTag.x)
+      expect(block.entity.y).toEqual(testTag.y)
+      expect(block.entity.z).toEqual(testTag.z)
+    }
+  })
 })

@@ -3,13 +3,16 @@ const ChunkSection = require('./ChunkSection')
 const constants = require('../common/constants')
 const BitArray = require('../common/BitArray')
 const varInt = require('../common/varInt')
+const CommonChunkColumn = require('../common/CommonChunkColumn')
+
 const exists = val => val !== undefined
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
-  return class ChunkColumn {
+  return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor () {
+      super(mcData)
       this.sectionMask = 0
       this.skyLightSent = true
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
@@ -21,6 +24,7 @@ module.exports = (Block, mcData) => {
     toJson () {
       return JSON.stringify({
         biomes: this.biomes,
+        blockEntities: this.blockEntities,
         sectionMask: this.sectionMask,
         sections: this.sections.map(section => section === null ? null : section.toJson())
       })
@@ -30,6 +34,7 @@ module.exports = (Block, mcData) => {
       const parsed = JSON.parse(j)
       const chunk = new ChunkColumn()
       chunk.biomes = parsed.biomes
+      chunk.blockEntities = parsed.blockEntities
       chunk.sectionMask = parsed.sectionMask
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
       return chunk
@@ -54,6 +59,7 @@ module.exports = (Block, mcData) => {
       const block = new Block(this.getBlockType(pos), this.getBiome(pos), this.getBlockData(pos))
       block.light = this.getBlockLight(pos)
       block.skyLight = this.getSkyLight(pos)
+      block.entity = this.getBlockEntity(pos)
       return block
     }
 
@@ -63,6 +69,11 @@ module.exports = (Block, mcData) => {
       if (exists(block.biome)) { this.setBiome(pos, block.biome.id) }
       if (exists(block.skyLight)) { this.setSkyLight(pos, block.skyLight) }
       if (exists(block.light)) { this.setBlockLight(pos, block.light) }
+      if (block.entity) {
+        this.setBlockEntity(pos, block.entity)
+      } else {
+        this.removeBlockEntity(pos)
+      }
     }
 
     getBlockType (pos) {
@@ -90,11 +101,6 @@ module.exports = (Block, mcData) => {
 
     getBiome (pos) {
       return this.biomes[getBiomeIndex(pos)]
-    }
-
-    getBiomeColor (pos) {
-      // TODO
-      return { r: 0, g: 0, b: 0 }
     }
 
     setBlockType (pos, id) {
@@ -137,10 +143,6 @@ module.exports = (Block, mcData) => {
 
     setBiome (pos, biome) {
       this.biomes[getBiomeIndex(pos)] = biome
-    }
-
-    setBiomeColor (pos, r, g, b) {
-      // TODO
     }
 
     getMask () {

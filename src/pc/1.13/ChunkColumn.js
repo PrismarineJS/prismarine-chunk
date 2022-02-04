@@ -3,12 +3,14 @@ const ChunkSection = require('./ChunkSection')
 const constants = require('../common/constants')
 const BitArray = require('../common/BitArray')
 const varInt = require('../common/varInt')
+const CommonChunkColumn = require('../common/CommonChunkColumn')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
-  return class ChunkColumn {
+  return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor () {
+      super(mcData)
       this.sectionMask = 0
       this.skyLightSent = true
       this.sections = Array(constants.NUM_SECTIONS).fill(null)
@@ -20,6 +22,7 @@ module.exports = (Block, mcData) => {
     toJson () {
       return JSON.stringify({
         biomes: this.biomes,
+        blockEntities: this.blockEntities,
         sectionMask: this.sectionMask,
         sections: this.sections.map(section => section === null ? null : section.toJson())
       })
@@ -29,6 +32,7 @@ module.exports = (Block, mcData) => {
       const parsed = JSON.parse(j)
       const chunk = new ChunkColumn()
       chunk.biomes = parsed.biomes
+      chunk.blockEntities = parsed.blockEntities
       chunk.sectionMask = parsed.sectionMask
       chunk.sections = parsed.sections.map(s => s === null ? null : ChunkSection.fromJson(s))
       return chunk
@@ -59,6 +63,7 @@ module.exports = (Block, mcData) => {
       const block = Block.fromStateId(stateId, biome)
       block.light = this.getBlockLight(pos)
       block.skyLight = this.getSkyLight(pos)
+      block.entity = this.getBlockEntity(pos)
       return block
     }
 
@@ -74,6 +79,11 @@ module.exports = (Block, mcData) => {
       }
       if (typeof block.light !== 'undefined') {
         this.setBlockLight(pos, block.light)
+      }
+      if (block.entity) {
+        this.setBlockEntity(pos, block.entity)
+      } else {
+        this.removeBlockEntity(pos)
       }
     }
 
@@ -149,10 +159,6 @@ module.exports = (Block, mcData) => {
 
     setBiome (pos, biome) {
       this.biomes[getBiomeIndex(pos)] = biome
-    }
-
-    setBiomeColor (pos, r, g, b) {
-      // TODO
     }
 
     getMask () {

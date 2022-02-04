@@ -10,13 +10,13 @@ const BUFFER_SIZE = BIOME_ID_SIZE + HEIGHT_SIZE
 
 module.exports = loader
 
-function loader (mcVersion) {
-  Block = require('prismarine-block')(mcVersion)
+function loader (registry) {
+  Block = require('prismarine-block')(registry)
   Chunk.w = 16
   Chunk.l = 16
   Chunk.h = 256
   Chunk.BUFFER_SIZE = 3 + 256 + 512 + (16 * 10241)
-  Chunk.version = require('minecraft-data')(mcVersion).version
+  Chunk.version = registry.version
   return Chunk
 }
 

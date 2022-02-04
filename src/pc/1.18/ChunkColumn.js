@@ -2,13 +2,15 @@ const SmartBuffer = require('smart-buffer').SmartBuffer
 const BitArray = require('../common/BitArrayNoSpan')
 const ChunkSection = require('../common/PaletteChunkSection')
 const BiomeSection = require('../common/PaletteBiome')
+const CommonChunkColumn = require('../common/CommonChunkColumn')
 const constants = require('../common/constants')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
-  return class ChunkColumn {
+  return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor (options) {
+      super(mcData)
       this.minY = options?.minY ?? 0
       this.worldHeight = options?.worldHeight ?? constants.CHUNK_HEIGHT
       this.numSections = this.worldHeight >> 4
@@ -59,7 +61,9 @@ module.exports = (Block, mcData) => {
 
         blockLightMask: this.blockLightMask.toLongArray(),
         emptyBlockLightMask: this.emptyBlockLightMask.toLongArray(),
-        blockLightSections: this.blockLightSections.map(section => section === null ? null : section.toJson())
+        blockLightSections: this.blockLightSections.map(section => section === null ? null : section.toJson()),
+
+        blockEntities: this.blockEntities
       })
     }
 
@@ -71,6 +75,7 @@ module.exports = (Block, mcData) => {
 
         sections: parsed.sections.map(s => ChunkSection.fromJson(s)),
         biomes: parsed.biomes.map(s => BiomeSection.fromJson(s)),
+        blockEntities: parsed.blockEntities,
 
         skyLightMask: BitArray.fromLongArray(parsed.skyLightMask, 1),
         emptySkyLightMask: BitArray.fromLongArray(parsed.emptyBlockLightMask, 1),
@@ -100,6 +105,7 @@ module.exports = (Block, mcData) => {
       const block = Block.fromStateId(stateId, biome)
       block.light = this.getBlockLight(pos)
       block.skyLight = this.getSkyLight(pos)
+      block.entity = this.getBlockEntity(pos)
       return block
     }
 
@@ -115,6 +121,12 @@ module.exports = (Block, mcData) => {
       }
       if (typeof block.light !== 'undefined') {
         this.setBlockLight(pos, block.light)
+      }
+      // TODO: assert here if setting a block that should have an associated block entity
+      if (block.entity) {
+        this.setBlockEntity(pos, block.entity)
+      } else {
+        this.removeBlockEntity(pos)
       }
     }
 
@@ -146,11 +158,6 @@ module.exports = (Block, mcData) => {
     getBiome (pos) {
       const biome = this.biomes[(pos.y - this.minY) >> 4]
       return biome ? biome.get(toBiomePos(pos, this.minY)) : 0
-    }
-
-    getBiomeColor (pos) {
-      // TODO
-      return { r: 0, g: 0, b: 0 }
     }
 
     setBlockType (pos, id) {
@@ -212,10 +219,6 @@ module.exports = (Block, mcData) => {
       if (biome) { biome.set(toBiomePos(pos), biomeId) }
     }
 
-    setBiomeColor (pos, r, g, b) {
-      // TODO
-    }
-
     getMask () {
       return undefined
     }
@@ -272,6 +275,52 @@ module.exports = (Block, mcData) => {
 
       readSection(this.skyLightSections, skyLight, this.skyLightMask, skyLightMask, this.emptySkyLightMask, emptySkyLightMask)
       readSection(this.blockLightSections, blockLight, this.blockLightMask, blockLightMask, this.emptyBlockLightMask, emptyBlockLightMask)
+    }
+
+    _loadBlockLightNibbles (y, buffer) {
+      if (buffer.length !== 2048) throw new Error('Invalid light nibble buffer length ' + buffer.length)
+      const minCY = this.minY >> 4
+      this.blockLightMask.set(y + minCY + 1, 1) // minCY + 1 extra layer below
+      this.blockLightSections[y - (this.minY >> 4) + 1] = new BitArray({
+        bitsPerValue: 4,
+        capacity: 4096,
+        data: new Int8Array(buffer).buffer
+      })
+    }
+
+    _loadSkyLightNibbles (y, buffer) {
+      if (buffer.length !== 2048) throw new Error('Invalid light nibble buffer length: ' + buffer.length)
+      const minCY = this.minY >> 4
+      this.skyLightMask.set(y + minCY + 1, 1) // minCY + 1 extra layer below
+      this.skyLightSections[y - minCY + 1] = new BitArray({
+        bitsPerValue: 4,
+        capacity: 4096,
+        data: new Int8Array(buffer).buffer
+      })
+    }
+
+    // Loads an disk serialized chunk
+    loadSection (y, blockStates, biomes, blockLight, skyLight) {
+      const minCY = this.minY >> 4
+      const raiseUnknownBlock = block => { throw new Error(`Failed to map ${JSON.stringify(block)} to a block state ID`) }
+      // TOOD: we should probably not fail, but because we use numerical biome IDs in pchunk we need to fail
+      const raiseUnknownBiome = biome => { throw new Error(`Failed to map ${JSON.stringify(biome)} to a biome ID`) }
+      this.sections[y - minCY] = ChunkSection.fromLocalPalette({
+        data: BitArray.fromLongArray(blockStates.data || {}, blockStates.bitsPerBlock),
+        palette: blockStates.palette
+          .map(e => Block.fromProperties(e.Name.replace('minecraft:', ''), e.Properties || {}) ?? raiseUnknownBlock(e))
+          .map(e => e.stateId)
+      })
+
+      this.biomes[y - minCY] = BiomeSection.fromLocalPalette({
+        data: BitArray.fromLongArray(biomes.data || {}, biomes.bitsPerBiome),
+        palette: biomes.palette
+          .map(e => mcData.biomesByName[e.replace('minecraft:', '')] ?? raiseUnknownBiome(e))
+          .map(e => e.id)
+      })
+
+      if (blockLight) this._loadBlockLightNibbles(y, blockLight)
+      if (skyLight) this._loadSkyLightNibbles(y, skyLight)
     }
 
     dumpLight () {

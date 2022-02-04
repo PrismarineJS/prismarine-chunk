@@ -20,15 +20,17 @@ const chunkImplementations = {
 
 module.exports = loader
 
-function loader (mcVersion) {
-  const mcData = require('minecraft-data')(mcVersion)
+function loader (registryOrVersion) {
+  const registry = typeof registryOrVersion === 'string' ? require('prismarine-registry')(registryOrVersion) : registryOrVersion
+  const version = registry.version
   try {
-    return chunkImplementations[mcData.type][mcData.version.majorVersion](mcVersion)
+    return chunkImplementations[version.type][version.majorVersion](registry)
   } catch (e) {
     if (e instanceof TypeError) {
-      throw new Error(`[Prismarine-chunk] No chunk implementation for ${mcVersion} found`)
+      console.error(e)
+      throw new Error(`[Prismarine-chunk] No chunk implementation for ${version?.type} ${version?.majorVersion} found`)
     } else {
-      console.log(`Error found while loading ${mcData.type} - ${mcData.version.majorVersion} - ${mcVersion}`)
+      console.log(`Error while loading ${version.type} - ${version.majorVersion}`)
       throw e
     }
   }

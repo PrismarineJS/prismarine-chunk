@@ -57,7 +57,7 @@ class BitArray {
   toLongArray () {
     const array = []
     for (let i = 0; i < this.data.length; i += 2) {
-      array.push([this.data[i + 1], this.data[i]])
+      array.push([this.data[i + 1] << 32 >> 32, this.data[i] << 32 >> 32])
     }
     return array
   }
