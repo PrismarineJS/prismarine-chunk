@@ -1,5 +1,9 @@
 ## History
 
+## 1.29.0
+
+* Implement prismarine-registry, basic block entities and 1.18 disk loading
+
 ## 1.28.1
 
 * improve the palette hack for 1.18
