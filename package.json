@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "minecraft-data": "^2.61.0",
-    "prismarine-block": "^1.12.0",
+    "prismarine-block": "^1.13.0",
     "prismarine-registry": "^1.1.0",
     "smart-buffer": "^4.1.0",
     "uint4": "^0.1.2",
