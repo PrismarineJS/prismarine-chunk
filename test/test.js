@@ -172,6 +172,29 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
     })
   }
 
+  function checkChunkAreTheSame (chunk1, chunk2) {
+    const buf = chunk1.dump()
+    const chunk1Mask = chunk1.getMask()
+
+    const buf2 = chunk2.dump()
+    const chunk2Mask = chunk2.getMask()
+
+    if (version === '1.17') {
+      assert.strictEqual(chunk1Mask.length, chunk2Mask.length)
+      for (let i = 0; i < chunk1Mask.length; i++) {
+        assert.strictEqual(chunk1Mask[i][0], chunk2Mask[i][0])
+        assert.strictEqual(chunk1Mask[i][1], chunk2Mask[i][1])
+      }
+    } else if (!unifiedPaletteFormat) {
+      assert.strictEqual(chunk1Mask, chunk2Mask)
+    }
+
+    if (!buf.equals(buf2)) {
+      assert.strictEqual(buf, buf2)
+    }
+    assert(buf.equals(buf2))
+  }
+
   if (version !== 'bedrock_1.0') {
     it('Loads and dumps fake data consistently', function () {
       const chunk = new Chunk()
@@ -193,24 +216,32 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
         assert.strictEqual(chunk2.getBlock(new Vec3(0, 37, 0)).metadata, 0)
       }
 
-      const buf2 = chunk2.dump()
-      const chunk2Mask = chunk.getMask()
-
-      if (version === '1.17') {
-        assert.strictEqual(chunk1Mask.length, chunk2Mask.length)
-        for (let i = 0; i < chunk1Mask.length; i++) {
-          assert.strictEqual(chunk1Mask[i][0], chunk2Mask[i][0])
-          assert.strictEqual(chunk1Mask[i][1], chunk2Mask[i][1])
-        }
-      } else if (!unifiedPaletteFormat) {
-        assert.strictEqual(chunk1Mask, chunk2Mask)
-      }
-
-      if (!buf.equals(buf2)) {
-        assert.strictEqual(buf, buf2)
-      }
-      assert(buf.equals(buf2))
+      checkChunkAreTheSame(chunk, chunk2)
     })
+
+    if (version !== 'bedrock_0.14') {
+      it('Loads and dumps fake data consistently with 512 block types in one section', function () {
+        const chunk = new Chunk()
+
+        let i = 0
+        for (let x = 0; x < 16; x++) {
+          for (let z = 0; z < 16; z++) {
+            for (let y = 0; y < 2; y++) {
+              i += 1
+              chunk.setBlock(new Vec3(x, y, z), new Block(i, 0, 0))
+            }
+          }
+        }
+
+        const buf = chunk.dump()
+        const chunk1Mask = chunk.getMask()
+        const chunk2 = new Chunk()
+
+        chunk2.load(buf, chunk1Mask)
+
+        checkChunkAreTheSame(chunk, chunk2)
+      })
+    }
   }
 
   if (cycleTests.includes(version)) {
