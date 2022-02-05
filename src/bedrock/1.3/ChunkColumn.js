@@ -7,13 +7,24 @@ const { BlobType, BlobEntry } = require('../common/BlobCache')
 const nbt = require('prismarine-nbt')
 
 class ChunkColumn13 extends CommonChunkColumn {
-  biomesUpdated = false
   Section = SubChunk
-  biomes = []
 
-  constructor (options = {}) {
+  constructor (options = {}, registry, Block) {
     super(options)
     this.chunkVersion = options.version || 8
+    this.sections = []
+    this.biomes = []
+    this.biomesUpdated = false
+    if (options.sections?.length) {
+      for (const section of options.sections) {
+        console.log(section, options.sections)
+        if (section) {
+          this.sections.push(new this.Section(registry, Block, section))
+        } else {
+          this.sections.push(null)
+        }
+      }
+    }
   }
 
   getBiome (pos) {

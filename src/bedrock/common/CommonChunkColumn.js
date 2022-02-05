@@ -30,15 +30,15 @@ class CommonChunkColumn {
 
   // Blocks
 
-  getBlock (vec4) {
+  getBlock (vec4, full = true) {
     const Y = vec4.y >> 4
     const sec = this.sections[this.co + Y]
-    if (!this.Block) {
-      console.trace(this.registry, this.Block)
-      process.exit()
+    if (!sec) return this.Block.fromStateId(this.registry.blocksByName.air.defaultState, 0)
+    const block = sec.getBlock(vec4.l, vec4.x, vec4.y & 0xf, vec4.z)
+    if (full) {
+      block.entity = this.blockEntities[keyFromLocalPos(vec4)]
     }
-    if (!sec) { return this.Block.fromStateId(this.registry.blocksByName.air.defaultState, 0) }
-    return sec.getBlock(vec4.l, vec4.x, vec4.y & 0xf, vec4.z)
+    return block
   }
 
   setBlock (pos, block) {
@@ -49,6 +49,9 @@ class CommonChunkColumn {
       this.sections[this.co + Y] = sec
     }
     sec.setBlock(pos.l, pos.x, pos.y & 0xf, pos.z, block)
+    if (block.entity) {
+      this.setBlockEntity(pos, block.entity)
+    }
   }
 
   getBlockStateId (pos) {

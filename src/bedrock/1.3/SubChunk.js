@@ -13,7 +13,7 @@ class SubChunk {
     this.palette = options.palette || []
     this.blocks = []
     if (options.blocks) {
-      for (const block of blocks) {
+      for (const block of options.blocks) {
         this.blocks.push(PalettedStorage.copyFrom(block))
       }
     }
