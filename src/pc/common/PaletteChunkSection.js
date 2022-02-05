@@ -15,7 +15,7 @@ class ChunkSection {
     if (!this.data) {
       const value = options?.singleValue ?? 0
       this.data = new SingleValueContainer({
-        value: value,
+        value,
         bitsPerValue: constants.MIN_BITS_PER_BLOCK,
         capacity: constants.BLOCK_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BLOCK
@@ -78,14 +78,14 @@ class ChunkSection {
     return new ChunkSection({
       data: palette.length === 1
         ? new SingleValueContainer({
-            value: palette[0],
-            bitsPerValue: constants.MIN_BITS_PER_BIOME,
-            capacity: constants.BIOME_SECTION_VOLUME,
-            maxBits: constants.MAX_BITS_PER_BIOME
-          })
+          value: palette[0],
+          bitsPerValue: constants.MIN_BITS_PER_BIOME,
+          capacity: constants.BIOME_SECTION_VOLUME,
+          maxBits: constants.MAX_BITS_PER_BIOME
+        })
         : new IndirectPaletteContainer({
-          data: data,
-          palette: palette
+          data,
+          palette
         })
     })
   }
@@ -95,7 +95,7 @@ class ChunkSection {
     const bitsPerBlock = smartBuffer.readUInt8()
     if (!bitsPerBlock) {
       const section = new ChunkSection({
-        solidBlockCount: solidBlockCount,
+        solidBlockCount,
         singleValue: varInt.read(smartBuffer)
       })
       smartBuffer.readUInt8()
@@ -105,7 +105,7 @@ class ChunkSection {
     if (bitsPerBlock > constants.MAX_BITS_PER_BLOCK) {
       varInt.read(smartBuffer)
       return new ChunkSection({
-        solidBlockCount: solidBlockCount,
+        solidBlockCount,
         data: new DirectPaletteContainer({
           bitsPerValue: bitsPerBlock,
           capacity: constants.BLOCK_SECTION_VOLUME
@@ -121,12 +121,12 @@ class ChunkSection {
 
     varInt.read(smartBuffer)
     return new ChunkSection({
-      solidBlockCount: solidBlockCount,
+      solidBlockCount,
       data: new IndirectPaletteContainer({
         bitsPerValue: bitsPerBlock,
         capacity: constants.BLOCK_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BLOCK,
-        palette: palette
+        palette
       }).readBuffer(smartBuffer)
     })
   }

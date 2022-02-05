@@ -363,8 +363,8 @@ module.exports = (Block, mcData) => {
       })
 
       return {
-        skyLight: skyLight,
-        blockLight: blockLight,
+        skyLight,
+        blockLight,
         skyLightMask: this.skyLightMask.toLongArray(),
         blockLightMask: this.blockLightMask.toLongArray(),
         emptySkyLightMask: this.emptySkyLightMask.toLongArray(),

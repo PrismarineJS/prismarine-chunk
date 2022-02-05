@@ -41,14 +41,14 @@ class BiomeSection {
     return new BiomeSection({
       data: palette.length === 1
         ? new SingleValueContainer({
-            value: palette[0],
-            bitsPerValue: constants.MIN_BITS_PER_BIOME,
-            capacity: constants.BIOME_SECTION_VOLUME,
-            maxBits: constants.MAX_BITS_PER_BIOME
-          })
+          value: palette[0],
+          bitsPerValue: constants.MIN_BITS_PER_BIOME,
+          capacity: constants.BIOME_SECTION_VOLUME,
+          maxBits: constants.MAX_BITS_PER_BIOME
+        })
         : new IndirectPaletteContainer({
-          palette: palette,
-          data: data
+          palette,
+          data
         })
     })
   }
@@ -89,7 +89,7 @@ class BiomeSection {
         bitsPerValue: bitsPerBlock,
         capacity: constants.BIOME_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BIOME,
-        palette: palette
+        palette
       }).readBuffer(smartBuffer)
     })
   }
