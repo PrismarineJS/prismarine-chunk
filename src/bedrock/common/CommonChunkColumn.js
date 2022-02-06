@@ -1,6 +1,6 @@
 const { Vec3 } = require('vec3')
 const keyFromLocalPos = pos => `${pos.x},${pos.y},${pos.z}`
-const keyFromGlobalPos = pos => `${pos.x & 0xf},${pos.y},${pos.z & 0xf}`
+const keyFromGlobalPos = (x, y, z) => `${x & 0xf},${y},${z & 0xf}`
 
 class CommonChunkColumn {
   minCY = 0
@@ -80,6 +80,7 @@ class CommonChunkColumn {
   addBlockEntity (tag) {
     const lPos = keyFromGlobalPos(tag.value.x.value, tag.value.y.value, tag.value.z.value)
     this.blockEntities[lPos] = tag
+    // console.log('Add block entity', lPos, tag.value.y.value, tag)
   }
 
   removeBlockEntity (pos) {
@@ -97,14 +98,24 @@ class CommonChunkColumn {
 
   // Section management
 
+  getSection (y) {
+    return this.sections[this.co + y]
+  }
+
   setSection (y, section) {
     this.sections[this.co + y] = section
+  }
+
+  newSection (y) {
+    const n = new this.Section(this.registry, this.Block, { y, subChunkVersion: this.subChunkVersion })
+    this.setSection(y, n)
+    return n
   }
 
   getSectionBlockEntities (sectionY) {
     const found = []
     for (const key in this.blockEntities) {
-      const y = parseInt(key.split(',')[1])
+      const y = parseInt(key.split(',')[1]) >> 4
       if (y === sectionY) {
         found.push(this.blockEntities[key])
       }

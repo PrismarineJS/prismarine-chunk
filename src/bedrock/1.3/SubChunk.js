@@ -33,6 +33,7 @@ class SubChunk {
   }
 
   async decode (format, stream) {
+    if (stream instanceof Buffer) stream = new Stream(stream)
     // version
     const version = stream.readByte()
     this.subChunkVersion = version

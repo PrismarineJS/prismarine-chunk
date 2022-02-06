@@ -73,10 +73,23 @@ declare const enum BlobType {
   Biomes = 1
 }
 
+declare const enum StorageType {
+  LocalPersistence,
+  NetworkPersistence,
+  Runtime
+}
+
 type CCHash = { type: BlobType, hash: Buffer }
 
+declare class SubChunk {
+  decode(storageType: StorageType, streamBuffer: Buffer)
+}
+
 declare class BedrockChunk {
-  constructor(x: number, z: number)
+  minCY: number
+  maxCY: number
+
+  constructor(options: { x: number, z: number, chunkVersion?: number })
 
   getBlock(pos: IVec4): Block
   setBlock(pos: IVec4, block: Block): void
@@ -87,12 +100,14 @@ declare class BedrockChunk {
   getBiome(pos: Vec3): Biome
   setBiome(pos: Vec3, biome: Biome): void
 
-  // Encode this full chunk column without computing a checksum at the end
+  // On versions <1.18: Encode this full chunk column without computing a checksum at the end
+  // On version >=1.18: Encode the biome data for this chunk column and border blocks
   networkEncodeNoCache(): Promise<Buffer>
-  // Compute checksums only
+  // Compute checksums and put into blob store. Returns blob hashes maped to the blob store.
   networkEncode(blobStore: IBlobStore): Promise<{ blobs: CCHash[] }>
 
-  // Decode a full chunk column, not cached
+  // On versions <=1.18: Decode this full chunk column without computing a checksum at the end
+  // On version >=1.18: Decode the biome data for this chunk column and border blocks
   networkDecodeNoCache(buffer: Buffer, sectionCount: number): Promise<void>
   /**
    * Decodes cached chunks sent over the network
@@ -102,6 +117,10 @@ declare class BedrockChunk {
    * @returns {CCHash[]} A list of hashes we don't have and need. If len > 0, decode failed.
    */
   networkDecode(blobs: CCHash[], blobStore: IBlobStore, payload: Buffer): Promise<CCHash[]>
+
+  // 
+
+  newSection(y: number): void
 }
 
-export default function loader(mcVersionOrRegistry: number | ReturnType<typeof Registry>): typeof PCChunk | typeof BedrockChunk
+export default function loader(mcVersionOrRegistry: string | ReturnType<typeof Registry>): typeof PCChunk | typeof BedrockChunk
