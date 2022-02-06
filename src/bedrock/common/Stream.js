@@ -286,6 +286,19 @@ class ByteStream {
     this.writeOffset += offset + 1
   }
 
+  readVarInt () {
+    let value = 0
+    let offset = 0
+    let byte
+    do {
+      byte = this.buffer[this.readOffset + offset]
+      value |= (byte & 0x7f) << (7 * offset)
+      offset += 1
+    } while (byte & 0x80)
+    this.readOffset += offset
+    return value
+  }
+
   writeVarLong (value) {
     this.resizeForWriteIfNeeded(9)
     let offset = 0
@@ -298,13 +311,26 @@ class ByteStream {
     this.writeOffset += offset + 1
   }
 
-  writeZigZagVarint (value) {
-    const zigzag = (value << 1) ^ (value >> 31)
-    this.writeVarint(zigzag)
+  readVarLong () {
+    let value = 0n
+    let offset = 0n
+    let byte
+    do {
+      byte = this.buffer[this.readOffset + offset]
+      value |= (byte & 0x7fn) << (7n * offset)
+      offset += 1n
+    } while (byte & 0x80n)
+    this.readOffset += Number(offset)
+    return value
   }
 
-  readZigZagVarint () {
-    const value = this.readVarint()
+  writeZigZagVarInt (value) {
+    const zigzag = (value << 1) ^ (value >> 31)
+    this.writeVarInt(zigzag)
+  }
+
+  readZigZagVarInt () {
+    const value = this.readVarInt()
     return (value >>> 1) ^ -(value & 1)
   }
 
@@ -314,14 +340,18 @@ class ByteStream {
   }
 
   readZigZagVarlong () {
-    const value = this.readVarint()
+    const value = this.readVarInt()
     return (value >>> 1n) ^ -(value & 1n)
   }
 
   // Extra
 
   peekUInt8 () {
-    return this.buffer.readUInt8(this.readOffset)
+    return this.buffer[this.readOffset]
+  }
+
+  peek () {
+    return this.buffer[this.readOffset]
   }
 
   getBuffer () {
