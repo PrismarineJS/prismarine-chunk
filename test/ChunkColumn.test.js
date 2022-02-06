@@ -78,18 +78,18 @@ for (const version of versions) {
       if (registry.type === 'pc') {
         chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
         assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
-  
+
         assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
-  
+
         chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
         assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
         assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
-  
+
         chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
         assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
         assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
       }
-      
+
       {
         const birchPlanksId = registry.blocksByName.planks?.defaultState || registry.blocksByName.birch_planks.defaultState
         chunk.setBlock(new Vec3(0, 0, 0), Block.fromStateId(birchPlanksId))

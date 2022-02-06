@@ -72,6 +72,11 @@ class CommonChunkColumn {
     sec.setBlockStateId(pos.l, pos.x, pos.y & 0xf, pos.z, stateId)
   }
 
+  getBlocks () {
+    const arr = this.sections.map(sec => sec.getPalette())
+    return arr
+  }
+
   // Block entities
 
   setBlockEntity (pos, tag) {

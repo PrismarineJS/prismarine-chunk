@@ -81,9 +81,11 @@ declare const enum StorageType {
 }
 
 type CCHash = { type: BlobType, hash: Buffer }
+type PaletteEntry = { name, stateId, states }
 
 declare class SubChunk {
-  decode(storageType: StorageType, streamBuffer: Buffer)
+  decode(storageType: StorageType, streamBuffer: Buffer): void
+  getPalette(): PaletteEntry[]
 }
 
 declare class BedrockChunk {
@@ -95,8 +97,11 @@ declare class BedrockChunk {
   getBlock(pos: IVec4): Block
   setBlock(pos: IVec4, block: Block): void
 
-  setBlockStateId(pos: IVec4, stateId: number)
+  setBlockStateId(pos: IVec4, stateId: number): number
   getBlockStateId(pos: IVec4): number
+
+  // Returns list of unique blocks in this chunk column
+  getBlocks(): PaletteEntry[]
 
   // Biomes
   getBiome(pos: Vec3): Biome

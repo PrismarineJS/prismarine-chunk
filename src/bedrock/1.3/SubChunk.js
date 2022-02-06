@@ -245,6 +245,10 @@ class SubChunk {
     return this.palette[l][this.blocks[l].get(x, y, z)]
   }
 
+  getPalette () {
+    return this.palette
+  }
+
   toObject () {
     return {
       y: this.y,
