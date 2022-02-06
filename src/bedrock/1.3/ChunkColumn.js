@@ -39,6 +39,7 @@ class ChunkColumn13 extends CommonChunkColumn {
   }
 
   loadLegacyBiomes (buf) {
+    if (buf instanceof Buffer) buf = new Stream(buf)
     const biome = new BiomeSection(0)
     biome.readLegacy2D(buf)
     this.biomes = [biome]

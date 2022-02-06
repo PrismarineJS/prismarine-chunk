@@ -1,6 +1,7 @@
 import { Biome } from "prismarine-biome"
 import { Block } from "prismarine-block"
 import { Vec3 } from "vec3"
+import { NBT } from "prismarine-nbt"
 import Registry from 'prismarine-registry'
 import Section from "./section"
 
@@ -97,8 +98,12 @@ declare class BedrockChunk {
   setBlockStateId(pos: IVec4, stateId: number)
   getBlockStateId(pos: IVec4): number
 
+  // Biomes
   getBiome(pos: Vec3): Biome
   setBiome(pos: Vec3, biome: Biome): void
+  loadLegacyBiomes(buffer: Buffer): void
+  // Only present on >= 1.18
+  loadBiomes(buffer: Buffer, storageType: StorageType): void
 
   // On versions <1.18: Encode this full chunk column without computing a checksum at the end
   // On version >=1.18: Encode the biome data for this chunk column and border blocks
@@ -118,9 +123,17 @@ declare class BedrockChunk {
    */
   networkDecode(blobs: CCHash[], blobStore: IBlobStore, payload: Buffer): Promise<CCHash[]>
 
-  // 
+  // Heightmap
+  loadHeights(map: Uint16Array): void
 
-  newSection(y: number): void
+  // 
+  newSection(y: number, storageFormat: StorageType, buffer: Buffer): Promise<SubChunk>
+
+  // Block entities
+  addBlockEntity(tag: NBT): void
+
+  // Entities
+  loadEntities(entities: NBT[]): void
 }
 
 export default function loader(mcVersionOrRegistry: string | ReturnType<typeof Registry>): typeof PCChunk | typeof BedrockChunk

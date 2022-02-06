@@ -14,6 +14,7 @@ class CommonChunkColumn {
     this.chunkVersion = options.chunkVersion
     this.blockEntities = options.blockEntities || {}
     this.sections = []
+    this.entitites = []
   }
 
   initialize (func) {
@@ -106,8 +107,9 @@ class CommonChunkColumn {
     this.sections[this.co + y] = section
   }
 
-  newSection (y) {
+  async newSection (y, storageFormat, buffer) {
     const n = new this.Section(this.registry, this.Block, { y, subChunkVersion: this.subChunkVersion })
+    await n.decode(storageFormat, buffer)
     this.setSection(y, n)
     return n
   }
@@ -127,8 +129,14 @@ class CommonChunkColumn {
     return this.sections
   }
 
+  // Entities
+
   getEntities () {
     return this.entities
+  }
+
+  loadEntities (tags) {
+    this.entities = tags
   }
 
   toObject () {
