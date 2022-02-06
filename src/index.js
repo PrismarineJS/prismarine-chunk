@@ -15,9 +15,9 @@ const chunkImplementations = {
   bedrock: {
     0.14: require('./bedrock/0.14/chunk'),
     '1.0': require('./bedrock/1.0/chunk'),
-    1.3: require('./bedrock/1.3/ChunkColumn'),
-    1.16: require('./bedrock/1.3/ChunkColumn'),
-    1.17: require('./bedrock/1.3/ChunkColumn'),
+    1.3: require('./bedrock/1.3/chunk'),
+    1.16: require('./bedrock/1.3/chunk'),
+    1.17: require('./bedrock/1.3/chunk'),
     1.18: require('./bedrock/1.18/chunk')
   }
 }

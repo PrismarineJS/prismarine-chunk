@@ -33,10 +33,9 @@ class SubChunk {
   }
 
   async decode (format, stream) {
-    this.sectionVersion = 0
-
     // version
     const version = stream.readByte()
+    this.subChunkVersion = version
 
     let storageCount = 1
     if (version >= 8) {
@@ -45,7 +44,7 @@ class SubChunk {
         this.y = stream.readByte() // Sub Chunk Index
       }
       if (storageCount >= 2) {
-        throw new Error('Expected storage count to be 1 or 2')
+        throw new Error('Expected storage count to be 1 or 2, got ' + storageCount)
       }
     }
     for (let i = 0; i < storageCount; i++) {
@@ -67,11 +66,11 @@ class SubChunk {
     storage.read(stream)
     this.blocks[storageLayer] = storage
 
-    const paletteSize = format === StorageType.LocalPersistence ? stream.readInt32LE() : stream.readVarint()
-    if (paletteSize > stream.getBuffer().length || paletteSize < 1) throw new Error(`Invalid palette size: ${paletteSize}`)
+    const paletteSize = format === StorageType.LocalPersistence ? stream.readInt32LE() : stream.readZigZagVarInt()
+    if (paletteSize > stream.buffer.length || paletteSize < 1) throw new Error(`Invalid palette size: ${paletteSize}`)
 
     if (format === StorageType.Runtime) {
-      await this.loadRuntimePalette(storageLayer, stream, storage.paletteSize)
+      await this.loadRuntimePalette(storageLayer, stream, paletteSize)
     } else {
       await this.loadLocalPalette(storage, stream, paletteSize, format === StorageType.NetworkPersistence)
     }
@@ -81,9 +80,9 @@ class SubChunk {
     this.palette[storageLayer] = []
 
     for (let i = 0; i < paletteSize; i++) {
-      const index = stream.readZigZagVarint()
+      const index = stream.readZigZagVarInt()
       const block = this.registry.blockStates[index]
-      this.palette[storageLayer][i] = { stateId: block.stateId, ...block }
+      this.palette[storageLayer][i] = { stateId: index, ...block }
     }
   }
 
@@ -134,29 +133,29 @@ class SubChunk {
 
   // Encode sub chunk version 8+
   encodeV8 (stream, format) {
-    stream.writeByte(this.subChunkVersion)
-    stream.writeByte(this.blocks.length)
+    stream.writeUInt8(this.subChunkVersion)
+    stream.writeUInt8(this.blocks.length)
     if (this.subChunkVersion >= 9) { // Caves and cliffs (1.17-1.18)
-      stream.writeByte(this.y)
+      stream.writeUInt8(this.y)
     }
     for (let i = 0; i < this.blocks.length; i++) {
       const storage = this.blocks[i]
       let paletteType = storage.bitsPerBlock << 1
-      if (format === StorageType.NetworkPersistence) {
+      if (format === StorageType.Runtime) {
         paletteType |= 1
       }
-      stream.writeByte(paletteType)
+      stream.writeUInt8(paletteType)
       storage.write(stream)
 
       if (format === StorageType.LocalPersistence) {
         stream.writeUInt32LE(this.palette[i].length)
       } else {
-        stream.writeVarInt(this.palette[i].length)
+        stream.writeZigZagVarInt(this.palette[i].length)
       }
 
-      if (format === StorageType.NetworkPersistence) {
+      if (format === StorageType.Runtime) {
         for (const block of this.palette[i]) {
-          stream.writeZigZagVarint(block.stateId)
+          stream.writeZigZagVarInt(block.stateId)
         }
       } else {
         for (const block of this.palette[i]) {

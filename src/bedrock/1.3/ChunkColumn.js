@@ -5,6 +5,7 @@ const { StorageType } = require('../common/constants')
 const Stream = require('../common/Stream')
 const { BlobType, BlobEntry } = require('../common/BlobCache')
 const nbt = require('prismarine-nbt')
+const { getChecksum } = require('../common/util')
 
 class ChunkColumn13 extends CommonChunkColumn {
   Section = SubChunk
@@ -37,26 +38,48 @@ class ChunkColumn13 extends CommonChunkColumn {
     this.biomesUpdated = true
   }
 
+  loadLegacyBiomes (buf) {
+    const biome = new BiomeSection(0)
+    biome.readLegacy2D(buf)
+    this.biomes = [biome]
+  }
+
+  // Load heightmap data
+  /** @type Uint16Array */
+  loadHeights (heightmap) {
+    this.heights = heightmap
+  }
+
+  getHeights () {
+    return this.heights
+  }
+
+  async updateBiomeHash (fromBuf) {
+    this.biomesUpdated = false
+    this.biomesHash = await getChecksum(fromBuf)
+    return this.biomesHash
+  }
+
   /**
    * Encodes this chunk column for the network with no caching
    * @param buffer Full chunk buffer
    */
   async networkEncodeNoCache () {
     const tileBufs = []
-    for (const key in this.tiles) {
-      const tile = this.tiles[key]
+    for (const key in this.blockEntities) {
+      const tile = this.blockEntities[key]
       tileBufs.push(nbt.writeUncompressed(tile, 'littleVarint'))
     }
 
     // TODO: Investigate the heightmap
     // const heightmap = Buffer.alloc(512)
     let biomeBuf
-    const stream = new Stream()
+    const stream = new Stream(Buffer.alloc(256))
     if (this.biomes[0]) {
       this.biomes[0].exportLegacy2D(stream)
-      biomeBuf = stream.getBuffer()
+      biomeBuf = stream.buffer
     } else {
-      biomeBuf = Buffer.alloc(256)
+      throw Error('No biome section')
     }
 
     const sectionBufs = []
@@ -108,8 +131,8 @@ class ChunkColumn13 extends CommonChunkColumn {
   async networkEncode (blobStore) {
     const blobs = await this.networkEncodeBlobs(blobStore)
     const tileBufs = []
-    for (const key in this.tiles) {
-      const tile = this.tiles[key]
+    for (const key in this.blockEntities) {
+      const tile = this.blockEntities[key]
       tileBufs.push(nbt.writeUncompressed(tile, 'littleVarint'))
     }
 
@@ -139,18 +162,18 @@ class ChunkColumn13 extends CommonChunkColumn {
 
     const biomes = new BiomeSection(0)
     biomes.readLegacy2D(stream)
-    this.biomes = biomes
+    this.biomes = [biomes]
 
-    const borderBlocksLength = stream.readVarInt()
-    const borderBlocks = stream.read(borderBlocksLength)
+    const borderBlocksLength = stream.readZigZagVarInt()
+    const borderBlocks = stream.readBuffer(borderBlocksLength)
     // Don't know how to handle this yet
     if (borderBlocks.length) throw Error(`Read ${borderBlocksLength} border blocks, expected 0`)
 
-    const buf = stream.getBuffer()
-    buf.startOffset = stream.getOffset()
+    const buf = stream.buffer
+    buf.startOffset = stream.readOffset
     while (stream.peek() === 0x0A) {
       const { parsed, metadata } = await nbt.parse(buf, 'littleVarint')
-      stream.offset += metadata.size
+      stream.readOffset += metadata.size
       buf.startOffset += metadata.size
       this.addBlockEntity(parsed)
     }

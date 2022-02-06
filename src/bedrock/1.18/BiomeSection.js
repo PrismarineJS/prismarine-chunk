@@ -1,5 +1,8 @@
 const { StorageType } = require('../common/constants')
-const { PalettedStorage } = require('../common/PalettedStorage')
+const PalettedStorage = require('../common/PalettedStorage')
+const neededBits = require('../../pc/common/neededBits')
+
+const MIN_BITS_PER_BIOME = 3
 
 class BiomeSection {
   constructor (registry, y) {
@@ -12,7 +15,7 @@ class BiomeSection {
   readLegacy2D (stream) {
     for (let x = 0; x < 16; x++) {
       for (let z = 0; z < 16; z++) {
-        this.setBiome(x, 15, z, stream.readByte())
+        this.setBiomeId(x, 0, z, stream.readByte())
       }
     }
   }
@@ -31,7 +34,7 @@ class BiomeSection {
 
     if (bitsPerBlock === 0) {
       this.biomes.fill(0)
-      this.palette.push(type === StorageType.LocalPersistence ? buf.readLInt() : (buf.readUnsignedVarInt() >> 1))
+      this.palette.push(type === StorageType.LocalPersistence ? buf.readInt32LE() : (buf.readVarInt() >> 1))
       return // short circuit
     }
 
@@ -43,14 +46,14 @@ class BiomeSection {
     if (type === StorageType.NetworkPersistence) {
       // Shift 1 bit to un-zigzag (we cannot be negative)
       // ask mojang why these are signed at all...
-      const biomePaletteLength = buf.readUnsignedVarInt() >> 1
+      const biomePaletteLength = buf.readVarInt() >> 1
       for (let i = 0; i < biomePaletteLength; i++) {
-        this.palette.push(buf.readUnsignedVarInt() >> 1)
+        this.palette.push(buf.readVarInt() >> 1)
       }
     } else {
-      const biomePaletteLength = buf.readLInt()
+      const biomePaletteLength = buf.readInt32LE()
       for (let i = 0; i < biomePaletteLength; i++) {
-        this.palette.push(buf.readLInt())
+        this.palette.push(buf.readInt32LE())
       }
     }
   }
@@ -61,11 +64,15 @@ class BiomeSection {
       this.palette.push(biomeId)
     }
 
-    this.biomes[((x << 8) | (z << 4) | y)] = this.palette.indexOf(biomeId)
+    if (neededBits(this.palette.length) > this.biomes.bitsPerBlock) {
+      this.biomes = this.biomes.resize(Math.min(this.palette.length, MIN_BITS_PER_BIOME))
+    }
+
+    this.biomes.set(x, y, z, this.palette.indexOf(biomeId))
   }
 
   getBiomeId (x, y, z) {
-    return this.palette[this.biomes[((x << 8) | (z << 4) | y)]]
+    return this.palette[this.biomes.get(x, y, z)]
   }
 
   getBiome (pos) {
@@ -76,11 +83,14 @@ class BiomeSection {
     this.setBiomeId(pos.x, pos.y, pos.z, biome.id)
   }
 
+  // TODO: Implement special handling for 0-bits per block, it's more
+  // of an optimization than anything else
   export (type, stream) {
     const bitsPerBlock = Math.ceil(Math.log2(this.palette.length)) || 1
     stream.writeByte((bitsPerBlock << 1) | 1)
     this.biomes.write(stream)
     if (type === StorageType.NetworkPersistence) {
+      // broken
       stream.writeUnsignedVarInt(this.palette.length << 1)
       for (const biome of this.palette) {
         stream.writeUnsignedVarInt(biome << 1)
@@ -97,9 +107,9 @@ class BiomeSection {
   exportLegacy2D (stream) {
     for (let x = 0; x < 16; x++) {
       for (let z = 0; z < 16; z++) {
-        const y = 15
+        const y = 0
         const biome = this.getBiomeId(x, y, z)
-        stream.writeByte(biome)
+        stream.writeUInt8(biome)
       }
     }
   }
