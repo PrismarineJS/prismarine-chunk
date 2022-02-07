@@ -6,7 +6,7 @@ class PalettedStorage {
   constructor (bitsPerBlock) {
     this.bitsPerBlock = bitsPerBlock
     this.blocksPerWord = Math.floor(wordBitSize / bitsPerBlock)
-    this.paddingPerWord = wordBitSize % bitsPerBlock
+    // this.paddingPerWord = wordBitSize % bitsPerBlock
     this.wordsCount = Math.ceil(4096 / this.blocksPerWord)
     this.mask = ((1 << bitsPerBlock) - 1)
     this.array = new Uint32Array(this.wordsCount)

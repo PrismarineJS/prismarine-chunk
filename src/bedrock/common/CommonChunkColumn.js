@@ -37,6 +37,8 @@ class CommonChunkColumn {
     if (!sec) return this.Block.fromStateId(this.registry.blocksByName.air.defaultState, 0)
     const block = sec.getBlock(vec4.l, vec4.x, vec4.y & 0xf, vec4.z)
     if (full) {
+      block.light = sec.blockLight.get(vec4.x, vec4.y & 0xf, vec4.z)
+      block.skyLight = sec.skyLight.get(vec4.x, vec4.y & 0xf, vec4.z)
       block.entity = this.blockEntities[keyFromLocalPos(vec4)]
     }
     return block
@@ -50,9 +52,9 @@ class CommonChunkColumn {
       this.sections[this.co + Y] = sec
     }
     sec.setBlock(pos.l, pos.x, pos.y & 0xf, pos.z, block)
-    if (block.entity) {
-      this.setBlockEntity(pos, block.entity)
-    }
+    if (block.light !== undefined) sec.blockLight.set(pos.x, pos.y & 0xf, pos.z, block.light)
+    if (block.skyLight !== undefined) sec.skyLight.set(pos.x, pos.y & 0xf, pos.z, block.skyLight)
+    if (block.entity) this.setBlockEntity(pos, block.entity)
   }
 
   getBlockStateId (pos) {
@@ -75,6 +77,23 @@ class CommonChunkColumn {
   getBlocks () {
     const arr = this.sections.map(sec => sec.getPalette())
     return arr
+  }
+
+  // Lighting
+  setBlockLight (pos, light) {
+    this.sections[this.co + pos.y >> 4].blockLight.set(pos.x, pos.y & 0xf, pos.z, light)
+  }
+
+  setSkyLight (pos, light) {
+    this.sections[this.co + pos.y >> 4].skyLight.set(pos.x, pos.y & 0xf, pos.z, light)
+  }
+
+  getSkyLight (pos) {
+    return this.sections[this.co + pos.y >> 4].skyLight.get(pos.x, pos.y & 0xf, pos.z)
+  }
+
+  getBlockLight (pos) {
+    return this.sections[this.co + pos.y >> 4].blockLight.get(pos.x, pos.y & 0xf, pos.z)
   }
 
   // Block entities

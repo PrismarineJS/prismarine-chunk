@@ -88,14 +88,20 @@ declare class SubChunk {
   getPalette(): PaletteEntry[]
 }
 
+type ExtendedBlock = Block & {
+  light?: number
+  skyLight?: number
+  entity?: NBT
+}
+
 declare class BedrockChunk {
   minCY: number
   maxCY: number
 
   constructor(options: { x: number, z: number, chunkVersion?: number })
 
-  getBlock(pos: IVec4): Block
-  setBlock(pos: IVec4, block: Block): void
+  getBlock(pos: IVec4, full?: boolean): ExtendedBlock
+  setBlock(pos: IVec4, block: ExtendedBlock): void
 
   setBlockStateId(pos: IVec4, stateId: number): number
   getBlockStateId(pos: IVec4): number
@@ -109,6 +115,12 @@ declare class BedrockChunk {
   loadLegacyBiomes(buffer: Buffer): void
   // Only present on >= 1.18
   loadBiomes(buffer: Buffer, storageType: StorageType): void
+
+  // Lighting
+  getBlockLight(pos: Vec3): number
+  setBlockLight(pos: Vec3, light: number): void
+  getSkyLight(pos: Vec3): number
+  setSkyLight(pos: Vec3, light: number): void
 
   // On versions <1.18: Encode this full chunk column without computing a checksum at the end
   // On version >=1.18: Encode the biome data for this chunk column and border blocks

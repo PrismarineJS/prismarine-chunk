@@ -20,6 +20,10 @@ class SubChunk {
     this.subChunkVersion = options.subChunkVersion || 8
     this.hash = options.hash || null
     this.updated = options.updated || true
+
+    // Not written or read
+    this.blockLight = new PalettedStorage(4)
+    this.skyLight = new PalettedStorage(4)
   }
 
   // Creates an air chunk
@@ -248,6 +252,23 @@ class SubChunk {
 
   getPalette () {
     return this.palette
+  }
+
+  // Lighting - Not written or read, but computed during chunk loading
+  getBlockLight (x, y, z) {
+    return this.blockLight.get(x, y, z)
+  }
+
+  setBlockLight (x, y, z, value) {
+    this.blockLight.set(x, y, z, value)
+  }
+
+  getSkyLight (x, y, z) {
+    return this.skyLight.get(x, y, z)
+  }
+
+  setSkyLight (x, y, z, value) {
+    this.skyLight.set(x, y, z, value)
   }
 
   toObject () {
