@@ -40,7 +40,7 @@ class ChunkColumn13 extends CommonChunkColumn {
 
   loadLegacyBiomes (buf) {
     if (buf instanceof Buffer) buf = new Stream(buf)
-    const biome = new BiomeSection(0)
+    const biome = new BiomeSection(this.registry, 0)
     biome.readLegacy2D(buf)
     this.biomes = [biome]
   }
@@ -161,7 +161,7 @@ class ChunkColumn13 extends CommonChunkColumn {
       this.sections.push(section)
     }
 
-    const biomes = new BiomeSection(0)
+    const biomes = new BiomeSection(this.registry, 0)
     biomes.readLegacy2D(stream)
     this.biomes = [biomes]
 

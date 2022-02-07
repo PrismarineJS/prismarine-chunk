@@ -44,10 +44,11 @@ class SubChunk {
       if (version >= 9) {
         this.y = stream.readByte() // Sub Chunk Index
       }
-      if (storageCount >= 2) {
+      if (storageCount > 2) {
         throw new Error('Expected storage count to be 1 or 2, got ' + storageCount)
       }
     }
+
     for (let i = 0; i < storageCount; i++) {
       const paletteType = stream.readByte()
       const usingNetworkRuntimeIds = paletteType & 1
@@ -73,7 +74,7 @@ class SubChunk {
     if (format === StorageType.Runtime) {
       await this.loadRuntimePalette(storageLayer, stream, paletteSize)
     } else {
-      await this.loadLocalPalette(storage, stream, paletteSize, format === StorageType.NetworkPersistence)
+      await this.loadLocalPalette(storageLayer, stream, paletteSize, format === StorageType.NetworkPersistence)
     }
   }
 
@@ -92,7 +93,7 @@ class SubChunk {
     const buf = stream.buffer
     buf.startOffset = stream.readOffset
     let i
-    for (i = 0; stream.peekUInt8() !== 0x0A; i++) {
+    for (i = 0; i < paletteSize; i++) {
       const { parsed, metadata } = await nbt.parse(buf, overNetwork ? 'littleVarint' : 'little')
       stream.readOffset += metadata.size // BinaryStream
       buf.startOffset += metadata.size // Buffer

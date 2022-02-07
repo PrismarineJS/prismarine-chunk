@@ -27,13 +27,13 @@ class BiomeSection {
   }
 
   read (type, buf, previousSection) {
+    this.palette = []
     const paletteType = buf.readByte()
     // below should always be 1, so we use IDs
     // const usingNetworkRuntimeIds = paletteType & 1
     const bitsPerBlock = paletteType >> 1
 
     if (bitsPerBlock === 0) {
-      this.biomes.fill(0)
       this.palette.push(type === StorageType.LocalPersistence ? buf.readInt32LE() : (buf.readVarInt() >> 1))
       return // short circuit
     }
@@ -42,7 +42,6 @@ class BiomeSection {
     this.biomes.read(buf)
 
     // now read palette
-    this.palette = []
     if (type === StorageType.NetworkPersistence) {
       // Shift 1 bit to un-zigzag (we cannot be negative)
       // ask mojang why these are signed at all...

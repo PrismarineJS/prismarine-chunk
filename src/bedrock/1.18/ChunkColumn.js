@@ -31,6 +31,7 @@ class ChunkColumn180 extends ChunkColumn13 {
 
   // Load 3D biome data from disk
   loadBiomes (buf, storageType) {
+    if (buf instanceof Buffer) buf = new Stream(buf)
     this.biomes = []
     let last
     for (let y = this.minCY; buf.peek(); y++) {
