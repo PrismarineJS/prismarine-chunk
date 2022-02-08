@@ -86,18 +86,18 @@ class BiomeSection {
   // of an optimization than anything else
   export (type, stream) {
     const bitsPerBlock = Math.ceil(Math.log2(this.palette.length)) || 1
-    stream.writeByte((bitsPerBlock << 1) | 1)
+    stream.writeUInt8((bitsPerBlock << 1) | 1)
     this.biomes.write(stream)
     if (type === StorageType.NetworkPersistence) {
       // broken
-      stream.writeUnsignedVarInt(this.palette.length << 1)
+      stream.writeVarInt(this.palette.length << 1)
       for (const biome of this.palette) {
-        stream.writeUnsignedVarInt(biome << 1)
+        stream.writeVarInt(biome << 1)
       }
     } else {
-      stream.writeLInt(this.palette.length)
+      stream.writeUInt32LE(this.palette.length)
       for (const biome of this.palette) {
-        stream.writeLInt(biome)
+        stream.writeUInt32LE(biome)
       }
     }
   }

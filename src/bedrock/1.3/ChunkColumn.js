@@ -18,7 +18,6 @@ class ChunkColumn13 extends CommonChunkColumn {
     this.biomesUpdated = false
     if (options.sections?.length) {
       for (const section of options.sections) {
-        console.log(section, options.sections)
         if (section) {
           this.sections.push(new this.Section(registry, Block, section))
         } else {

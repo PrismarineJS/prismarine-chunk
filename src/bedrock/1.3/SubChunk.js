@@ -111,7 +111,7 @@ class SubChunk {
         block = this.Block.fromProperties('air', {}, 0)
       }
 
-      this.palette[storageLayer][i] = { stateId: block.stateId, name, states: parsed.states, version }
+      this.palette[storageLayer][i] = { stateId: block.stateId, name, states, version }
     }
     delete buf.startOffset
 

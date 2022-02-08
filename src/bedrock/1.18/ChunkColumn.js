@@ -5,6 +5,7 @@ const { StorageType } = require('../common/constants')
 const Stream = require('../common/Stream')
 const { BlobType, BlobEntry } = require('../common/BlobCache')
 const nbt = require('prismarine-nbt')
+const ProxyBiomeSection = require('./ProxyBiomeSection')
 
 class ChunkColumn180 extends ChunkColumn13 {
   minCY = -4
@@ -14,22 +15,32 @@ class ChunkColumn180 extends ChunkColumn13 {
   biomes = []
 
   getBiome (pos) {
-    const Y = pos.y >> 4
-    const sec = this.biomes[this.co + Y]
-    return new this.Biome(sec.getBiomeId(pos.x, pos.y & 0xf, pos.z))
+    return new this.Biome(this.getBiomeId(pos))
   }
 
   setBiome (pos, biome) {
+    this.setBiomeId(pos, biome.id)
+  }
+
+  getBiomeId (pos) {
+    const Y = pos.y >> 4
+    const sec = this.biomes[this.co + Y]
+    return sec.getBiomeId(pos.x, pos.y & 0xf, pos.z)
+  }
+
+  setBiomeId (pos, biomeId) {
     const Y = pos.y >> 4
     const sec = this.biomes[this.co + Y]
     if (!sec) {
       this.biomes[this.co + Y] = new BiomeSection(this.registry, Y)
+    } else if (!sec.setBiomeId) {
+      this.biomes[this.co + Y] = sec.promote(Y)
     }
-    sec.setBiomeId(pos.x, pos.y & 0xf, pos.z, biome.getId())
+    sec.setBiomeId(pos.x, pos.y & 0xf, pos.z, biomeId)
     this.biomesUpdated = true
   }
 
-  // Load 3D biome data from disk
+  // Load 3D biome data
   loadBiomes (buf, storageType) {
     if (buf instanceof Buffer) buf = new Stream(buf)
     this.biomes = []
@@ -37,10 +48,9 @@ class ChunkColumn180 extends ChunkColumn13 {
     for (let y = this.minCY; buf.peek(); y++) {
       if (buf.peek() === 0xff) { // re-use the last data
         if (!last) throw new Error('No last biome')
-        const biome = new BiomeSection(this.registry, y)
-        biome.copy(last)
+        const biome = new ProxyBiomeSection(this.registry, last)
         this.biomes.push(biome)
-        // skip peek
+        // skip peek'ed
         buf.readByte()
       } else {
         const biome = new BiomeSection(this.registry, y)

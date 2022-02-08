@@ -75,25 +75,30 @@ class CommonChunkColumn {
   }
 
   getBlocks () {
-    const arr = this.sections.map(sec => sec.getPalette())
-    return arr
+    const arr = this.sections.map(sec => sec.getPalette()).flat(2)
+    const deduped = Object.values(arr.reduce((acc, block) => {
+      if (!acc[block.stateId]) acc[block.stateId] = block
+      acc[block.stateId] = block
+      return acc
+    }, {}))
+    return deduped
   }
 
   // Lighting
   setBlockLight (pos, light) {
-    this.sections[this.co + pos.y >> 4].blockLight.set(pos.x, pos.y & 0xf, pos.z, light)
+    this.sections[this.co + (pos.y >> 4)].blockLight.set(pos.x, pos.y & 0xf, pos.z, light)
   }
 
   setSkyLight (pos, light) {
-    this.sections[this.co + pos.y >> 4].skyLight.set(pos.x, pos.y & 0xf, pos.z, light)
+    this.sections[this.co + (pos.y >> 4)].skyLight.set(pos.x, pos.y & 0xf, pos.z, light)
   }
 
   getSkyLight (pos) {
-    return this.sections[this.co + pos.y >> 4].skyLight.get(pos.x, pos.y & 0xf, pos.z)
+    return this.sections[this.co + (pos.y >> 4)].skyLight.get(pos.x, pos.y & 0xf, pos.z)
   }
 
   getBlockLight (pos) {
-    return this.sections[this.co + pos.y >> 4].blockLight.get(pos.x, pos.y & 0xf, pos.z)
+    return this.sections[this.co + (pos.y >> 4)].blockLight.get(pos.x, pos.y & 0xf, pos.z)
   }
 
   // Block entities

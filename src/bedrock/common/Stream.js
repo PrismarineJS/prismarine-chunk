@@ -6,12 +6,14 @@ class ByteStream {
     this.buffer = buffer || Buffer.allocUnsafe(DEFAULT_ALLOC_SIZE)
     this.readOffset = 0
     this.writeOffset = 0
+    this.size = this.buffer.length
   }
 
   resizeForWriteIfNeeded (bytes) {
-    if (this.writeOffset + bytes > this.size) {
+    if ((this.writeOffset + bytes) > this.size) {
       this.size *= 2
-      this.buffer = Buffer.concat([this.buffer, Buffer.allocUnsafe(this.size)])
+      const allocSize = this.size - this.writeOffset
+      this.buffer = Buffer.concat([this.buffer, Buffer.allocUnsafe(allocSize)])
     }
     // Detect potential writing bugs
     if (this.size > MAX_ALLOC_SIZE) throw new Error('Buffer size exceeded guard limit')
