@@ -114,7 +114,7 @@ declare class BedrockChunk {
   setBiome(pos: Vec3, biome: Biome): void
   loadLegacyBiomes(buffer: Buffer): void
   // Only present on >= 1.18
-  loadBiomes(buffer: Buffer, storageType: StorageType): void
+  loadBiomes(buffer: Buffer | Stream, storageType: StorageType): void
 
   // Lighting
   getBlockLight(pos: Vec3): number
