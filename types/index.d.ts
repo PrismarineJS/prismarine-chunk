@@ -64,9 +64,9 @@ interface IVec4 {
 
 // This manages the chunk cache
 interface IBlobStore {
-  read(key: string | Buffer[]): object
-  write(key: string | Buffer[], value: object): boolean
-  has(key: string | Buffer[]): boolean
+  get(key: string | number | BigInt): object
+  set(key: string | number | BigInt, value: object)
+  has(key: string | number | BigInt): boolean
 }
 
 declare const enum BlobType {
@@ -80,7 +80,7 @@ declare const enum StorageType {
   Runtime
 }
 
-type CCHash = { type: BlobType, hash: Buffer }
+type CCHash = { type: BlobType, hash: BigInt }
 type PaletteEntry = { name, stateId, states }
 
 declare class SubChunk {
@@ -138,7 +138,20 @@ declare class BedrockChunk {
    * @param {Buffer} payload The rest of the non-cached data
    * @returns {CCHash[]} A list of hashes we don't have and need. If len > 0, decode failed.
    */
-  networkDecode(blobs: CCHash[], blobStore: IBlobStore, payload: Buffer): Promise<CCHash[]>
+  networkDecode(blobs: BigInt[], blobStore: IBlobStore, payload: Buffer): Promise<CCHash[]>
+
+
+  // On version >=1.18: Encode/Decode block and entity NBT data for this chunk column
+  networkDecodeSubChunkNoCache(y: number, buffer: Buffer): Promise<void>
+  networkEncodeSubChunkNoCache(y: number): Promise<Buffer>
+
+  /**
+   * 
+   * @param blobs The blob hashes sent in the SubChunk packet
+   * @param blobStore The Blob Store holding the chunk data
+   * @param payload The remaining data sent in the SubChunk packet, border blocks
+   */
+  networkDecodeSubChunk(blobs: BigInt[], blobStore: IBlobStore, payload: Buffer)
 
   // Heightmap
   loadHeights(map: Uint16Array): void

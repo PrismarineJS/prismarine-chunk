@@ -40,6 +40,7 @@ class SubChunk {
     if (stream instanceof Buffer) stream = new Stream(stream)
     // version
     const version = stream.readByte()
+    if (version !== 8 && version !== 9) throw new Error('Unsupported sub chunk version: ' + version)
     this.subChunkVersion = version
 
     let storageCount = 1
@@ -78,6 +79,7 @@ class SubChunk {
     if (format === StorageType.Runtime) {
       await this.loadRuntimePalette(storageLayer, stream, paletteSize)
     } else {
+      // Either "network persistent" (network with caching) or local disk
       await this.loadLocalPalette(storageLayer, stream, paletteSize, format === StorageType.NetworkPersistence)
     }
   }

@@ -29,8 +29,9 @@ class BiomeSection {
   read (type, buf, previousSection) {
     this.palette = []
     const paletteType = buf.readByte()
-    // below should always be 1, so we use IDs
-    // const usingNetworkRuntimeIds = paletteType & 1
+    // below should always be 1, so we use numerical IDs
+    const usingNetworkRuntimeIds = paletteType & 1
+    if (usingNetworkRuntimeIds !== 1) throw new Error('Biome palette type must be set to use runtime IDs')
     const bitsPerBlock = paletteType >> 1
 
     if (bitsPerBlock === 0) {
