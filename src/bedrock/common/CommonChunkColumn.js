@@ -110,7 +110,6 @@ class CommonChunkColumn {
   addBlockEntity (tag) {
     const lPos = keyFromGlobalPos(tag.value.x.value, tag.value.y.value, tag.value.z.value)
     this.blockEntities[lPos] = tag
-    // console.log('Add block entity', lPos, tag.value.y.value, tag)
   }
 
   removeBlockEntity (pos) {

@@ -151,7 +151,14 @@ declare class BedrockChunk {
    * @param blobStore The Blob Store holding the chunk data
    * @param payload The remaining data sent in the SubChunk packet, border blocks
    */
-  networkDecodeSubChunk(blobs: BigInt[], blobStore: IBlobStore, payload: Buffer)
+  networkDecodeSubChunk(blobs: BigInt[], blobStore: IBlobStore, payload: Buffer): Promise<void>
+  /**
+   * Encodes a cached subchunk for the section at y
+   * @param y The Y coordinate of the subchunk
+   * @param blobStore The cache storage
+   * @returns A hash of the encoded data (can be found in BlobStore) and a buffer containing block entities
+   */
+  networkEncodeSubChunk(y: number, blobStore: IBlobStore): Promise<[BigInt, Buffer]>
 
   // Heightmap
   loadHeights(map: Uint16Array): void

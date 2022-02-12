@@ -133,7 +133,7 @@ class SubChunk {
     }
 
     const buf = stream.getBuffer()
-    if (checksum && format === StorageType.NetworkPersistence) {
+    if (checksum) {
       this.hash = await getChecksum(buf)
       this.updated = false
     }

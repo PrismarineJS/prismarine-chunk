@@ -6,7 +6,6 @@ const Stream = require('../common/Stream')
 const { BlobType, BlobEntry } = require('../common/BlobCache')
 const nbt = require('prismarine-nbt')
 const ProxyBiomeSection = require('./ProxyBiomeSection')
-const { getChecksum } = require('../common/util')
 
 class ChunkColumn180 extends ChunkColumn13 {
   minCY = -4
@@ -61,32 +60,6 @@ class ChunkColumn180 extends ChunkColumn13 {
         this.biomes.push(biome)
       }
     }
-  }
-
-  /// BLOCK ENTITY CACHING
-
-  setBlockEntity (pos, tag) {
-    super.setBlockEntity(pos, tag)
-    this.terrainAndBlockEntityHash[this.co + (pos.y >> 4)] = null
-  }
-
-  removeBlockEntity (pos) {
-    super.removeBlockEntity(pos)
-    delete this.terrainAndBlockEntityHash[this.co + (pos.y >> 4)]
-  }
-
-  moveBlockEntity (pos, newPos) {
-    super.moveBlockEntity(pos, newPos)
-    this.terrainAndBlockEntityHash[this.co + (pos.y >> 4)] = null
-  }
-
-  // 1.18+, these two hashes are combined
-  getTerrainAndBlockEntityHash (y) {
-    return this.terrainAndBlockEntityHash[this.co + y]
-  }
-
-  setTerrainAndBlockEntityHash (y, hash) {
-    this.terrainAndBlockEntityHash[this.co + y] = hash
   }
 
   /// BLOB CACHING
@@ -245,6 +218,17 @@ class ChunkColumn180 extends ChunkColumn13 {
   }
 
   async networkDecodeSubChunk (blobs, blobStore, payload) {
+    if (payload) {
+      const nbtStream = new Stream(payload)
+      let startOffset = 0
+      while (nbtStream.peekUInt8() === 0x0A) {
+        const { data, metadata } = nbt.protos.littleVarint.parsePacketBuffer('nbt', payload, startOffset)
+        nbtStream.readOffset += metadata.size
+        startOffset += metadata.size
+        this.addBlockEntity(data)
+      }
+    }
+
     const misses = []
     for (const blob of blobs) {
       if (!blobStore.has(blob.toString())) {
@@ -262,27 +246,11 @@ class ChunkColumn180 extends ChunkColumn13 {
     this.sectionsLen = 0
     for (const blob of blobs) {
       const entry = blobStore.get(blob.toString())
-      if (entry.type === BlobType.Biomes) {
-        // This can't happen, biomes should be sent in LevelChunk
-        const stream = new Stream(entry.buffer)
-        this.loadBiomes(stream, StorageType.NetworkPersistence)
-      } else if (entry.type === BlobType.ChunkSection) {
-        const stream = new Stream(entry.buffer)
-        const subchunk = new SubChunk(this.registry, this.Block, { y: blob.y, subChunkVersion: this.subChunkVersion })
-        await subchunk.decode(StorageType.Runtime, stream)
-        this.setSection(blob.y, subchunk)
 
-        const buf = stream.buffer
-        buf.startOffset = stream.readOffset
-        while (stream.peekUInt8() === 0x0A) {
-          const { parsed, metadata } = await nbt.parse(buf, 'littleVarint')
-          stream.readOffset += metadata.size
-          buf.startOffset += metadata.size
-          this.addBlockEntity(parsed)
-        }
-      } else {
-        throw Error('Unknown blob type: ' + entry.type)
-      }
+      const stream = new Stream(entry.buffer)
+      const subchunk = new SubChunk(this.registry, this.Block, { y: blob.y, subChunkVersion: this.subChunkVersion })
+      await subchunk.decode(StorageType.Runtime, stream)
+      this.setSection(blob.y, subchunk)
     }
 
     return misses // return empty array if everything was loaded
@@ -292,23 +260,18 @@ class ChunkColumn180 extends ChunkColumn13 {
     const tiles = this.getSectionBlockEntities(y)
     const section = this.getSection(y)
 
-    if (section.updated || !this.getTerrainAndBlockEntityHash(y)) {
-      const terrainBuffer = await section.encode(StorageType.Runtime) // note Runtime, not NetworkPersistence
-
-      const tileBufs = []
-      for (const tile of tiles) {
-        tileBufs.push(nbt.writeUncompressed(tile, 'littleVarint'))
-      }
-
-      const combinedBuffer = Buffer.concat([terrainBuffer, ...tileBufs])
-      const hash = await getChecksum(combinedBuffer)
-      this.setTerrainAndBlockEntityHash(y, hash)
-      const blob = new BlobEntry({ x: this.x, y: section.y, z: this.z, type: BlobType.ChunkSection, buffer: combinedBuffer })
-      blobStore.set(hash.toString(), blob)
+    if (section.updated) {
+      const terrainBuffer = await section.encode(StorageType.Runtime, true) // note Runtime, not NetworkPersistence
+      const blob = new BlobEntry({ x: this.x, y: section.y, z: this.z, type: BlobType.ChunkSection, buffer: terrainBuffer })
+      blobStore.set(section.hash.toString(), blob)
     }
 
-    const hash = this.getTerrainAndBlockEntityHash(y)
-    return hash
+    const tileBufs = []
+    for (const tile of tiles) {
+      tileBufs.push(nbt.writeUncompressed(tile, 'littleVarint'))
+    }
+
+    return [section.hash, Buffer.concat(tileBufs)]
   }
 
   toObject () {
