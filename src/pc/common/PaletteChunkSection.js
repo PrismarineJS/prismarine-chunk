@@ -78,11 +78,11 @@ class ChunkSection {
     return new ChunkSection({
       data: palette.length === 1
         ? new SingleValueContainer({
-          value: palette[0],
-          bitsPerValue: constants.MIN_BITS_PER_BIOME,
-          capacity: constants.BIOME_SECTION_VOLUME,
-          maxBits: constants.MAX_BITS_PER_BIOME
-        })
+            value: palette[0],
+            bitsPerValue: constants.MIN_BITS_PER_BLOCK,
+            capacity: constants.BIOME_SECTION_VOLUME,
+            maxBits: constants.MAX_BITS_PER_BLOCK
+          })
         : new IndirectPaletteContainer({
           data,
           palette
