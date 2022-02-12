@@ -36,7 +36,7 @@ class SubChunk {
     return subChunk
   }
 
-  async decode (format, stream) {
+  decode (format, stream) {
     if (stream instanceof Buffer) stream = new Stream(stream)
     // version
     const version = stream.readByte()
@@ -63,11 +63,11 @@ class SubChunk {
       }
 
       const bitsPerBlock = paletteType >> 1
-      await this.loadPalettedBlocks(i, stream, bitsPerBlock, format)
+      this.loadPalettedBlocks(i, stream, bitsPerBlock, format)
     }
   }
 
-  async loadPalettedBlocks (storageLayer, stream, bitsPerBlock, format) {
+  loadPalettedBlocks (storageLayer, stream, bitsPerBlock, format) {
     // We always use at least 4 bits per block at minimum, match Java Edition
     const storage = new PalettedStorage(bitsPerBlock)
     storage.read(stream)
@@ -77,14 +77,14 @@ class SubChunk {
     if (paletteSize > stream.buffer.length || paletteSize < 1) throw new Error(`Invalid palette size: ${paletteSize}`)
 
     if (format === StorageType.Runtime) {
-      await this.loadRuntimePalette(storageLayer, stream, paletteSize)
+      this.loadRuntimePalette(storageLayer, stream, paletteSize)
     } else {
       // Either "network persistent" (network with caching) or local disk
-      await this.loadLocalPalette(storageLayer, stream, paletteSize, format === StorageType.NetworkPersistence)
+      this.loadLocalPalette(storageLayer, stream, paletteSize, format === StorageType.NetworkPersistence)
     }
   }
 
-  async loadRuntimePalette (storageLayer, stream, paletteSize) {
+  loadRuntimePalette (storageLayer, stream, paletteSize) {
     this.palette[storageLayer] = []
 
     for (let i = 0; i < paletteSize; i++) {
@@ -94,16 +94,17 @@ class SubChunk {
     }
   }
 
-  async loadLocalPalette (storageLayer, stream, paletteSize, overNetwork) {
+  loadLocalPalette (storageLayer, stream, paletteSize, overNetwork) {
     this.palette[storageLayer] = []
     const buf = stream.buffer
-    buf.startOffset = stream.readOffset
+    let startOffset = stream.readOffset
     let i
     for (i = 0; i < paletteSize; i++) {
-      const { parsed, metadata } = await nbt.parse(buf, overNetwork ? 'littleVarint' : 'little')
+      const { metadata, data } = nbt.protos[overNetwork ? 'littleVarint' : 'little'].parsePacketBuffer('nbt', buf, startOffset)
       stream.readOffset += metadata.size // BinaryStream
-      buf.startOffset += metadata.size // Buffer
-      const { name, states, version } = nbt.simplify(parsed)
+      startOffset += metadata.size // Buffer
+
+      const { name, states, version } = nbt.simplify(data)
 
       let block = this.Block.fromProperties(name.replace('minecraft:', ''), states ?? {}, 0)
 

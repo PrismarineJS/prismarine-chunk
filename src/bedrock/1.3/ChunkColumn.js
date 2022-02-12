@@ -105,14 +105,14 @@ class ChunkColumn13 extends CommonChunkColumn {
     const blobHashes = []
     for (const section of this.sections) {
       // const key = `${this.x},${section.y},${this.z}`
-      if (section.updated || !blobStore.read(section.hash)) {
+      if (section.updated || !blobStore.get(section.hash)) {
         const buffer = await section.encode(StorageType.NetworkPersistence, true)
         const blob = new BlobEntry({ x: this.x, y: section.y, z: this.z, type: BlobType.ChunkSection, buffer })
-        blobStore.write(section.hash, blob)
+        blobStore.set(section.hash, blob)
       }
       blobHashes.push({ hash: section.hash, type: BlobType.ChunkSection })
     }
-    if (this.biomesUpdated || !this.biomesHash || !blobStore.read(this.biomesHash)) {
+    if (this.biomesUpdated || !this.biomesHash || !blobStore.get(this.biomesHash)) {
       if (this.biomes[0]) {
         const stream = new Stream()
         this.biomes[0].exportLegacy2D(stream)
@@ -122,7 +122,7 @@ class ChunkColumn13 extends CommonChunkColumn {
       }
 
       this.biomesUpdated = false
-      blobStore.write(this.biomesHash, new BlobEntry({ x: this.x, z: this.z, type: BlobType.Biomes, buffer: this.biomes }))
+      blobStore.set(this.biomesHash, new BlobEntry({ x: this.x, z: this.z, type: BlobType.Biomes, buffer: this.biomes }))
     }
     blobHashes.push({ hash: this.biomesHash, type: BlobType.Biomes })
     return blobHashes
@@ -157,7 +157,7 @@ class ChunkColumn13 extends CommonChunkColumn {
       // in 1.17.30+, chunk index is sent in payload
       const section = new SubChunk(this.registry, this.Block, { y: i, subChunkVersion: this.subChunkVersion })
       await section.decode(StorageType.Runtime, stream)
-      this.sections.push(section)
+      this.setSection(i, section)
     }
 
     const biomes = new BiomeSection(this.registry, 0)
@@ -186,24 +186,28 @@ class ChunkColumn13 extends CommonChunkColumn {
    * @param {Buffer} payload The rest of the non-cached data
    * @returns {CCHash[]} A list of hashes we don't have and need. If len > 0, decode failed.
    */
-  async networkDecode (blobs, blobStore, payload) {
+  networkDecode (blobs, blobStore, payload) {
+    blobs = [...blobs]
+    if (!blobs.length) {
+      throw new Error('No blobs to decode')
+    }
     const stream = new Stream(payload)
-    const borderblocks = stream.read(stream.readByte())
+    const borderblocks = stream.readBuffer(stream.readByte())
     if (borderblocks.length) {
       throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
     }
 
-    payload.startOffset = stream.getOffset()
+    let startOffset = stream.readOffset
     while (stream.peek() === 0x0A) {
-      const { parsed, metadata } = await nbt.parse(payload, 'littleVarint')
-      stream.offset += metadata.size
-      payload.startOffset += metadata.size
-      this.addBlockEntity(parsed)
+      const { metadata, data } = nbt.protos.littleVarint.parsePacketBuffer('nbt', payload, startOffset)
+      stream.readOffset += metadata.size
+      startOffset += metadata.size
+      this.addBlockEntity(data)
     }
 
     const misses = []
     for (const blob of blobs) {
-      if (!blobStore.has(blob.hash)) {
+      if (!blobStore.has(blob)) {
         misses.push(blob)
       }
     }
@@ -216,20 +220,19 @@ class ChunkColumn13 extends CommonChunkColumn {
     // Reset the sections & length, when we add a section, it will auto increment
     this.sections = []
     this.sectionsLen = 0
-    for (const blob of blobs) {
-      const entry = blobStore.read(blob.hash)
-      if (entry.type === BlobType.Biomes) {
-        this.biomes = entry.buffer
-      } else if (entry.type === BlobType.ChunkSection) {
-        const subchunk = new SubChunk(this.registry, this.Block)
-        await subchunk.decode(StorageType.NetworkPersistence, new Stream(entry.buffer))
-        this.addSection(subchunk)
-      } else {
-        throw Error('Unknown blob type: ' + entry.type)
-      }
+    const biomeBlob = blobs.pop()
+
+    for (let i = 0; i < blobs.length; i++) {
+      const blob = blobStore.get(blobs[i])
+      const section = new SubChunk(this.registry, this.Block, { y: i, subChunkVersion: this.subChunkVersion })
+      section.decode(StorageType.NetworkPersistence, blob.buffer)
+      this.setSection(i, section)
     }
 
-    return misses
+    const biomeEntry = blobStore.get(biomeBlob)
+    this.loadLegacyBiomes(biomeEntry.buffer)
+
+    return misses // should be empty
   }
 
   toObject () {
