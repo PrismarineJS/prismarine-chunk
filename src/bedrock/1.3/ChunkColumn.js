@@ -187,6 +187,7 @@ class ChunkColumn13 extends CommonChunkColumn {
    * @returns {CCHash[]} A list of hashes we don't have and need. If len > 0, decode failed.
    */
   networkDecode (blobs, blobStore, payload) {
+    // We modify blobs, need to make a copy here
     blobs = [...blobs]
     if (!blobs.length) {
       throw new Error('No blobs to decode')

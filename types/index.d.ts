@@ -173,4 +173,15 @@ declare class BedrockChunk {
   loadEntities(entities: NBT[]): void
 }
 
+export class BlobEntry {
+  // The time this blob was added to the blob store
+  created: number
+  constructor(object: any)
+}
+
+export const enum BlobType {
+  ChunkSection,
+  Biomes
+}
+
 export default function loader(mcVersionOrRegistry: string | ReturnType<typeof Registry>): typeof PCChunk | typeof BedrockChunk

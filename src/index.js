@@ -23,6 +23,10 @@ const chunkImplementations = {
 }
 
 module.exports = loader
+// Caching
+const blobCache = require('./bedrock/common/BlobCache')
+module.exports.BlobEntry = blobCache.BlobEntry
+module.exports.BlobType = blobCache.BlobType
 
 function loader (registryOrVersion) {
   const registry = typeof registryOrVersion === 'string' ? require('prismarine-registry')(registryOrVersion) : registryOrVersion
