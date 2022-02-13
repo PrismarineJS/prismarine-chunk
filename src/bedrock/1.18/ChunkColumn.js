@@ -72,7 +72,7 @@ class ChunkColumn180 extends ChunkColumn13 {
   async networkEncodeNoCache () {
     const stream = new Stream()
     for (const biomeSection of this.biomes) {
-      biomeSection.export(StorageType.NetworkPersistence, stream)
+      biomeSection.export(StorageType.Runtime, stream)
     }
     const biomeBuf = stream.getBuffer()
     return Buffer.concat([
@@ -134,7 +134,11 @@ class ChunkColumn180 extends ChunkColumn13 {
     const stream = new Stream(buffer)
 
     if (sectionCount === -1) { // In 1.18+, with sectionCount as -1 we only get the biomes here
-      return this.loadBiomes(stream, StorageType.NetworkPersistence)
+      this.loadBiomes(stream, StorageType.Runtime)
+      const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
+      if (borderblocks.length) {
+        throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
+      }
     } else {
       console.warn('ChunkColumn.networkDecodeNoCache: sectionCount is not -1, this is not supported')
       super.networkDecodeNoCache(stream, sectionCount)
@@ -150,7 +154,7 @@ class ChunkColumn180 extends ChunkColumn13 {
    */
   async networkDecode (blobs, blobStore, payload) {
     const stream = new Stream(payload)
-    const borderblocks = stream.readBuffer(stream.readByte())
+    const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
 
     if (borderblocks.length) {
       throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
@@ -193,13 +197,12 @@ class ChunkColumn180 extends ChunkColumn13 {
     await section.decode(StorageType.Runtime, stream)
     this.setSection(y, section)
 
-    const buf = stream.buffer
-    buf.startOffset = stream.readOffset
-    while (stream.peekUInt8() === 0x0A) {
-      const { parsed, metadata } = await nbt.parse(buf, 'littleVarint')
+    let startOffset = stream.readOffset
+    while (stream.peek() === 0x0A) {
+      const { data, metadata } = nbt.protos.littleVarint.parsePacketBuffer('nbt', buffer, startOffset)
       stream.readOffset += metadata.size
-      buf.startOffset += metadata.size
-      this.addBlockEntity(parsed)
+      startOffset += metadata.size
+      this.addBlockEntity(data)
     }
   }
 

@@ -43,7 +43,7 @@ class BiomeSection {
     this.biomes.read(buf)
 
     // now read palette
-    if (type === StorageType.NetworkPersistence) {
+    if (type === StorageType.Runtime) {
       // Shift 1 bit to un-zigzag (we cannot be negative)
       // ask mojang why these are signed at all...
       const biomePaletteLength = buf.readVarInt() >> 1
@@ -83,14 +83,21 @@ class BiomeSection {
     this.setBiomeId(pos.x, pos.y, pos.z, biome.id)
   }
 
-  // TODO: Implement special handling for 0-bits per block, it's more
-  // of an optimization than anything else
   export (type, stream) {
-    const bitsPerBlock = Math.ceil(Math.log2(this.palette.length)) || 1
-    stream.writeUInt8((bitsPerBlock << 1) | 1)
+    const bitsPerBlock = Math.ceil(Math.log2(this.palette.length))
+    const paletteType = (bitsPerBlock << 1) | (type === StorageType.Runtime)
+    stream.writeUInt8(paletteType)
+    if (bitsPerBlock === 0) {
+      if (type === StorageType.LocalPersistence) {
+        stream.writeInt32LE(this.palette[0])
+      } else {
+        stream.writeVarInt(this.palette[0] << 1)
+      }
+      return // short circuit
+    }
+
     this.biomes.write(stream)
-    if (type === StorageType.NetworkPersistence) {
-      // broken
+    if (type === StorageType.Runtime) {
       stream.writeVarInt(this.palette.length << 1)
       for (const biome of this.palette) {
         stream.writeVarInt(biome << 1)

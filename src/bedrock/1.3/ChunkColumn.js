@@ -149,14 +149,14 @@ class ChunkColumn13 extends CommonChunkColumn {
     const stream = new Stream(buffer)
 
     if (sectionCount === -1) { // In 1.18+, with sectionCount as -1 we only get the biomes here
-      return this.loadBiomes(stream, StorageType.NetworkPersistence)
+      throw new RangeError('-1 section count not supported below 1.18')
     }
 
     this.sections = []
     for (let i = 0; i < sectionCount; i++) {
       // in 1.17.30+, chunk index is sent in payload
       const section = new SubChunk(this.registry, this.Block, { y: i, subChunkVersion: this.subChunkVersion })
-      await section.decode(StorageType.Runtime, stream)
+      section.decode(StorageType.Runtime, stream)
       this.setSection(i, section)
     }
 
@@ -169,13 +169,12 @@ class ChunkColumn13 extends CommonChunkColumn {
     // Don't know how to handle this yet
     if (borderBlocks.length) throw Error(`Read ${borderBlocksLength} border blocks, expected 0`)
 
-    const buf = stream.buffer
-    buf.startOffset = stream.readOffset
+    let startOffset = stream.readOffset
     while (stream.peek() === 0x0A) {
-      const { parsed, metadata } = await nbt.parse(buf, 'littleVarint')
+      const { data, metadata } = nbt.protos.littleVarint.parsePacketBuffer('nbt', buffer, startOffset)
       stream.readOffset += metadata.size
-      buf.startOffset += metadata.size
-      this.addBlockEntity(parsed)
+      startOffset += metadata.size
+      this.addBlockEntity(data)
     }
   }
 
