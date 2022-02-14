@@ -5,6 +5,6 @@ module.exports = {
     if (!hasher) {
       hasher = await xxhash()
     }
-    return Buffer.from(hasher.h64Raw(buffer)).readBigUInt64LE(0)
+    return hasher.h64Raw(buffer)
   }
 }
