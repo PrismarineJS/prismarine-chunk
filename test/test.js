@@ -54,53 +54,31 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
     })
   }
 
-  it('Initializes correctly', () => {
-    const chunk = new Chunk()
+  it('loading empty chunk sections becomes air', () => {
+    const column = new ChunkColumn()
 
-    chunk.initialize((x, y, z, n) => new Block(0, 0, 0))
-  })
-
-  it('Initializes ignore null correctly', () => {
-    const chunk = new Chunk()
-
-    chunk.initialize((x, y, z, n) => null)
-  })
-
-  it('Defaults to all blocks being air', function () {
-    const chunk = new Chunk()
-
-    assert.strictEqual(0, chunk.getBlock(new Vec3(0, 0, 0)).type)
-    assert.strictEqual(0, chunk.getBlock(new Vec3(15, Chunk.h - 1, 15)).type)
-  })
-
-  it('Out of bounds blocks being air', function () {
-    const chunk = new Chunk()
-
-    assert.strictEqual(0, chunk.getBlock(new Vec3(8, -1, 8)).type)
-    assert.strictEqual(0, chunk.getBlock(new Vec3(8, 256, 8)).type)
-  })
-
-  it('Should set a block at the given position', function () {
-    const chunk = new Chunk()
-
-    chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
-    assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
-
-    if (!isPostFlattening) {
-      assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
+    // allocate data for biomes
+    const buffer = Buffer.alloc(constants.SECTION_WIDTH * constants.SECTION_HEIGHT * 4)
+    let offset = 0
+    for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
+      for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
+        buffer.writeInt32BE(1, offset)
+        offset += 4
+      }
     }
 
-    chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
-    assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
-    if (!isPostFlattening) {
-      assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
-    }
+    column.load(buffer, 0x0000)
 
-    chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
-    assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
-    if (!isPostFlattening) {
-      assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
+    let different = 0
+    const p = { x: 0, y: 0, z: 0 }
+    for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+      for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+        for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
+          different += column.getBlock(p).stateId !== 0
+        }
+      }
     }
+    expect(different).toBe(0)
   })
 
   it('Skylight set/get', function () {
