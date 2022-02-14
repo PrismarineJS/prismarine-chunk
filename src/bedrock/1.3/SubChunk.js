@@ -68,7 +68,6 @@ class SubChunk {
   }
 
   loadPalettedBlocks (storageLayer, stream, bitsPerBlock, format) {
-    // We always use at least 4 bits per block at minimum, match Java Edition
     const storage = new PalettedStorage(bitsPerBlock)
     storage.read(stream)
     this.blocks[storageLayer] = storage
@@ -79,7 +78,7 @@ class SubChunk {
     if (format === StorageType.Runtime) {
       this.loadRuntimePalette(storageLayer, stream, paletteSize)
     } else {
-      // Either "network persistent" (network with caching) or local disk
+      // Either "network persistent" (network with caching on <1.18) or local disk
       this.loadLocalPalette(storageLayer, stream, paletteSize, format === StorageType.NetworkPersistence)
     }
   }
@@ -116,7 +115,6 @@ class SubChunk {
 
       this.palette[storageLayer][i] = { stateId: block.stateId, name, states: data.value.states.value, version }
     }
-    delete buf.startOffset
 
     if (i !== paletteSize) {
       throw new Error(`Expected ${paletteSize} blocks, got ${i}`)
@@ -174,7 +172,6 @@ class SubChunk {
     } else {
       for (const block of this.palette[storageLayer]) {
         const { name, states, version } = block
-        console.log('States', states)
         const tag = nbt.comp({ name: nbt.string(name), states: nbt.comp(states), version: nbt.int(version) })
         const buf = nbt.writeUncompressed(tag, format === StorageType.LocalPersistence ? 'little' : 'littleVarint')
         stream.writeBuffer(buf)

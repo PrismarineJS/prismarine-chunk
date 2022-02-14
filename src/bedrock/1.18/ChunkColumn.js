@@ -63,9 +63,8 @@ class ChunkColumn180 extends ChunkColumn13 {
     }
   }
 
-  /// BLOB CACHING
+  // CACHING
 
-  // TODO: Figure out if these two functions have been updated for 1.18 biomes
   /**
    * Encodes this chunk column for the network with no caching
    * @param buffer Full chunk buffer
@@ -88,7 +87,7 @@ class ChunkColumn180 extends ChunkColumn13 {
    * @param blobStore The blob store to write chunks in this section to
    * @returns {Promise<Buffer[]>} The blob hashes for this chunk, the last one is biomes, rest are sections
    */
-  async networkEncodeBlobs (blobStore, includeBiomes, includeTerrain) {
+  async networkEncodeBlobs (blobStore, includeBiomes) {
     const blobHashes = []
     if (includeBiomes) {
       if (this.biomesUpdated || !this.biomesHash || !blobStore.get(this.biomesHash.toString())) {
@@ -104,18 +103,6 @@ class ChunkColumn180 extends ChunkColumn13 {
       }
       blobHashes.push({ hash: this.biomesHash, type: BlobType.Biomes })
     }
-
-    // if (includeTerrain) {
-    //   for (const section of this.sections) {
-    //     // const key = `${this.x},${section.y},${this.z}`
-    //     if (section.updated || !blobStore.read(section.hash)) {
-    //       const buffer = await section.encode(StorageType.Runtime, true) // note Runtime, not NetworkPersistence
-    //       const blob = new BlobEntry({ x: this.x, y: section.y, z: this.z, type: BlobType.ChunkSection, buffer })
-    //       blobStore.write(section.hash, blob)
-    //     }
-    //     blobHashes.push({ hash: section.hash, type: BlobType.ChunkSection })
-    //   }
-    // }
 
     return blobHashes
   }
@@ -172,7 +159,7 @@ class ChunkColumn180 extends ChunkColumn13 {
       }
     }
     if (misses.length > 0) {
-      // missing stuff, call this again once the server replies with our MISSing
+      // missing blobs, call this again once the server replies with our MISSing
       // blobs and don't try to load this column until we have all the data
       return misses
     }
@@ -242,7 +229,7 @@ class ChunkColumn180 extends ChunkColumn13 {
       }
     }
     if (misses.length > 0) {
-      // missing stuff, call this again once the server replies with our MISSing
+      // missing blobs, call this again once the server replies with our MISSing
       // blobs and don't try to load this column until we have all the data
       return misses
     }

@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 
-// const versions = ['bedrock_0.14', 'bedrock_1.0', 'bedrock_1.18.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
-const versions = ['bedrock_1.18.0']
+const versions = ['bedrock_0.14', 'bedrock_1.0', 'bedrock_1.18.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
 const constants = require('../src/pc/common/constants')
 const { Vec3 } = require('vec3')
 const assert = require('assert')

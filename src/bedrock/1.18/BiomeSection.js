@@ -45,7 +45,6 @@ class BiomeSection {
     // now read palette
     if (type === StorageType.Runtime) {
       // Shift 1 bit to un-zigzag (we cannot be negative)
-      // ask mojang why these are signed at all...
       const biomePaletteLength = buf.readVarInt() >> 1
       for (let i = 0; i < biomePaletteLength; i++) {
         this.palette.push(buf.readVarInt() >> 1)

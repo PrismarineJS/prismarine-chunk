@@ -71,8 +71,6 @@ class ChunkColumn13 extends CommonChunkColumn {
       tileBufs.push(nbt.writeUncompressed(tile, 'littleVarint'))
     }
 
-    // TODO: Investigate the heightmap
-    // const heightmap = Buffer.alloc(512)
     let biomeBuf
     const stream = new Stream(Buffer.alloc(256))
     if (this.biomes[0]) {
@@ -88,7 +86,6 @@ class ChunkColumn13 extends CommonChunkColumn {
     }
     return Buffer.concat([
       ...sectionBufs,
-      // heightmap, // Looks like this is not written?
       biomeBuf,
       Buffer.from([0]), // border blocks count
       ...tileBufs // block entities
@@ -215,7 +212,7 @@ class ChunkColumn13 extends CommonChunkColumn {
       }
     }
     if (misses.length > 0) {
-      // missing stuff, call this again once the server replies with our MISSing
+      // missing things, call this again once the server replies with our MISSing
       // blobs and don't try to load this column until we have all the data
       return misses
     }

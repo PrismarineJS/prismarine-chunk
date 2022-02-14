@@ -2,7 +2,6 @@
 const fs = require('fs')
 const { join } = require('path')
 const versions = ['bedrock_1.16.220', 'bedrock_1.17.10', 'bedrock_1.18.0']
-// const versions = ['bedrock_1.18.0']
 const assert = require('assert')
 
 const { BlobEntry, BlobType } = require('prismarine-chunk')
@@ -21,9 +20,7 @@ for (const version of versions) {
     const packetLevelChunkCacheMissReponse = fixtures.find(f => f.includes('level_chunk') && f.includes('CacheMiss'))
 
     it('can re-encode level_chunk packet without caching', async () => {
-      // console.log(packetLevelChunkWithoutCaching, packetLevelChunkWithCaching, packetLevelChunkCacheMissReponse)
       const packet = require(join(__dirname, version, packetLevelChunkWithoutCaching))
-      // console.log('Without caching', withoutCaching)
 
       const column = new ChunkColumn({ x: packet.x, z: packet.z })
       const payload = Buffer.from(packet.payload)
@@ -36,8 +33,6 @@ for (const version of versions) {
       const encoded = await column.networkEncodeNoCache()
       if (!encoded.equals(payload)) {
         dbdiff(payload, encoded)
-        console.log('Old', payload.toString('hex'))
-        console.log('New', encoded.toString('hex'))
         throw new Error('Encoded payload does not match original')
       }
     })
@@ -50,7 +45,6 @@ for (const version of versions) {
       assert(packet.cache_enabled, "you didn't dump packets correctly")
 
       const misses = await column.networkDecode(packet.blobs.hashes, blobStore, payload)
-      console.log('Hashes misses', packet.blobs.hashes, misses)
       assert(misses.length > 0, 'Blob cache should be empty, so networkDecode() should return the missing blob hashes')
 
       const missResponse = require(join(__dirname, version, packetLevelChunkCacheMissReponse))
@@ -67,7 +61,6 @@ for (const version of versions) {
       // Try re-encoding the cached packet data, make sure the hashes match
       const encoded = await column.networkEncode(blobStore)
       const extraneousBlobs = encoded.blobs.map(blob => blob.hash.toString()).find(blob => !packet.blobs.hashes.includes(blob))
-      console.log('Encoded blobs', encoded, extraneousBlobs)
       if (extraneousBlobs) {
         throw new Error('Encoded payload contains extraneous blobs')
       }
@@ -86,11 +79,8 @@ for (const version of versions) {
         column.networkDecodeSubChunkNoCache(packet.y, payload)
 
         const encoded = await column.networkEncodeSubChunkNoCache(packet.y)
-        // console.log("ENCODED", payload, encoded)
         if (!encoded.equals(payload)) {
           dbdiff(payload, encoded)
-          console.log('Old', payload.toString('hex'))
-          console.log('New', encoded.toString('hex'))
           throw new Error('Encoded payload does not match original')
         }
       })
@@ -102,7 +92,6 @@ for (const version of versions) {
         const column = new ChunkColumn({ x: packet.x, z: packet.z })
         const payload = Buffer.from(packet.data)
         const misses = await column.networkDecodeSubChunk([packet.blob_id], blobStore, payload)
-        console.log('Hashes misses', packet.blob_id, misses)
         assert(misses.length > 0, 'Blob cache should be empty, so networkDecode() should return the missing blob hashes')
 
         const missResponse = require(join(__dirname, version, packetSubChunkCacheMissReponse))
@@ -113,19 +102,16 @@ for (const version of versions) {
 
         // Run this function again, now that all blobs are in the store
         const nowMissing = await column.networkDecodeSubChunk([packet.blob_id], blobStore)
-        console.log('Missing', nowMissing, missResponse.blobs)
         assert(nowMissing.length === 0, 'Blob cache should be full, networkDecode() should return empty missing hashes')
 
         // Try re-encoding the cached packet data, make sure the hashes match
-        console.log('Packet', packet)
         const [hash, extraPayload] = await column.networkEncodeSubChunk(packet.y, blobStore)
         const extraneousBlobs = hash.toString() !== packet.blob_id ? hash : null
-        console.log('Encoded blobs', hash, extraneousBlobs, 'expected', packet.blob_id)
+        // console.log('Encoded blobs', hash, extraneousBlobs, 'expected', packet.blob_id)
         if (extraneousBlobs) {
           throw new Error('Encoded payload contains extraneous blobs')
         }
 
-        // console.log('Payload', payload.toString('hex'), extraPayload.toString('hex'))
         if (!payload.equals(extraPayload)) {
           throw new Error('Encoded payload (contianing block entities) did not match original')
         }
