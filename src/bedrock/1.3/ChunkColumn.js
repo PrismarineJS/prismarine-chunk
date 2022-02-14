@@ -185,24 +185,27 @@ class ChunkColumn13 extends CommonChunkColumn {
    * @param {Buffer} payload The rest of the non-cached data
    * @returns {CCHash[]} A list of hashes we don't have and need. If len > 0, decode failed.
    */
-  networkDecode (blobs, blobStore, payload) {
+  async networkDecode (blobs, blobStore, payload) {
     // We modify blobs, need to make a copy here
     blobs = [...blobs]
     if (!blobs.length) {
       throw new Error('No blobs to decode')
     }
-    const stream = new Stream(payload)
-    const borderblocks = stream.readBuffer(stream.readByte())
-    if (borderblocks.length) {
-      throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
-    }
 
-    let startOffset = stream.readOffset
-    while (stream.peek() === 0x0A) {
-      const { metadata, data } = nbt.protos.littleVarint.parsePacketBuffer('nbt', payload, startOffset)
-      stream.readOffset += metadata.size
-      startOffset += metadata.size
-      this.addBlockEntity(data)
+    if (payload) {
+      const stream = new Stream(payload)
+      const borderblocks = stream.readBuffer(stream.readByte())
+      if (borderblocks.length) {
+        throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
+      }
+
+      let startOffset = stream.readOffset
+      while (stream.peek() === 0x0A) {
+        const { metadata, data } = nbt.protos.littleVarint.parsePacketBuffer('nbt', payload, startOffset)
+        stream.readOffset += metadata.size
+        startOffset += metadata.size
+        this.addBlockEntity(data)
+      }
     }
 
     const misses = []

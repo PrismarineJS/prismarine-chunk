@@ -1,5 +1,5 @@
 const ChunkColumn13 = require('../1.3/ChunkColumn')
-const SubChunk = require('../1.3/SubChunk')
+const SubChunk = require('./SubChunk')
 const BiomeSection = require('./BiomeSection')
 const { StorageType } = require('../common/constants')
 const Stream = require('../common/Stream')
@@ -8,6 +8,7 @@ const nbt = require('prismarine-nbt')
 const ProxyBiomeSection = require('./ProxyBiomeSection')
 
 class ChunkColumn180 extends ChunkColumn13 {
+  Section = SubChunk
   minCY = -4
   maxCY = 20
   worldHeight = 384
@@ -93,7 +94,7 @@ class ChunkColumn180 extends ChunkColumn13 {
       if (this.biomesUpdated || !this.biomesHash || !blobStore.get(this.biomesHash.toString())) {
         const stream = new Stream()
         for (const biomeSection of this.biomes) {
-          biomeSection.export(StorageType.NetworkPersistence, stream)
+          biomeSection.export(StorageType.Runtime, stream)
         }
         const biomeBuf = stream.getBuffer()
         await this.updateBiomeHash(biomeBuf)
@@ -153,11 +154,13 @@ class ChunkColumn180 extends ChunkColumn13 {
    * @returns {CCHash[]} A list of hashes we don't have and need. If len > 0, decode failed.
    */
   async networkDecode (blobs, blobStore, payload) {
-    const stream = new Stream(payload)
-    const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
+    if (payload) {
+      const stream = new Stream(payload)
+      const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
 
-    if (borderblocks.length) {
-      throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
+      if (borderblocks.length) {
+        throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
+      }
     }
 
     // Block NBT data is now inside individual sections
@@ -180,7 +183,7 @@ class ChunkColumn180 extends ChunkColumn13 {
       const entry = blobStore.get(blob.toString())
       if (entry.type === BlobType.Biomes) {
         const stream = new Stream(entry.buffer)
-        this.loadBiomes(stream, StorageType.NetworkPersistence)
+        this.loadBiomes(stream, StorageType.NetworkPersistence, blob)
       } else if (entry.type === BlobType.ChunkSection) {
         throw new Error("Can't accept chunk sections in networkDecode, these Blobs should be sent as individual sections")
       } else {
@@ -194,7 +197,7 @@ class ChunkColumn180 extends ChunkColumn13 {
   async networkDecodeSubChunkNoCache (y, buffer) {
     const stream = new Stream(buffer)
     const section = new SubChunk(this.registry, this.Block, { y, subChunkVersion: this.subChunkVersion })
-    await section.decode(StorageType.Runtime, stream)
+    section.decode(StorageType.Runtime, stream)
     this.setSection(y, section)
 
     let startOffset = stream.readOffset
@@ -253,7 +256,7 @@ class ChunkColumn180 extends ChunkColumn13 {
       const stream = new Stream(entry.buffer)
       const subchunk = new SubChunk(this.registry, this.Block, { y: blob.y, subChunkVersion: this.subChunkVersion })
       await subchunk.decode(StorageType.Runtime, stream)
-      this.setSection(blob.y, subchunk)
+      this.setSection(subchunk.y, subchunk)
     }
 
     return misses // return empty array if everything was loaded

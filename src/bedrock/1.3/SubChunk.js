@@ -73,7 +73,7 @@ class SubChunk {
     storage.read(stream)
     this.blocks[storageLayer] = storage
 
-    const paletteSize = format === StorageType.LocalPersistence ? stream.readInt32LE() : stream.readZigZagVarInt()
+    const paletteSize = format === StorageType.LocalPersistence ? stream.readUInt32LE() : stream.readZigZagVarInt()
     if (paletteSize > stream.buffer.length || paletteSize < 1) throw new Error(`Invalid palette size: ${paletteSize}`)
 
     if (format === StorageType.Runtime) {
@@ -114,7 +114,7 @@ class SubChunk {
         block = this.Block.fromProperties('air', {}, 0)
       }
 
-      this.palette[storageLayer][i] = { stateId: block.stateId, name, states, version }
+      this.palette[storageLayer][i] = { stateId: block.stateId, name, states: data.value.states.value, version }
     }
     delete buf.startOffset
 
@@ -148,31 +148,37 @@ class SubChunk {
       stream.writeUInt8(this.y)
     }
     for (let i = 0; i < this.blocks.length; i++) {
-      const storage = this.blocks[i]
-      let paletteType = storage.bitsPerBlock << 1
-      if (format === StorageType.Runtime) {
-        paletteType |= 1
-      }
-      stream.writeUInt8(paletteType)
-      storage.write(stream)
+      this.writeStorage(stream, i, format)
+    }
+  }
 
-      if (format === StorageType.LocalPersistence) {
-        stream.writeUInt32LE(this.palette[i].length)
-      } else {
-        stream.writeZigZagVarInt(this.palette[i].length)
-      }
+  writeStorage (stream, storageLayer, format) {
+    const storage = this.blocks[storageLayer]
+    let paletteType = storage.bitsPerBlock << 1
+    if (format === StorageType.Runtime) {
+      paletteType |= 1
+    }
+    stream.writeUInt8(paletteType)
+    storage.write(stream)
 
-      if (format === StorageType.Runtime) {
-        for (const block of this.palette[i]) {
-          stream.writeZigZagVarInt(block.stateId)
-        }
-      } else {
-        for (const block of this.palette[i]) {
-          const { name, states, version } = block
-          const tag = nbt.comp({ name: nbt.string(name), states, version: nbt.int(version) })
-          const buf = nbt.writeUncompressed(tag, format === StorageType.LocalPersistence ? 'little' : 'littleVarint')
-          stream.writeBuffer(buf)
-        }
+    if (format === StorageType.LocalPersistence) {
+      stream.writeUInt32LE(this.palette[storageLayer].length)
+    } else {
+      stream.writeZigZagVarInt(this.palette[storageLayer].length)
+    }
+
+    if (format === StorageType.Runtime) {
+      console.log('placing runtime palette', storageLayer, this.palette[storageLayer])
+      for (const block of this.palette[storageLayer]) {
+        stream.writeZigZagVarInt(block.stateId)
+      }
+    } else {
+      for (const block of this.palette[storageLayer]) {
+        const { name, states, version } = block
+        console.log('States', states)
+        const tag = nbt.comp({ name: nbt.string(name), states: nbt.comp(states), version: nbt.int(version) })
+        const buf = nbt.writeUncompressed(tag, format === StorageType.LocalPersistence ? 'little' : 'littleVarint')
+        stream.writeBuffer(buf)
       }
     }
   }
@@ -238,7 +244,7 @@ class SubChunk {
   }
 
   addToPalette (l, stateId) {
-    const block = this.registry.blocksStates[stateId]
+    const block = this.registry.blockStates[stateId]
     this.palette[l].push({ stateId, name: block.name, states: block.states })
     if (neededBits(this.palette[l].length) > this.blocks[l].bitsPerBlock) {
       this.blocks[l] = this.blocks[l].resize(this.palette[l].length)
