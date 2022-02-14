@@ -168,7 +168,6 @@ class SubChunk {
     }
 
     if (format === StorageType.Runtime) {
-      console.log('placing runtime palette', storageLayer, this.palette[storageLayer])
       for (const block of this.palette[storageLayer]) {
         stream.writeZigZagVarInt(block.stateId)
       }

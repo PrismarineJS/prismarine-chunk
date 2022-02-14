@@ -7,7 +7,9 @@ const path = require('path')
 const prismarineBlockLoader = require('prismarine-block')
 const chunkLoader = require('../index')
 const SingleValueContainer = require('../src/pc/common/PaletteContainer').SingleValueContainer
+const constants = require('../src/pc/common/constants')
 const { performance } = require('perf_hooks')
+const expect = require('expect')
 
 const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
 const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
@@ -21,6 +23,7 @@ const depsByVersion = versions.map((version) => {
 })
 
 depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementation for minecraft ${version}`, () => {
+  const registry = require('prismarine-registry')(version)
   const isPostFlattening = version.startsWith('1.13') || version.startsWith('1.14') ||
     version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17') ||
     version.startsWith('1.18')
@@ -54,32 +57,35 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
     })
   }
 
-  it('loading empty chunk sections becomes air', () => {
-    const column = new ChunkColumn()
+  if (registry.version.type === 'pc' && registry.version['==']('1.13.1')) {
+    // Moved from ChunkColimn.test.js -- only tested on 1.13.1
+    it('loading empty chunk sections becomes air', () => {
+      const column = new Chunk()
 
-    // allocate data for biomes
-    const buffer = Buffer.alloc(constants.SECTION_WIDTH * constants.SECTION_HEIGHT * 4)
-    let offset = 0
-    for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
-      for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
-        buffer.writeInt32BE(1, offset)
-        offset += 4
-      }
-    }
-
-    column.load(buffer, 0x0000)
-
-    let different = 0
-    const p = { x: 0, y: 0, z: 0 }
-    for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
-      for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
-        for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
-          different += column.getBlock(p).stateId !== 0
+      // allocate data for biomes
+      const buffer = Buffer.alloc(constants.SECTION_WIDTH * constants.SECTION_HEIGHT * 4)
+      let offset = 0
+      for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
+        for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
+          buffer.writeInt32BE(1, offset)
+          offset += 4
         }
       }
-    }
-    expect(different).toBe(0)
-  })
+
+      column.load(buffer, 0x0000)
+
+      let different = 0
+      const p = { x: 0, y: 0, z: 0 }
+      for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+        for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+          for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
+            different += column.getBlock(p).stateId !== 0
+          }
+        }
+      }
+      expect(different).toBe(0)
+    })
+  }
 
   it('Skylight set/get', function () {
     const chunk = new Chunk()

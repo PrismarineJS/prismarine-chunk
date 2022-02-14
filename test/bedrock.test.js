@@ -119,8 +119,8 @@ for (const version of versions) {
         // Try re-encoding the cached packet data, make sure the hashes match
         console.log('Packet', packet)
         const [hash, extraPayload] = await column.networkEncodeSubChunk(packet.y, blobStore)
-        const extraneousBlobs = hash !== packet.blob_id ? hash : null
-        console.log('Encoded blobs', hash, extraneousBlobs)
+        const extraneousBlobs = hash.toString() !== packet.blob_id ? hash : null
+        console.log('Encoded blobs', hash, extraneousBlobs, 'expected', packet.blob_id)
         if (extraneousBlobs) {
           throw new Error('Encoded payload contains extraneous blobs')
         }
