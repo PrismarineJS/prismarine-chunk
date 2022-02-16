@@ -45,6 +45,7 @@ module.exports = (Block, mcData) => {
       this.blockLightSections = options?.blockLightSections ?? Array(
         this.numSections + 2
       ).fill(null)
+      this.blockEntities = options?.blockEntities ?? {}
     }
 
     toJson () {

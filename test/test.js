@@ -14,16 +14,11 @@ const expect = require('expect')
 const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
 const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
 
-const depsByVersion = versions.map((version) => {
-  return [
-    version, // version
-    chunkLoader(version), // Chunk
-    prismarineBlockLoader(version) // Block
-  ]
-})
-
-depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementation for minecraft ${version}`, () => {
+versions.forEach((version) => describe(`Chunk implementation for minecraft ${version}`, () => {
   const registry = require('prismarine-registry')(version)
+  const Chunk = chunkLoader(registry)
+  const Block = prismarineBlockLoader(registry)
+
   const isPostFlattening = version.startsWith('1.13') || version.startsWith('1.14') ||
     version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17') ||
     version.startsWith('1.18')
@@ -89,7 +84,6 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
 
   it('Skylight set/get', function () {
     const chunk = new Chunk()
-
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
     chunk.setSkyLight(new Vec3(0, 0, 0), 15)

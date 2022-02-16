@@ -45,7 +45,7 @@
   "dependencies": {
     "minecraft-data": "^2.113.1",
     "prismarine-biome": "^1.2.0",
-    "prismarine-block": "^1.14.0",
+    "prismarine-block": "extremeheat/prismarine-block#fix",
     "prismarine-registry": "^1.1.0",
     "smart-buffer": "^4.1.0",
     "uint4": "^0.1.2",
