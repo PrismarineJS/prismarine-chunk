@@ -81,6 +81,9 @@ class SubChunk {
       // Either "network persistent" (network with caching on <1.18) or local disk
       this.loadLocalPalette(storageLayer, stream, paletteSize, format === StorageType.NetworkPersistence)
     }
+
+    const palette = this.palette[storageLayer]
+    this.blocks[storageLayer].forEach(ix => palette[ix].count++)
   }
 
   loadRuntimePalette (storageLayer, stream, paletteSize) {
@@ -89,7 +92,7 @@ class SubChunk {
     for (let i = 0; i < paletteSize; i++) {
       const index = stream.readZigZagVarInt()
       const block = this.registry.blockStates[index]
-      this.palette[storageLayer][i] = { stateId: index, ...block }
+      this.palette[storageLayer][i] = { stateId: index, ...block, count: 0 }
     }
   }
 
@@ -113,7 +116,7 @@ class SubChunk {
         block = this.Block.fromProperties('air', {}, 0)
       }
 
-      this.palette[storageLayer][i] = { stateId: block.stateId, name, states: data.value.states.value, version }
+      this.palette[storageLayer][i] = { stateId: block.stateId, name, states: data.value.states.value, version, count: 0 }
     }
 
     if (i !== paletteSize) {
@@ -221,18 +224,23 @@ class SubChunk {
     return this.palette[l][blocks.get(x, y, z)].stateId
   }
 
-  // TODO: resize but dont downsize less than 4 bits per block
   setBlockStateId (l = 0, x, y, z, stateId) {
     if (!this.palette[l]) {
-      const block = this.registry.blockStates[stateId]
-      this.palette[l] = [{ stateId, name: block.name, states: block.states }]
+      this.palette[l] = []
       this.blocks[l] = new PalettedStorage(4) // Zero initialized
+      this.addToPalette(l, stateId)
     } else {
+      // Decrement count of old block
+      const currentId = this.getBlockStateId(l, x, y, z)
+      if (currentId === stateId) return
+      this.palette[l][currentId].count--
+
       const ix = this.palette[l].findIndex(({ stateId: id }) => id === stateId)
       if (ix === -1) {
         this.addToPalette(l, stateId)
         this.blocks[l].set(x, y, z, this.palette.length - 1)
       } else {
+        this.palette[ix].count++
         this.blocks[l].set(x, y, z, ix)
       }
     }
@@ -241,10 +249,49 @@ class SubChunk {
 
   addToPalette (l, stateId) {
     const block = this.registry.blockStates[stateId]
-    this.palette[l].push({ stateId, name: block.name, states: block.states })
+    this.palette[l].push({ stateId, name: block.name, states: block.states, count: 1 })
     if (neededBits(this.palette[l].length) > this.blocks[l].bitsPerBlock) {
       this.blocks[l] = this.blocks[l].resize(this.palette[l].length)
     }
+  }
+
+  // These compation functions reduces the size of the chunk by removing unused blocks
+  // and reordering the palette to reduce the number of bits per block
+  isCompactible (layer) {
+    let newPaletteLength = 0
+    for (const block of this.palette[layer]) {
+      if (block.count > 0) {
+        newPaletteLength++
+      }
+    }
+    return newPaletteLength < this.palette[layer].length
+  }
+
+  compact (layer) {
+    const newPalette = []
+    const map = []
+    for (const block of this.palette[layer]) {
+      if (block.count > 0) {
+        newPalette.push(block)
+      }
+      map.push(newPalette.length - 1)
+    }
+
+    if (newPalette.length === this.palette[layer].length) {
+      return
+    }
+
+    const newStorage = new PalettedStorage(neededBits(newPalette.length))
+    for (let x = 0; x < 16; x++) {
+      for (let y = 0; y < 16; y++) {
+        for (let z = 0; z < 16; z++) {
+          const ix = this.blocks[layer].get(x, y, z)
+          newStorage.set(x, y, z, map[ix])
+        }
+      }
+    }
+    this.blocks[layer] = newStorage
+    this.palette[layer] = newPalette
   }
 
   /**

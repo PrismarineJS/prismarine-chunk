@@ -74,6 +74,14 @@ class PalettedStorage {
     }
     return storage
   }
+
+  forEach (callback) {
+    for (let i = 0; i < this.wordsCount; i++) {
+      for (let j = 0; j < this.blocksPerWord; j++) {
+        callback(this.readBits(i, j * this.bitsPerBlock))
+      }
+    }
+  }
 }
 
 module.exports = PalettedStorage
