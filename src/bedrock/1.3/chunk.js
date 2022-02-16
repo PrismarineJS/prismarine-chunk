@@ -1,3 +1,4 @@
+const { ChunkVersion } = require('../common/constants')
 const ChunkColumn = require('./ChunkColumn')
 
 module.exports = registry => {
@@ -5,6 +6,7 @@ module.exports = registry => {
   return class extends ChunkColumn {
     registry = registry
     Block = Block
+    chunkVersion = this.chunkVersion || ChunkVersion.v1_16_0
     subChunkVersion = 8
 
     static fromJson (str) {

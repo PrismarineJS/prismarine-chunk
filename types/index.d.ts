@@ -84,6 +84,7 @@ type CCHash = { type: BlobType, hash: BigInt }
 type PaletteEntry = { name, stateId, states }
 
 declare class SubChunk {
+  encode(storageType: StorageType)
   decode(storageType: StorageType, streamBuffer: Buffer): void
   getPalette(): PaletteEntry[]
 }
@@ -94,12 +95,21 @@ type ExtendedBlock = Block & {
   entity?: NBT
 }
 
-declare class BedrockChunk {
+declare class BedrockChunk extends CommonChunk {
+  x: number
+  z: number
+  // World height information
   minCY: number
   maxCY: number
+  // The version of the chunk column (analog to DataVersion on PCChunk)
+  chunkVersion: number
+  // Holds all the block entities in the chunk, the string keys are 
+  // the concatenated chunk column-relative position of the block.
+  blockEntities: Record<string, NBT>
 
   constructor(options: { x: number, z: number, chunkVersion?: number })
 
+  // Block management
   getBlock(pos: IVec4, full?: boolean): ExtendedBlock
   setBlock(pos: IVec4, block: ExtendedBlock): void
 
@@ -115,6 +125,10 @@ declare class BedrockChunk {
   loadLegacyBiomes(buffer: Buffer): void
   // Only present on >= 1.18
   loadBiomes(buffer: Buffer | Stream, storageType: StorageType): void
+  // Write 2D biome data to stream
+  writeLegacyBiomes(stream): void
+  // Write 3D biome data to stream
+  writeBiomes(stream): void
 
   // Lighting
   getBlockLight(pos: Vec3): number
@@ -160,10 +174,19 @@ declare class BedrockChunk {
    */
   networkEncodeSubChunk(y: number, blobStore: IBlobStore): Promise<[BigInt, Buffer]>
 
+  diskEncodeBlockEntities(): Buffer
+  diskDecodeBlockEntities(buffer: Buffer): void
+
+  diskEncodeEntities(): Buffer
+  diskDecodeEntities(buffer: Buffer): void
+
   // Heightmap
   loadHeights(map: Uint16Array): void
+  writeHeightMap(stream): void
 
   // 
+  // Section management
+  getSection(y: number): SubChunk
   newSection(y: number, storageFormat: StorageType, buffer: Buffer): Promise<SubChunk>
 
   // Block entities

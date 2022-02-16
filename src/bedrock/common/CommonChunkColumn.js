@@ -1,4 +1,7 @@
 const { Vec3 } = require('vec3')
+const Stream = require('../common/Stream')
+const nbt = require('prismarine-nbt')
+
 const keyFromLocalPos = pos => `${pos.x},${pos.y},${pos.z}`
 const keyFromGlobalPos = (x, y, z) => `${x & 0xf},${y},${z & 0xf}`
 
@@ -14,7 +17,7 @@ class CommonChunkColumn {
     this.chunkVersion = options.chunkVersion
     this.blockEntities = options.blockEntities || {}
     this.sections = []
-    this.entitites = []
+    this.entitites = {}
   }
 
   initialize (func) {
@@ -125,6 +128,16 @@ class CommonChunkColumn {
     this.blockEntities[newKey] = tag
   }
 
+  // Entities
+  addEntity (entityTag) {
+    const key = entityTag.value.UniqueID.value.toString()
+    this.entities[key] = entityTag
+  }
+
+  removeEntity (id) {
+    delete this.entities[id]
+  }
+
   // Section management
 
   getSection (y) {
@@ -165,6 +178,51 @@ class CommonChunkColumn {
 
   loadEntities (tags) {
     this.entities = tags
+  }
+
+  // Disk Encoding
+  // Similar to network encoding, except without varints
+
+  diskEncodeBlockEntities () {
+    const tileBufs = []
+    for (const key in this.blockEntities) {
+      const tile = this.blockEntities[key]
+      tileBufs.push(nbt.writeUncompressed(tile, 'little'))
+    }
+    return Buffer.concat(tileBufs)
+  }
+
+  diskEncodeEntities () {
+    const entityBufs = []
+    for (const entity in this.entities) {
+      const tag = this.entities[entity]
+      entityBufs.push(nbt.writeUncompressed(tag, 'little'))
+    }
+    return Buffer.concat(entityBufs)
+  }
+
+  diskDecodeBlockEntities (buffer) {
+    if (!buffer) return
+    const stream = buffer instanceof Buffer ? new Stream(buffer) : buffer
+    let startOffset = stream.readOffset
+    while (stream.peek() === 0x0A) {
+      const { data, metadata } = nbt.protos.little.parsePacketBuffer('nbt', buffer, startOffset)
+      stream.readOffset += metadata.size
+      startOffset += metadata.size
+      this.addBlockEntity(data)
+    }
+  }
+
+  diskDecodeEntities (buffer) {
+    if (!buffer) return
+    const stream = buffer instanceof Buffer ? new Stream(buffer) : buffer
+    let startOffset = stream.readOffset
+    while (stream.peek() === 0x0A) {
+      const { data, metadata } = nbt.protos.little.parsePacketBuffer('nbt', buffer, startOffset)
+      stream.readOffset += metadata.size
+      startOffset += metadata.size
+      this.addEntity(data)
+    }
   }
 
   toObject () {

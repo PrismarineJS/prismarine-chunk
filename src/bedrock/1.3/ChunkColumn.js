@@ -54,6 +54,16 @@ class ChunkColumn13 extends CommonChunkColumn {
     return this.heights
   }
 
+  writeLegacyBiomes (stream) {
+    this.biomes[0].exportLegacy2D(stream)
+  }
+
+  writeHeightMap (stream) {
+    for (let i = 0; i < 256; i++) {
+      stream.writeUInt16LE(this.heights[i])
+    }
+  }
+
   async updateBiomeHash (fromBuf) {
     this.biomesUpdated = false
     this.biomesHash = await getChecksum(fromBuf)

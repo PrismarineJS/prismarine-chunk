@@ -1,11 +1,13 @@
 const ChunkColumn13 = require('../1.3/ChunkColumn')
 const SubChunk = require('./SubChunk')
 const BiomeSection = require('./BiomeSection')
+const ProxyBiomeSection = require('./ProxyBiomeSection')
+
+const { BlobType, BlobEntry } = require('../common/BlobCache')
 const { StorageType } = require('../common/constants')
 const Stream = require('../common/Stream')
-const { BlobType, BlobEntry } = require('../common/BlobCache')
+
 const nbt = require('prismarine-nbt')
-const ProxyBiomeSection = require('./ProxyBiomeSection')
 
 class ChunkColumn180 extends ChunkColumn13 {
   Section = SubChunk
@@ -15,6 +17,8 @@ class ChunkColumn180 extends ChunkColumn13 {
   co = Math.abs(this.minCY)
   biomes = []
   terrainAndBlockEntityHash = []
+
+  // BIOMES
 
   getBiome (pos) {
     return new this.Biome(this.getBiomeId(pos))
@@ -60,6 +64,12 @@ class ChunkColumn180 extends ChunkColumn13 {
         last = biome
         this.biomes.push(biome)
       }
+    }
+  }
+
+  writeBiomes (stream) {
+    for (const biomeSection of this.biomes) {
+      biomeSection.export(StorageType.Runtime, stream)
     }
   }
 
@@ -128,7 +138,8 @@ class ChunkColumn180 extends ChunkColumn13 {
         throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
       }
     } else {
-      console.warn('ChunkColumn.networkDecodeNoCache: sectionCount is not -1, this is not supported')
+      console.warn('ChunkColumn.networkDecodeNoCache: sectionCount is not -1, should not happen')
+      // Possible some servers may send us a 1.17 chunk with 1.18 server version
       super.networkDecodeNoCache(stream, sectionCount)
     }
   }
