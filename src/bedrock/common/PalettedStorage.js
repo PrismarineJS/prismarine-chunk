@@ -1,4 +1,3 @@
-// https://gist.github.com/extremeheat/c1be82ab4a1c5eb5945de5d98b520eb3
 const wordByteSize = 4
 const wordBitSize = wordByteSize * 8
 

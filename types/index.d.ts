@@ -106,6 +106,8 @@ declare class BedrockChunk extends CommonChunk {
   // Holds all the block entities in the chunk, the string keys are 
   // the concatenated chunk column-relative position of the block.
   blockEntities: Record<string, NBT>
+  // Holds entities in the chunk, the string key is the entity ID
+  entities: Record<string, NBT>
 
   constructor(options: { x: number, z: number, chunkVersion?: number })
 

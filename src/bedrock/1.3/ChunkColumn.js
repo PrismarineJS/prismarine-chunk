@@ -111,7 +111,6 @@ class ChunkColumn13 extends CommonChunkColumn {
   async networkEncodeBlobs (blobStore) {
     const blobHashes = []
     for (const section of this.sections) {
-      // const key = `${this.x},${section.y},${this.z}`
       if (section.updated || !blobStore.get(section.hash)) {
         const buffer = await section.encode(StorageType.NetworkPersistence, true)
         const blob = new BlobEntry({ x: this.x, y: section.y, z: this.z, type: BlobType.ChunkSection, buffer })

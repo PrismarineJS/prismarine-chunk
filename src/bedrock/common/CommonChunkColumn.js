@@ -17,7 +17,7 @@ class CommonChunkColumn {
     this.chunkVersion = options.chunkVersion
     this.blockEntities = options.blockEntities || {}
     this.sections = []
-    this.entitites = {}
+    this.entities = {}
   }
 
   initialize (func) {
