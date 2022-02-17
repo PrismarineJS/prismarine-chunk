@@ -139,7 +139,7 @@ for (const version of versions) {
           section.setBlockStateId(l, 0, 10, 0, registry.blocksByName.dirt.defaultState)
         }
       }
-  
+
       // Make sure palette size is 3
       for (let cy = 0; cy < 4; cy++) {
         for (let l = 0; l < 4; l++) {
