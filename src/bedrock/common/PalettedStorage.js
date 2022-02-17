@@ -82,6 +82,15 @@ class PalettedStorage {
       }
     }
   }
+
+  incrementPalette(palette) {
+    for (let i = 0; i < this.wordsCount; i++) {
+      for (let j = 0; j < this.blocksPerWord; j++) {
+        const ix = this.readBits(i, j * this.bitsPerBlock)
+        palette[ix].count++
+      }
+    }
+  }
 }
 
 module.exports = PalettedStorage

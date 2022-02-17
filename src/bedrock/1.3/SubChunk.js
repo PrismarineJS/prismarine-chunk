@@ -94,8 +94,7 @@ class SubChunk {
       this.loadLocalPalette(storageLayer, stream, paletteSize, format === StorageType.NetworkPersistence)
     }
 
-    const palette = this.palette[storageLayer]
-    this.blocks[storageLayer].forEach(ix => palette[ix].count++)
+    this.blocks[storageLayer].incrementPalette(this.palette[storageLayer])
   }
 
   loadRuntimePalette (storageLayer, stream, paletteSize) {
@@ -160,8 +159,9 @@ class SubChunk {
     if (this.subChunkVersion >= 9) { // Caves and cliffs (1.17-1.18)
       stream.writeUInt8(this.y)
     }
-    for (let i = 0; i < this.blocks.length; i++) {
-      this.writeStorage(stream, i, format)
+    for (let l = 0; i < this.blocks.length; l++) {
+      this.compact() // Compact before encoding
+      this.writeStorage(stream, l, format)
     }
   }
 
@@ -277,7 +277,7 @@ class SubChunk {
 
   // These compation functions reduces the size of the chunk by removing unused blocks
   // and reordering the palette to reduce the number of bits per block
-  isCompactible (layer) {
+  isCompactable (layer) {
     let newPaletteLength = 0
     for (const block of this.palette[layer]) {
       if (block.count > 0) {
@@ -322,8 +322,8 @@ class SubChunk {
     return this.palette[l][this.blocks[l].get(x, y, z)]
   }
 
-  getPalette () {
-    return this.palette
+  getPalette (layer = 0) {
+    return this.palette[layer].filter(block => block.count > 0)
   }
 
   // Lighting - Not written or read, but computed during chunk loading

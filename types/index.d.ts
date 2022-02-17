@@ -84,9 +84,16 @@ type CCHash = { type: BlobType, hash: BigInt }
 type PaletteEntry = { name, stateId, states }
 
 declare class SubChunk {
-  encode(storageType: StorageType)
+  encode(storageType: StorageType): Promise<Buffer>
   decode(storageType: StorageType, streamBuffer: Buffer): void
+
+  // Returns an array of currently stored blocks in this section
   getPalette(): PaletteEntry[]
+
+  // Whether this section can be compacted (reduced in size)
+  isCompactable(): boolean
+  // Reduces the size of this section
+  compact(): void
 }
 
 type ExtendedBlock = Block & {

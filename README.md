@@ -235,3 +235,7 @@ See [index.d.ts](https://github.com/PrismarineJS/prismarine-chunk/blob/master/ty
 
 #### compact()
 Shrinks the size of the SubChunk if possible after setBlock operations are done
+
+#### getPalette()
+
+Returns a list of unique block states that make up the chunk section
