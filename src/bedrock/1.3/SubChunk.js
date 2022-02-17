@@ -159,7 +159,7 @@ class SubChunk {
     if (this.subChunkVersion >= 9) { // Caves and cliffs (1.17-1.18)
       stream.writeUInt8(this.y)
     }
-    for (let l = 0; i < this.blocks.length; l++) {
+    for (let l = 0; l < this.blocks.length; l++) {
       this.compact() // Compact before encoding
       this.writeStorage(stream, l, format)
     }
