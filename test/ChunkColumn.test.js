@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 
-const versions = ['bedrock_1.18.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
+const versions = ['bedrock_1.16.220', 'bedrock_1.17.40', 'bedrock_1.18.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
 const constants = require('../src/pc/common/constants')
 const { Vec3 } = require('vec3')
 const assert = require('assert')
@@ -50,7 +50,7 @@ for (const version of versions) {
 
     it('Initializes correctly', () => {
       const chunk = new ChunkColumn()
-      chunk.initialize((x, y, z, n) => new Block(0, 0, 0))
+      chunk.initialize((x, y, z, n) => Block.fromStateId(registry.blocksByName.air.defaultState, 0))
     })
 
     it('Initializes ignore null correctly', () => {
@@ -60,14 +60,14 @@ for (const version of versions) {
 
     it('Defaults to all blocks being air', function () {
       const chunk = new ChunkColumn()
-      assert.strictEqual(0, chunk.getBlock(new Vec3(0, 0, 0)).type)
-      assert.strictEqual(0, chunk.getBlock(new Vec3(15, constants.CHUNK_HEIGHT - 1, 15)).type)
+      assert.strictEqual(registry.blocksByName.air.id, chunk.getBlock(new Vec3(0, 0, 0)).type)
+      assert.strictEqual(registry.blocksByName.air.id, chunk.getBlock(new Vec3(15, constants.CHUNK_HEIGHT - 1, 15)).type)
     })
 
     it('Out of bounds blocks being air', function () {
       const chunk = new ChunkColumn()
-      assert.strictEqual(0, chunk.getBlock(new Vec3(8, -1, 8)).type)
-      assert.strictEqual(0, chunk.getBlock(new Vec3(8, 256, 8)).type)
+      assert.strictEqual(registry.blocksByName.air.id, chunk.getBlock(new Vec3(8, -1, 8)).type)
+      assert.strictEqual(registry.blocksByName.air.id, chunk.getBlock(new Vec3(8, 256, 8)).type)
     })
 
     it('Should set a block at the given position', function () {

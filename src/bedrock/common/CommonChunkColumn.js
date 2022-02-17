@@ -18,6 +18,8 @@ class CommonChunkColumn {
     this.blockEntities = options.blockEntities || {}
     this.sections = []
     this.entities = {}
+    // TODO: this can be defaulted to true
+    this.compactOnSave = false
   }
 
   initialize (func) {

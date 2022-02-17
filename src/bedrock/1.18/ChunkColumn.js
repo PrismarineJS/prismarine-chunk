@@ -211,7 +211,7 @@ class ChunkColumn180 extends ChunkColumn13 {
     const tiles = this.getSectionBlockEntities(y)
 
     const section = this.getSection(y)
-    const subchunk = await section.encode(StorageType.Runtime)
+    const subchunk = await section.encode(StorageType.Runtime, false, this.compactOnSave)
 
     const tileBufs = []
     for (const tile of tiles) {
@@ -265,7 +265,7 @@ class ChunkColumn180 extends ChunkColumn13 {
     const section = this.getSection(y)
 
     if (section.updated) {
-      const terrainBuffer = await section.encode(StorageType.Runtime, true) // note Runtime, not NetworkPersistence
+      const terrainBuffer = await section.encode(StorageType.Runtime, true, this.compactOnSave) // note Runtime, not NetworkPersistence
       const blob = new BlobEntry({ x: this.x, y: section.y, z: this.z, type: BlobType.ChunkSection, buffer: terrainBuffer })
       blobStore.set(section.hash.toString(), blob)
     }

@@ -135,11 +135,11 @@ class SubChunk {
     }
   }
 
-  async encode (format, checksum = false) {
+  async encode (format, checksum = false, compact = true) {
     const stream = new Stream()
 
     if (this.subChunkVersion >= 8) {
-      this.encodeV8(stream, format)
+      this.encodeV8(stream, format, compact)
     } else {
       throw new Error('Unsupported sub chunk version')
     }
@@ -153,14 +153,14 @@ class SubChunk {
   }
 
   // Encode sub chunk version 8+
-  encodeV8 (stream, format) {
+  encodeV8 (stream, format, compact) {
     stream.writeUInt8(this.subChunkVersion)
     stream.writeUInt8(this.blocks.length)
     if (this.subChunkVersion >= 9) { // Caves and cliffs (1.17-1.18)
       stream.writeUInt8(this.y)
     }
     for (let l = 0; l < this.blocks.length; l++) {
-      this.compact() // Compact before encoding
+      if (compact) this.compact(l) // Compact before encoding
       this.writeStorage(stream, l, format)
     }
   }

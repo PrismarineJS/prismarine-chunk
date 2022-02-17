@@ -92,7 +92,7 @@ class ChunkColumn13 extends CommonChunkColumn {
 
     const sectionBufs = []
     for (const section of this.sections) {
-      sectionBufs.push(await section.encode(StorageType.Runtime))
+      sectionBufs.push(await section.encode(StorageType.Runtime, false, this.compactOnSave))
     }
     return Buffer.concat([
       ...sectionBufs,
@@ -112,7 +112,7 @@ class ChunkColumn13 extends CommonChunkColumn {
     const blobHashes = []
     for (const section of this.sections) {
       if (section.updated || !blobStore.get(section.hash)) {
-        const buffer = await section.encode(StorageType.NetworkPersistence, true)
+        const buffer = await section.encode(StorageType.NetworkPersistence, true, this.compactOnSave)
         const blob = new BlobEntry({ x: this.x, y: section.y, z: this.z, type: BlobType.ChunkSection, buffer })
         blobStore.set(section.hash, blob)
       }
