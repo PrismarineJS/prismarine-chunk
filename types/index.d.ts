@@ -189,7 +189,10 @@ declare class BedrockChunk extends CommonChunk {
   // 
   // Section management
   getSection(y: number): SubChunk
-  newSection(y: number, storageFormat: StorageType, buffer: Buffer): Promise<SubChunk>
+  // Creates a new air section
+  newSection(y: number): SubChunk
+  // Creates a new section with the given blocks
+  newSection(y: number, storageFormat: StorageType, buffer: Buffer): SubChunk
 
   // Block entities
   addBlockEntity(tag: NBT): void

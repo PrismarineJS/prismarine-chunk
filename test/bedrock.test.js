@@ -10,10 +10,10 @@ const BlobStore = Map
 const blobStore = new BlobStore()
 
 for (const version of versions) {
-  describe('bedrock network chunks on ' + version, () => {
-    const registry = require('prismarine-registry')(version)
-    const ChunkColumn = require('prismarine-chunk')(registry)
+  const registry = require('prismarine-registry')(version)
+  const ChunkColumn = require('prismarine-chunk')(registry)
 
+  describe('bedrock network chunks on ' + version, () => {
     const fixtures = fs.readdirSync(join(__dirname, version))
     const packetLevelChunkWithoutCaching = fixtures.find(f => f.includes('level_chunk') && !f.toLowerCase().includes('cache'))
     const packetLevelChunkWithCaching = fixtures.find(f => f.includes('level_chunk') && f.includes('cached'))
@@ -118,6 +118,40 @@ for (const version of versions) {
         // OK
       })
     }
+  })
+
+  describe('bedrock subchunk tests on ' + version, () => {
+    it('compaction works on ' + version, async () => {
+      const cc = new ChunkColumn({ x: 0, z: 0 })
+      const fakeBlocks = [1, 2, 3]
+      let i = 0
+      for (let y = 0; y < 4; y++) {
+        const section = await cc.newSection(y)
+        for (let l = 0; l < 4; l++) {
+          for (let x = 0; x < 16; x++) {
+            // Here we set some blocks and replace it with air right after
+            for (let z = 0; z < 16; z++) {
+              section.setBlockStateId(l, x, y, z, fakeBlocks[i++ % fakeBlocks.length])
+              section.setBlockStateId(l, x, y, z, registry.blocksByName.air.defaultState)
+            }
+          }
+          // Here we set some dirt. We don't replace it with air, so it should stay dirt
+          section.setBlockStateId(l, 0, 10, 0, registry.blocksByName.dirt.defaultState)
+        }
+      }
+  
+      // Make sure palette size is 3
+      for (let cy = 0; cy < 4; cy++) {
+        for (let l = 0; l < 4; l++) {
+          const subChunk = cc.getSection(cy)
+          // Our blocks we put in + air = 5 states
+
+          assert.strictEqual(subChunk.palette[l].length, 5, 'Palette size should be 4 on y=' + cy + ' layer=' + l)
+          subChunk.compact(l)
+          assert.strictEqual(subChunk.palette[l].length, 2, 'After compaction, palette size should be 2 on y=' + cy + ' layer=' + l)
+        }
+      }
+    })
   })
 }
 

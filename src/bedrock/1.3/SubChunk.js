@@ -31,27 +31,39 @@ class SubChunk {
     const subChunk = new this(registry, Block, { y })
     // Fill first layer with zero
     subChunk.blocks.push(new PalettedStorage(1))
+    subChunk.palette.push([])
     // Set zero to be air, Add to the palette
-    subChunk.addToPalette(0, this.registry.blocksByName.air.defaultState)
+    subChunk.addToPalette(0, subChunk.registry.blocksByName.air.defaultState, 4096)
     return subChunk
   }
 
   decode (format, stream) {
     if (stream instanceof Buffer) stream = new Stream(stream)
     // version
-    const version = stream.readByte()
-    if (version !== 8 && version !== 9) throw new Error('Unsupported sub chunk version: ' + version)
-    this.subChunkVersion = version
-
+    this.subChunkVersion = stream.readByte()
     let storageCount = 1
-    if (version >= 8) {
-      storageCount = stream.readByte()
-      if (version >= 9) {
-        this.y = stream.readByte() // Sub Chunk Index
-      }
-      if (storageCount > 2) {
-        throw new Error('Expected storage count to be 1 or 2, got ' + storageCount)
-      }
+
+    switch (this.subChunkVersion) {
+      case 1:
+        // This is a old SubChunk format that only has one layer - no need to read storage count
+        // But when re-encoding, we want to use v8 to not loose data
+        this.subChunkVersion = 8
+        break
+      case 8:
+      case 9:
+        storageCount = stream.readByte()
+        if (this.subChunkVersion >= 9) {
+          this.y = stream.readByte() // Sub Chunk Index
+        }
+        if (storageCount > 2) {
+          // This is technically not an error, but not currently aware of any servers
+          // that send more than two layers. If this is a problem, this check can be
+          // safely removed. Just keeping it here as a sanity check.
+          throw new Error('Expected storage count to be 1 or 2, got ' + storageCount)
+        }
+        break
+      default:
+        throw new Error('Unsupported sub chunk version: ' + this.subChunkVersion)
     }
 
     for (let i = 0; i < storageCount; i++) {
@@ -228,30 +240,38 @@ class SubChunk {
     if (!this.palette[l]) {
       this.palette[l] = []
       this.blocks[l] = new PalettedStorage(4) // Zero initialized
-      this.addToPalette(l, stateId)
+      this.addToPalette(l, this.registry.blocksByName.air.defaultState, 4096 - 1)
+      this.addToPalette(l, stateId, 1)
+      this.blocks[l].set(x, y, z, this.palette[l].length - 1)
     } else {
       // Decrement count of old block
-      const currentId = this.getBlockStateId(l, x, y, z)
-      if (currentId === stateId) return
-      this.palette[l][currentId].count--
-
-      const ix = this.palette[l].findIndex(({ stateId: id }) => id === stateId)
-      if (ix === -1) {
-        this.addToPalette(l, stateId)
-        this.blocks[l].set(x, y, z, this.palette.length - 1)
-      } else {
-        this.palette[ix].count++
-        this.blocks[l].set(x, y, z, ix)
+      const currentIndex = this.blocks[l].get(x, y, z)
+      const currentEntry = this.palette[l][currentIndex]
+      if (currentEntry.stateId === stateId) {
+        return // No change
       }
+      currentEntry.count--
+
+      for (let i = 0; i < this.palette[l].length; i++) {
+        const entry = this.palette[l][i]
+        if (entry.stateId === stateId) {
+          entry.count = Math.max(entry.count, 0) + 1
+          this.blocks[l].set(x, y, z, i)
+          return
+        }
+      }
+
+      this.addToPalette(l, stateId, 1)
+      this.blocks[l].set(x, y, z, this.palette[l].length - 1)
     }
     this.updated = true
   }
 
-  addToPalette (l, stateId) {
+  addToPalette (l, stateId, count = 0) {
     const block = this.registry.blockStates[stateId]
-    this.palette[l].push({ stateId, name: block.name, states: block.states, count: 1 })
+    this.palette[l].push({ stateId, name: block.name, states: block.states, count })
     if (neededBits(this.palette[l].length) > this.blocks[l].bitsPerBlock) {
-      this.blocks[l] = this.blocks[l].resize(this.palette[l].length)
+      this.blocks[l] = this.blocks[l].resize(neededBits(this.palette[l].length))
     }
   }
 
