@@ -131,6 +131,8 @@ declare class BedrockChunk extends CommonChunk {
   // Biomes
   getBiome(pos: Vec3): Biome
   setBiome(pos: Vec3, biome: Biome): void
+  getBiomeId(pos: Vec3): number
+  setBiomeId(pos: Vec3, biomeId: number): void
   loadLegacyBiomes(buffer: Buffer): void
   // Only present on >= 1.18
   loadBiomes(buffer: Buffer | Stream, storageType: StorageType): void
