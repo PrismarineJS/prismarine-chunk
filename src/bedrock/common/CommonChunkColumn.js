@@ -11,9 +11,10 @@ class CommonChunkColumn {
   worldHeight = 256
   co = 0
 
-  constructor (options = {}) {
+  constructor (options, registry) {
     this.x = options.x || 0
     this.z = options.z || 0
+    this.registry = registry
     this.chunkVersion = options.chunkVersion
     this.blockEntities = options.blockEntities || {}
     this.sections = []
@@ -40,7 +41,7 @@ class CommonChunkColumn {
     const Y = vec4.y >> 4
     const sec = this.sections[this.co + Y]
     if (!sec) return this.Block.fromStateId(this.registry.blocksByName.air.defaultState, 0)
-    const block = sec.getBlock(vec4.l, vec4.x, vec4.y & 0xf, vec4.z)
+    const block = sec.getBlock(vec4.l, vec4.x, vec4.y & 0xf, vec4.z, this.getBiomeId(vec4))
     if (full) {
       block.light = sec.blockLight.get(vec4.x, vec4.y & 0xf, vec4.z)
       block.skyLight = sec.skyLight.get(vec4.x, vec4.y & 0xf, vec4.z)
@@ -77,6 +78,14 @@ class CommonChunkColumn {
       this.sections[this.co + Y] = sec
     }
     sec.setBlockStateId(pos.l, pos.x, pos.y & 0xf, pos.z, stateId)
+  }
+
+  getBiomeId (pos) {
+    return 0
+  }
+
+  setBiomeId (pos, biomeId) {
+    // noop
   }
 
   getBlocks () {
@@ -234,7 +243,7 @@ class CommonChunkColumn {
   }
 
   toObject () {
-    const sections = this.sections.map(sec => sec.toObject())
+    const sections = this.sections.map(sec => sec?.toObject())
     const { x, z, chunkVersion, blockEntities } = this
     return { x, z, chunkVersion, blockEntities, sections }
   }

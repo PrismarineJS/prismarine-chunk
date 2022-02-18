@@ -1,19 +1,28 @@
 const wordByteSize = 4
 const wordBitSize = wordByteSize * 8
 
+class BetterUint32Array extends Uint32Array {
+  toJSON () {
+    return Array.from(this)
+  }
+
+  [Symbol.for('nodejs.util.inspect.custom')] () {
+    return `[Uint32Array of ${this.length} items { ${this.slice(0, 10).toString()} ${this.length > 10 ? ', ...' : ''} }]`
+  }
+}
+
 class PalettedStorage {
   constructor (bitsPerBlock) {
     this.bitsPerBlock = bitsPerBlock
     this.blocksPerWord = Math.floor(wordBitSize / bitsPerBlock)
-    // this.paddingPerWord = wordBitSize % bitsPerBlock
     this.wordsCount = Math.ceil(4096 / this.blocksPerWord)
     this.mask = ((1 << bitsPerBlock) - 1)
-    this.array = new Uint32Array(this.wordsCount)
+    this.array = new BetterUint32Array(this.wordsCount)
   }
 
   read (stream) {
     const buf = stream.readBuffer(this.wordsCount * wordByteSize)
-    this.array = new Uint32Array(new Uint8Array(buf).buffer)
+    this.array = new BetterUint32Array(new Uint8Array(buf).buffer)
   }
 
   write (stream) {
@@ -24,9 +33,9 @@ class PalettedStorage {
     const next = new PalettedStorage(other.bitsPerBlock)
     Object.assign(next, other)
     if (other instanceof Uint32Array) {
-      next.array = other.array.slice()
+      next.array = new BetterUint32Array(other.array.slice())
     } else {
-      next.array = new Uint32Array(other.array)
+      next.array = new BetterUint32Array(other.array)
     }
     return next
   }

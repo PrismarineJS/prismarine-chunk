@@ -5,11 +5,11 @@ const neededBits = require('../../pc/common/neededBits')
 const MIN_BITS_PER_BIOME = 3
 
 class BiomeSection {
-  constructor (registry, y) {
+  constructor (registry, y, options = {}) {
     this.Biome = require('prismarine-biome')(registry)
     this.y = y
-    this.biomes = new PalettedStorage(1)
-    this.palette = [0]
+    this.biomes = options.biomes ? PalettedStorage.copyFrom(options.biomes) : new PalettedStorage(1)
+    this.palette = options.palette || [0]
   }
 
   readLegacy2D (stream) {
@@ -117,6 +117,14 @@ class BiomeSection {
         const biome = this.getBiomeId(x, y, z)
         stream.writeUInt8(biome)
       }
+    }
+  }
+
+  toObject () {
+    return {
+      y: this.y,
+      biomes: this.biomes,
+      palette: this.palette
     }
   }
 }

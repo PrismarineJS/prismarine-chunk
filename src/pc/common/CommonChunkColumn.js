@@ -21,6 +21,14 @@ class CommonChunkColumn {
 
   // Biomes
 
+  getBiomeId (pos) {
+    return this.getBiome(pos)
+  }
+
+  setBiomeId (pos, biome) {
+    this.setBiome(pos, biome)
+  }
+
   getBiomeData (pos) {
     const biome = this.getBiome(pos)
     return this.registry[biome]

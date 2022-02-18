@@ -15,8 +15,6 @@ class ChunkColumn180 extends ChunkColumn13 {
   maxCY = 20
   worldHeight = 384
   co = Math.abs(this.minCY)
-  biomes = []
-  terrainAndBlockEntityHash = []
 
   // BIOMES
 
@@ -31,16 +29,16 @@ class ChunkColumn180 extends ChunkColumn13 {
   getBiomeId (pos) {
     const Y = pos.y >> 4
     const sec = this.biomes[this.co + Y]
-    return sec.getBiomeId(pos.x, pos.y & 0xf, pos.z)
+    return sec?.getBiomeId(pos.x, pos.y & 0xf, pos.z) ?? 0
   }
 
   setBiomeId (pos, biomeId) {
     const Y = pos.y >> 4
-    const sec = this.biomes[this.co + Y]
+    let sec = this.biomes[this.co + Y]
     if (!sec) {
-      this.biomes[this.co + Y] = new BiomeSection(this.registry, Y)
+      this.biomes[this.co + Y] = sec = new BiomeSection(this.registry, Y)
     } else if (!sec.setBiomeId) {
-      this.biomes[this.co + Y] = sec.promote(Y)
+      this.biomes[this.co + Y] = sec = sec.promote(Y)
     }
     sec.setBiomeId(pos.x, pos.y & 0xf, pos.z, biomeId)
     this.biomesUpdated = true
@@ -68,7 +66,15 @@ class ChunkColumn180 extends ChunkColumn13 {
   }
 
   writeBiomes (stream) {
-    for (const biomeSection of this.biomes) {
+    for (let i = 0; i < (this.worldHeight >> 4); i++) {
+      let biomeSection = this.biomes[i]
+      if (!biomeSection) {
+        if (this.biomes[i - 1]) {
+          this.biomes[i] = biomeSection = new ProxyBiomeSection(this.registry, this.biomes[i - 1])
+        } else {
+          this.biomes[i] = biomeSection = new BiomeSection(this.registry, i)
+        }
+      }
       biomeSection.export(StorageType.Runtime, stream)
     }
   }
@@ -135,7 +141,7 @@ class ChunkColumn180 extends ChunkColumn13 {
       this.loadBiomes(stream, StorageType.Runtime)
       const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
       if (borderblocks.length) {
-        throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
+        throw new Error(`Can't handle border blocks (length: ${borderblocks.length})`)
       }
     } else {
       console.warn('ChunkColumn.networkDecodeNoCache: sectionCount is not -1, should not happen')
@@ -157,7 +163,7 @@ class ChunkColumn180 extends ChunkColumn13 {
       const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
 
       if (borderblocks.length) {
-        throw new Error('cannot handle border blocks (read length: ' + borderblocks.length + ')')
+        throw new Error(`Can't handle border blocks (length: ${borderblocks.length})`)
       }
     }
 
@@ -279,7 +285,7 @@ class ChunkColumn180 extends ChunkColumn13 {
   }
 
   toObject () {
-    return { ...super.toObject(), version: '1.18' }
+    return { ...super.toObject(), version: this.registry.version.minecraftVersion }
   }
 }
 

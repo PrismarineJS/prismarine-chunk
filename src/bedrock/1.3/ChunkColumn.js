@@ -11,11 +11,11 @@ class ChunkColumn13 extends CommonChunkColumn {
   Section = SubChunk
 
   constructor (options = {}, registry, Block) {
-    super(options)
-    this.chunkVersion = options.version || 8
-    this.sections = []
+    super(options, registry)
+    this.Block = Block
     this.biomes = []
-    this.biomesUpdated = false
+    this.sections = []
+    this.biomesUpdated = true
     if (options.sections?.length) {
       for (const section of options.sections) {
         if (section) {
@@ -25,6 +25,14 @@ class ChunkColumn13 extends CommonChunkColumn {
         }
       }
     }
+
+    if (options.biomes?.length) {
+      for (const biome of options.biomes) {
+        this.biomes.push(biome ? new BiomeSection(registry, biome.y, biome) : null)
+      }
+    } else {
+      this.biomes.push(new BiomeSection(registry, 0))
+    }
   }
 
   getBiome (pos) {
@@ -32,8 +40,16 @@ class ChunkColumn13 extends CommonChunkColumn {
   }
 
   setBiome (pos, biome) {
-    if (!this.biomes.length) this.biomes[0] = new BiomeSection(this.registry, 0)
     this.biomes[0].setBiomeId(pos.x, 0, pos.z, biome.id)
+    this.biomesUpdated = true
+  }
+
+  getBiomeId (pos) {
+    return this.biomes[0].getBiomeId(pos.x, 0, pos.z)
+  }
+
+  setBiomeId (pos, biome) {
+    this.biomes[0].setBiomeId(pos.x, 0, pos.z, biome)
     this.biomesUpdated = true
   }
 
@@ -59,6 +75,9 @@ class ChunkColumn13 extends CommonChunkColumn {
   }
 
   writeHeightMap (stream) {
+    if (!this.heights) {
+      this.heights = new Uint16Array(256)
+    }
     for (let i = 0; i < 256; i++) {
       stream.writeUInt16LE(this.heights[i])
     }
@@ -245,8 +264,8 @@ class ChunkColumn13 extends CommonChunkColumn {
   }
 
   toObject () {
-    const biomes = this.biomes.map(b => b.toObject())
-    return { ...super.toObject(), biomes, biomesUpdated: this.biomesUpdated, version: '1.16' }
+    const biomes = this.biomes.map(b => b?.toObject())
+    return { ...super.toObject(), biomes, biomesUpdated: this.biomesUpdated, version: this.registry.version.minecraftVersion }
   }
 
   toJson () {

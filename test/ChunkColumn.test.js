@@ -107,6 +107,40 @@ for (const version of versions) {
       }
     })
 
+    it('random write read test', () => {
+      const cc = new ChunkColumn({ x: 0, z: 0 })
+      for (let x = 0; x < 4; x++) {
+        for (let y = 0; y < 4; y++) {
+          for (let z = 0; z < 4; z++) {
+            // Set a random block ID
+            const id = Math.floor(Math.random() * 1000)
+            const block = Block.fromStateId(id)
+            const pos = new Vec3(x, y, z)
+            pos.l = 0
+            cc.setBlock(pos, block)
+            const gotblock = cc.getBlock(pos)
+            assert.strictEqual(gotblock.stateId, id)
+          }
+        }
+      }
+    })
+
+    it('to/from JSON work', () => {
+      const cc = new ChunkColumn({ x: 0, z: 0 })
+      cc.setBiomeId(new Vec3(0, 1, 0), 1)
+      cc.setBlockStateId(new Vec3(0, 2, 0), 2)
+      cc.setBlockLight(new Vec3(0, 3, 0), 3)
+      cc.setSkyLight(new Vec3(0, 4, 0), 4)
+      const json = cc.toJson()
+      const cc2 = ChunkColumn.fromJson(json)
+      console.log('cc2 biomes', cc.biomes, cc2.biomes)
+      assert.strictEqual(1, cc2.getBiomeId(new Vec3(0, 1, 0)))
+      assert.strictEqual(2, cc2.getBlockStateId(new Vec3(0, 2, 0)))
+      assert.strictEqual(3, cc2.getBlockLight(new Vec3(0, 3, 0)))
+      assert.strictEqual(4, cc2.getSkyLight(new Vec3(0, 4, 0)))
+      assert.strictEqual(cc.toJson(), cc2.toJson())
+    })
+
     //
 
     const testTag = require('./testBlockEntity.json')

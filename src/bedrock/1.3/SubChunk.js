@@ -8,6 +8,9 @@ const nbt = require('prismarine-nbt')
 class SubChunk {
   constructor (registry, Block, options = {}) {
     this.registry = registry
+    if (!registry) {
+      throw new Error('registry is required')
+    }
     this.Block = Block
     this.y = options.y
     this.palette = options.palette || []
@@ -22,8 +25,8 @@ class SubChunk {
     this.updated = options.updated || true
 
     // Not written or read
-    this.blockLight = new PalettedStorage(4)
-    this.skyLight = new PalettedStorage(4)
+    this.blockLight = options.blockLight ? PalettedStorage.copyFrom(options.blockLight) : new PalettedStorage(4)
+    this.skyLight = options.skyLight ? PalettedStorage.copyFrom(options.skyLight) : new PalettedStorage(4)
   }
 
   // Creates an air chunk
@@ -196,23 +199,23 @@ class SubChunk {
 
   // Normal block access
 
-  getBlock (l, x, y, z) {
+  getBlock (l, x, y, z, biomeId) {
     if (l !== undefined) {
       const stateId = this.getBlockStateId(l, x, y, z)
-      return this.Block.fromStateId(stateId)
+      return this.Block.fromStateId(stateId, biomeId)
     } else {
       const layer1 = this.getBlockStateId(0, x, y, z)
       const layer2 = this.getBlockStateId(1, x, y, z)
       const block = this.Block.fromStateId(layer1)
       if (layer2) {
-        block.superimposed = this.Block.fromStateId(layer2)
+        block.superimposed = this.Block.fromStateId(layer2, biomeId)
         const name = block.superimposed.name
         // TODO: Snowy blocks have to be handled in prismarine-viewer
         if (name.includes('water')) {
           block.computedStates.waterlogged = true
         }
       }
-      return this.Block.fromStateId(layer1, layer2)
+      return block
     }
   }
 
@@ -350,7 +353,10 @@ class SubChunk {
       blocks: this.blocks,
       subChunkVersion: this.subChunkVersion,
       hash: this.hash,
-      updated: this.updated
+      updated: this.updated,
+
+      blockLight: this.blockLight,
+      skyLight: this.skyLight
     }
   }
 }
