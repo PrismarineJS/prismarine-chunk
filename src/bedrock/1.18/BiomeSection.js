@@ -2,8 +2,6 @@ const { StorageType } = require('../common/constants')
 const PalettedStorage = require('../common/PalettedStorage')
 const neededBits = require('../../pc/common/neededBits')
 
-const MIN_BITS_PER_BIOME = 3
-
 class BiomeSection {
   constructor (registry, y, options = {}) {
     this.Biome = require('prismarine-biome')(registry)
@@ -57,14 +55,15 @@ class BiomeSection {
     }
   }
 
-  // TODO: handle resizing
+  // TODO: handle downsizing
   setBiomeId (x, y, z, biomeId) {
     if (!this.palette.includes(biomeId)) {
       this.palette.push(biomeId)
     }
 
-    if (neededBits(this.palette.length) > this.biomes.bitsPerBlock) {
-      this.biomes = this.biomes.resize(Math.min(this.palette.length, MIN_BITS_PER_BIOME))
+    const minBits = neededBits(this.palette.length - 1)
+    if (minBits > this.biomes.bitsPerBlock) {
+      this.biomes = this.biomes.resize(minBits)
     }
 
     this.biomes.set(x, y, z, this.palette.indexOf(biomeId))

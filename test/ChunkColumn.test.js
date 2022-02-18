@@ -133,7 +133,6 @@ for (const version of versions) {
       cc.setSkyLight(new Vec3(0, 4, 0), 4)
       const json = cc.toJson()
       const cc2 = ChunkColumn.fromJson(json)
-      console.log('cc2 biomes', cc.biomes, cc2.biomes)
       assert.strictEqual(1, cc2.getBiomeId(new Vec3(0, 1, 0)))
       assert.strictEqual(2, cc2.getBlockStateId(new Vec3(0, 2, 0)))
       assert.strictEqual(3, cc2.getBlockLight(new Vec3(0, 3, 0)))

@@ -273,8 +273,9 @@ class SubChunk {
   addToPalette (l, stateId, count = 0) {
     const block = this.registry.blockStates[stateId]
     this.palette[l].push({ stateId, name: block.name, states: block.states, count })
-    if (neededBits(this.palette[l].length) > this.blocks[l].bitsPerBlock) {
-      this.blocks[l] = this.blocks[l].resize(neededBits(this.palette[l].length))
+    const minBits = neededBits(this.palette[l].length - 1)
+    if (minBits > this.blocks[l].bitsPerBlock) {
+      this.blocks[l] = this.blocks[l].resize(minBits)
     }
   }
 
@@ -304,7 +305,7 @@ class SubChunk {
       return
     }
 
-    const newStorage = new PalettedStorage(neededBits(newPalette.length))
+    const newStorage = new PalettedStorage(neededBits(newPalette.length - 1))
     for (let x = 0; x < 16; x++) {
       for (let y = 0; y < 16; y++) {
         for (let z = 0; z < 16; z++) {
