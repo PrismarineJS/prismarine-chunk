@@ -45,7 +45,7 @@ class CommonChunkColumn {
     if (full) {
       block.light = sec.blockLight.get(vec4.x, vec4.y & 0xf, vec4.z)
       block.skyLight = sec.skyLight.get(vec4.x, vec4.y & 0xf, vec4.z)
-      block.entity = this.blockEntities[keyFromLocalPos(vec4)]
+      block.entity = this.getBlockEntity(vec4)
     }
     return block
   }
@@ -119,6 +119,10 @@ class CommonChunkColumn {
 
   setBlockEntity (pos, tag) {
     this.blockEntities[keyFromLocalPos(pos)] = tag
+  }
+
+  getBlockEntity (pos) {
+    return this.blockEntities[keyFromLocalPos(pos)]
   }
 
   addBlockEntity (tag) {
