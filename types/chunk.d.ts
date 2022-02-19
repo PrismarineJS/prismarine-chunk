@@ -2,12 +2,12 @@ import { Block } from "prismarine-block";
 import { Vec3 } from "vec3";
 import Section from "./section";
 
-export = loader;
-declare function loader(mcVersion: number): typeof Chunk;
 
-declare class Chunk {
-    constructor(initData: ChunkInitData | null)
-    static fromJson(j: any): Chunk;
+export default function loader(mcVersion: number): typeof Chunk;
+
+
+// I have no better way to implement this currently. :XD:
+export declare interface ChunkInterface {
     skyLightSent: boolean;
     sections: Section[];
     biome: Buffer;
@@ -41,4 +41,11 @@ declare class Chunk {
     dump(bitMap?: number, skyLightSent?: boolean): Buffer;
     load(data: Buffer, bitMap?: number, skyLightSent?: boolean, fullChunk?: boolean): void;
     getMask(): number;
+}
+
+//Repeat code. :thumbsup:
+
+export declare class Chunk implements ChunkInterface {
+    constructor(initData: ChunkInitData | null)
+    static fromJson(j: any): Chunk;
 }

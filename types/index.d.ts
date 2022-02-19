@@ -1,4 +1,4 @@
-import Chunk = require("./chunk");
+import ChunkLoader from "./chunk";
 
-export = loader;
-declare function loader(mcVersion: number): typeof Chunk;
+export {ChunkInterface as Chunk} from "./chunk";
+export declare function loader(mcVersion: number): typeof ChunkLoader;
