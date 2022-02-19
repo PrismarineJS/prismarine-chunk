@@ -1,7 +1,10 @@
-import type { Block } from "prismarine-block";
+import type { loader as pbloader, Block } from "prismarine-block";
+import type {IndexedData} from "minecraft-data"
 import type { Vec3 } from "vec3";
-import Section from "./section";
+import {Section} from "./section";
 
+
+export type ChunkInitData = {Block: ReturnType<typeof pbloader>, mcData: IndexedData}
 export default function loader(mcVersion: number): typeof Chunk;
 
 
