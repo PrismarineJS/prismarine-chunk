@@ -43,9 +43,12 @@ Install it globally with `npm install minecraft-chunk-dumper -g` then run :
 
 ### bedrock
 
-Run tests in [bedrock-provider](https://github.com/PrismarineJS/bedrock-provider/) and copy data from `fixtures/$version/pchunk` into `tests/bedrock_$version`
+Run tests in [bedrock-provider](https://github.com/PrismarineJS/bedrock-provider/) (which loads chunks through a client as part of its tests) and copy the generated data from `fixtures/$version/pchunk` into `tests/bedrock_$version`.
 
 For the version, copy one chunk column of `level_chunk` without caching, `level_chunk` with caching, `level_chunk CacheMissResponse`, `subchunk` without caching, `subchunk cached` and `subchunk CacheMissResponse` into the test/version folder.
+
+Note: bedrock-provider tests network decoding and loading chunks from a save database. The tests in prismarine-chunk test other parts of the chunk API, such as
+setting and getting block light, type, biome, entity and block entity data.
 
 # API
 
