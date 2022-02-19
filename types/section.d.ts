@@ -1,6 +1,6 @@
 import type { Vec3 } from "vec3";
 
-declare class Section {
+export default class Section {
     static fromJson(j: any): Section;
     static sectionSize(skyLightSent?: boolean): number;
     constructor(skyLightSent?: boolean);
@@ -29,7 +29,7 @@ declare class Section {
     dump(): Buffer;
     load(data: Buffer, skyLightSent?: boolean): void;
 }
-export declare namespace SectionNamespace {
+declare namespace SectionNamespace {
     export { w };
     export { l };
     export { sh };
