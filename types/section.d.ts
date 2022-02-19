@@ -1,6 +1,6 @@
 import type { Vec3 } from "vec3";
 
-export default class Section {
+export declare class Section {
     static fromJson(j: any): Section;
     static sectionSize(skyLightSent?: boolean): number;
     constructor(skyLightSent?: boolean);
