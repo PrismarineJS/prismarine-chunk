@@ -1,5 +1,10 @@
 ## History
 
+## 1.30.0
+
+* Bedrock 1.16 - 1.18.0 chunks (@extremeheat)
+* Block sections are not biomes (@nickelpro)
+
 ## 1.29.0
 
 * Implement prismarine-registry, basic block entities and 1.18 disk loading
