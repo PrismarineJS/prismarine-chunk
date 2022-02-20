@@ -146,7 +146,7 @@ class SingleValueContainer {
     data.set(index, 1)
 
     return new IndirectPaletteContainer({
-      data: data,
+      data,
       palette: [this.value, value],
       capacity: this.capacity,
       bitsPerValue: this.bitsPerValue,
@@ -205,8 +205,8 @@ function containerFromJson (j) {
 }
 
 module.exports = {
-  SingleValueContainer: SingleValueContainer,
-  IndirectPaletteContainer: IndirectPaletteContainer,
-  DirectPaletteContainer: DirectPaletteContainer,
+  SingleValueContainer,
+  IndirectPaletteContainer,
+  DirectPaletteContainer,
   fromJson: containerFromJson
 }

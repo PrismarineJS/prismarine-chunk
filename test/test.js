@@ -7,20 +7,18 @@ const path = require('path')
 const prismarineBlockLoader = require('prismarine-block')
 const chunkLoader = require('../index')
 const SingleValueContainer = require('../src/pc/common/PaletteContainer').SingleValueContainer
+const constants = require('../src/pc/common/constants')
 const { performance } = require('perf_hooks')
+const expect = require('expect')
 
 const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
 const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
 
-const depsByVersion = versions.map((version) => {
-  return [
-    version, // version
-    chunkLoader(version), // Chunk
-    prismarineBlockLoader(version) // Block
-  ]
-})
+versions.forEach((version) => describe(`Chunk implementation for minecraft ${version}`, () => {
+  const registry = require('prismarine-registry')(version)
+  const Chunk = chunkLoader(registry)
+  const Block = prismarineBlockLoader(registry)
 
-depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementation for minecraft ${version}`, () => {
   const isPostFlattening = version.startsWith('1.13') || version.startsWith('1.14') ||
     version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17') ||
     version.startsWith('1.18')
@@ -54,58 +52,38 @@ depsByVersion.forEach(([version, Chunk, Block]) => describe(`Chunk implementatio
     })
   }
 
-  it('Initializes correctly', () => {
-    const chunk = new Chunk()
+  if (registry.version.type === 'pc' && registry.version['==']('1.13.1')) {
+    // Moved from ChunkColimn.test.js -- only tested on 1.13.1
+    it('loading empty chunk sections becomes air', () => {
+      const column = new Chunk()
 
-    chunk.initialize((x, y, z, n) => new Block(0, 0, 0))
-  })
+      // allocate data for biomes
+      const buffer = Buffer.alloc(constants.SECTION_WIDTH * constants.SECTION_HEIGHT * 4)
+      let offset = 0
+      for (let x = 0; x < constants.SECTION_WIDTH; ++x) {
+        for (let z = 0; z < constants.SECTION_WIDTH; ++z) {
+          buffer.writeInt32BE(1, offset)
+          offset += 4
+        }
+      }
 
-  it('Initializes ignore null correctly', () => {
-    const chunk = new Chunk()
+      column.load(buffer, 0x0000)
 
-    chunk.initialize((x, y, z, n) => null)
-  })
-
-  it('Defaults to all blocks being air', function () {
-    const chunk = new Chunk()
-
-    assert.strictEqual(0, chunk.getBlock(new Vec3(0, 0, 0)).type)
-    assert.strictEqual(0, chunk.getBlock(new Vec3(15, Chunk.h - 1, 15)).type)
-  })
-
-  it('Out of bounds blocks being air', function () {
-    const chunk = new Chunk()
-
-    assert.strictEqual(0, chunk.getBlock(new Vec3(8, -1, 8)).type)
-    assert.strictEqual(0, chunk.getBlock(new Vec3(8, 256, 8)).type)
-  })
-
-  it('Should set a block at the given position', function () {
-    const chunk = new Chunk()
-
-    chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
-    assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
-
-    if (!isPostFlattening) {
-      assert.strictEqual(2, chunk.getBlock(new Vec3(0, 0, 0)).metadata)
-    }
-
-    chunk.setBlock(new Vec3(0, 37, 0), new Block(42, 0, 0)) // Iron block
-    assert.strictEqual(42, chunk.getBlock(new Vec3(0, 37, 0)).type)
-    if (!isPostFlattening) {
-      assert.strictEqual(0, chunk.getBlock(new Vec3(0, 37, 0)).metadata)
-    }
-
-    chunk.setBlock(new Vec3(1, 0, 0), new Block(35, 0, 1)) // Orange wool
-    assert.strictEqual(35, chunk.getBlock(new Vec3(1, 0, 0)).type)
-    if (!isPostFlattening) {
-      assert.strictEqual(1, chunk.getBlock(new Vec3(1, 0, 0)).metadata)
-    }
-  })
+      let different = 0
+      const p = { x: 0, y: 0, z: 0 }
+      for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+        for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
+          for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
+            different += column.getBlock(p).stateId !== 0
+          }
+        }
+      }
+      expect(different).toBe(0)
+    })
+  }
 
   it('Skylight set/get', function () {
     const chunk = new Chunk()
-
     chunk.setBlock(new Vec3(0, 0, 0), new Block(5, 0, 2)) // Birch planks, if you're wondering
     assert.strictEqual(5, chunk.getBlock(new Vec3(0, 0, 0)).type)
     chunk.setSkyLight(new Vec3(0, 0, 0), 15)

@@ -59,6 +59,7 @@ module.exports = (registry) => {
             this.biome.writeUInt8(block.biome.id || 0, biome)
             biome++
           }
+          return block
         })
       }
     }

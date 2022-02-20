@@ -14,11 +14,19 @@ const chunkImplementations = {
   },
   bedrock: {
     0.14: require('./bedrock/0.14/chunk'),
-    '1.0': require('./bedrock/1.0/chunk')
+    '1.0': require('./bedrock/1.0/chunk'),
+    1.3: require('./bedrock/1.3/chunk'),
+    1.16: require('./bedrock/1.3/chunk'),
+    1.17: require('./bedrock/1.3/chunk'),
+    1.18: require('./bedrock/1.18/chunk')
   }
 }
 
 module.exports = loader
+// Caching
+const blobCache = require('./bedrock/common/BlobCache')
+module.exports.BlobEntry = blobCache.BlobEntry
+module.exports.BlobType = blobCache.BlobType
 
 function loader (registryOrVersion) {
   const registry = typeof registryOrVersion === 'string' ? require('prismarine-registry')(registryOrVersion) : registryOrVersion
