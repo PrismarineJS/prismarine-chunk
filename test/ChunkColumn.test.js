@@ -4,7 +4,7 @@ const versions = ['bedrock_1.16.220', 'bedrock_1.17.40', 'bedrock_1.18.0', '1.8'
 const constants = require('../src/pc/common/constants')
 const { Vec3 } = require('vec3')
 const assert = require('assert')
-const expect = require('expect')
+const expect = require('expect').default
 
 for (const version of versions) {
   const registry = require('prismarine-registry')(version)
