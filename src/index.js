@@ -28,6 +28,13 @@ const blobCache = require('./bedrock/common/BlobCache')
 module.exports.BlobEntry = blobCache.BlobEntry
 module.exports.BlobType = blobCache.BlobType
 
+const neededBits = require('./pc/common/neededBits');
+const byteStream = require('./bedrock/common/Stream');
+const palettedStorage = require('./bedrock/common/PalettedStorage');
+module.exports.neededBits = neededBits;
+module.exports.ByteStream = byteStream;
+module.exports.PalettedStorage = palettedStorage;
+
 function loader (registryOrVersion) {
   const registry = typeof registryOrVersion === 'string' ? require('prismarine-registry')(registryOrVersion) : registryOrVersion
   const version = registry.version
