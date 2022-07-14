@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/PrismarineJS/prismarine-chunk",
   "devDependencies": {
-    "@types/node": "^17.0.0",
+    "@types/node": "^18.0.4",
     "expect": "^28.1.0",
     "mocha": "^10.0.0",
     "prismarine-chunk": "file:.",
