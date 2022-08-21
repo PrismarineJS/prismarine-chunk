@@ -39,7 +39,7 @@ Test data can be generated with [minecraftChunkDumper](https://github.com/Prisma
 
 Install it globally with `npm install minecraft-chunk-dumper -g` then run :
 
-`minecraftChunkDumper saveChunk 1.8.8 1.8/chunk.dump 1.8/chunk.meta`
+`minecraftChunkDumper saveChunks 1.19 "1_19" 10`
 
 ### bedrock
 
