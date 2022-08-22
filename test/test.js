@@ -11,8 +11,8 @@ const constants = require('../src/pc/common/constants')
 const { performance } = require('perf_hooks')
 const expect = require('expect').default
 
-const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
-const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
+const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18', '1.19']
+const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18', '1.19']
 
 versions.forEach((version) => describe(`Chunk implementation for minecraft ${version}`, () => {
   const registry = require('prismarine-registry')(version)
@@ -21,18 +21,19 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
 
   const isPostFlattening = version.startsWith('1.13') || version.startsWith('1.14') ||
     version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17') ||
-    version.startsWith('1.18')
+    version.startsWith('1.18') || version.startsWith('1.19')
 
   const serializesLightingDataSeparately = version.startsWith('1.14') || version.startsWith('1.15') ||
-    version.startsWith('1.16') || version.startsWith('1.17') || version.startsWith('1.18')
+    version.startsWith('1.16') || version.startsWith('1.17') || version.startsWith('1.18') ||
+    version.startsWith('1.19')
 
-  const newLightingDataFormat = version.startsWith('1.17') || version.startsWith('1.18')
+  const newLightingDataFormat = version.startsWith('1.17') || version.startsWith('1.18') || version.startsWith('1.19')
 
   const serializesBiomesSeparately = version.startsWith('1.15') || version.startsWith('1.16') ||
     version.startsWith('1.17')
 
-  const unifiedPaletteFormat = version.startsWith('1.18')
-  const tallWorld = version.startsWith('1.18')
+  const unifiedPaletteFormat = version.startsWith('1.18') || version.startsWith('1.19')
+  const tallWorld = version.startsWith('1.18') || version.startsWith('1.19')
   const chunkOptions = {
     minY: tallWorld ? -64 : 0,
     worldHeight: tallWorld ? 384 : 256
@@ -291,7 +292,7 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
           Object.keys(thresholds).some(name => histogram[name] > thresholds[name]),
           Object.keys(thresholds).map(name => `${name} ${histogram[name]} <= ${thresholds[name]}`).join(' && '))
         if (!chunkDump.includes('end') && !chunkDump.includes('nether')) {
-          checkBlockKind('stone', 0.1)
+          checkBlockKind('stone', 0.01)
           checkBlockKindSome({ dirt: 0.001, granite: 0.001, lava: 0.001 })
           checkBlockKindSome({ coal_ore: 0.0001, iron_ore: 0.0001, diamond_ore: 0.0001 })
         }
