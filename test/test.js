@@ -292,7 +292,7 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
           Object.keys(thresholds).some(name => histogram[name] > thresholds[name]),
           Object.keys(thresholds).map(name => `${name} ${histogram[name]} <= ${thresholds[name]}`).join(' && '))
         if (!chunkDump.includes('end') && !chunkDump.includes('nether')) {
-          checkBlockKind('stone', 0.1)
+          checkBlockKind('stone', 0.01)
           checkBlockKindSome({ dirt: 0.001, granite: 0.001, lava: 0.001 })
           checkBlockKindSome({ coal_ore: 0.0001, iron_ore: 0.0001, diamond_ore: 0.0001 })
         }
