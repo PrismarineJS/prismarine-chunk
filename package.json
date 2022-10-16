@@ -45,6 +45,7 @@
   "dependencies": {
     "prismarine-biome": "^1.2.0",
     "prismarine-block": "^1.14.1",
+    "prismarine-nbt": "^2.2.1",
     "prismarine-registry": "^1.1.0",
     "smart-buffer": "^4.1.0",
     "uint4": "^0.1.2",
