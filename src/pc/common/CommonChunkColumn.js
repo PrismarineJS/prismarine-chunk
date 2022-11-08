@@ -61,9 +61,19 @@ class CommonChunkColumn {
     delete this.blockEntities[posKey(pos)]
   }
 
+  loadBlockEntity (entity) {
+  this.setBlockEntity({ x: entity.x.value >> 4, y: entity.y.value, z: entity.z.value >> 4 }, entity)
+  }
+
+  loadNBTBlockEntities (entities) {
+    for (const nbt of entities) {
+      this.loadBlockEntity(nbt.value);
+    }
+  }
+
   loadBlockEntities (entities) {
     for (const entity of entities) {
-      this.setBlockEntity({ x: entity.x.value >> 4, y: entity.y.value, z: entity.z.value >> 4 }, entity)
+      this.loadBlockEntity(entity);
     }
   }
 }
