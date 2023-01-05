@@ -2,7 +2,7 @@ import { Biome } from "prismarine-biome"
 import { Block } from "prismarine-block"
 import { Vec3 } from "vec3"
 import { NBT } from "prismarine-nbt"
-import Registry from 'prismarine-registry'
+import { Registry } from 'prismarine-registry'
 import Section from "./section"
 
 declare class CommonChunk {
@@ -220,4 +220,4 @@ export const enum BlobType {
   Biomes = 1,
 }
 
-export default function loader(mcVersionOrRegistry: string | ReturnType<typeof Registry>): typeof PCChunk | typeof BedrockChunk
+export default function loader(mcVersionOrRegistry: string | Registry): typeof PCChunk | typeof BedrockChunk

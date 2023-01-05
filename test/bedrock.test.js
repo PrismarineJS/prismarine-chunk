@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 const fs = require('fs')
 const { join } = require('path')
-const versions = ['bedrock_1.16.220', 'bedrock_1.17.10', 'bedrock_1.18.0']
+const versions = ['bedrock_1.16.220', 'bedrock_1.17.10', 'bedrock_1.18.0', 'bedrock_1.19.1']
 const assert = require('assert')
 
 const { BlobEntry, BlobType } = require('prismarine-chunk')
@@ -72,26 +72,31 @@ for (const version of versions) {
       const packetSubChunkWithCaching = fixtures.find(f => f.includes('subchunk') && f.includes('cached'))
       const packetSubChunkCacheMissReponse = fixtures.find(f => f.includes('subchunk') && f.includes('CacheMiss'))
 
-      it('can re-encode subchunk packet without caching', async () => {
-        const packet = require(join(__dirname, version, packetSubChunkWithoutCaching))
-        const column = new ChunkColumn({ x: packet.x, z: packet.z })
-        const payload = Buffer.from(packet.data)
-        column.networkDecodeSubChunkNoCache(packet.y, payload)
+      async function processSubChunk (x, y, z, payload) {
+        const column = new ChunkColumn({ x, z })
+        column.networkDecodeSubChunkNoCache(y, payload)
 
-        const encoded = await column.networkEncodeSubChunkNoCache(packet.y)
+        const encoded = await column.networkEncodeSubChunkNoCache(y)
         if (!encoded.equals(payload)) {
           dbdiff(payload, encoded)
           throw new Error('Encoded payload does not match original')
         }
+      }
+
+      it('can re-encode subchunk packet without caching', async () => {
+        const packet = require(join(__dirname, version, packetSubChunkWithoutCaching))
+        if (packet.entries) {
+          for (const entry of packet.entries) {
+            processSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, packet.blob_id, Buffer.from(entry.payload))
+          }
+        } else {
+          processSubChunk(packet.x, packet.y, packet.z, Buffer.from(packet.data))
+        }
       })
 
-      it('can re-encode subchunk packet with caching', async () => {
-        const packet = require(join(__dirname, version, packetSubChunkWithCaching))
-        assert(packet.cache_enabled, "you didn't dump packets correctly")
-
-        const column = new ChunkColumn({ x: packet.x, z: packet.z })
-        const payload = Buffer.from(packet.data)
-        const misses = await column.networkDecodeSubChunk([packet.blob_id], blobStore, payload)
+      async function processCachedSubChunk (x, y, z, blobId, extraData) {
+        const column = new ChunkColumn({ x, z })
+        const misses = await column.networkDecodeSubChunk([blobId], blobStore, extraData)
         assert(misses.length > 0, 'Blob cache should be empty, so networkDecode() should return the missing blob hashes')
 
         const missResponse = require(join(__dirname, version, packetSubChunkCacheMissReponse))
@@ -101,21 +106,34 @@ for (const version of versions) {
         }
 
         // Run this function again, now that all blobs are in the store
-        const nowMissing = await column.networkDecodeSubChunk([packet.blob_id], blobStore)
+        const nowMissing = await column.networkDecodeSubChunk([blobId], blobStore)
         assert(nowMissing.length === 0, 'Blob cache should be full, networkDecode() should return empty missing hashes')
 
         // Try re-encoding the cached packet data, make sure the hashes match
-        const [hash, extraPayload] = await column.networkEncodeSubChunk(packet.y, blobStore)
-        const extraneousBlobs = hash.toString() !== packet.blob_id ? hash : null
+        const [hash, extraPayload] = await column.networkEncodeSubChunk(y, blobStore)
+        const extraneousBlobs = hash.toString() !== blobId ? hash : null
         // console.log('Encoded blobs', hash, extraneousBlobs, 'expected', packet.blob_id)
         if (extraneousBlobs) {
           throw new Error('Encoded payload contains extraneous blobs')
         }
 
-        if (!payload.equals(extraPayload)) {
-          throw new Error('Encoded payload (contianing block entities) did not match original')
+        if (!extraData.equals(extraPayload)) {
+          throw new Error('Encoded payload (containing block entities) did not match original')
         }
         // OK
+      }
+
+      it('can re-encode subchunk packet with caching', async () => {
+        const packet = require(join(__dirname, version, packetSubChunkWithCaching))
+        assert(packet.cache_enabled, "you didn't dump packets correctly")
+
+        if (packet.entries) {
+          for (const entry of packet.entries) {
+            processCachedSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, packet.blob_id, Buffer.from(entry.payload))
+          }
+        } else {
+          processCachedSubChunk(packet.x, packet.y, packet.z, packet.blob_id, Buffer.from(packet.data))
+        }
       })
     }
   })

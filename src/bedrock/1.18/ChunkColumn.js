@@ -137,7 +137,7 @@ class ChunkColumn180 extends ChunkColumn13 {
   async networkDecodeNoCache (buffer, sectionCount) {
     const stream = new Stream(buffer)
 
-    if (sectionCount === -1) { // In 1.18+, with sectionCount as -1 we only get the biomes here
+    if (sectionCount === -1 || sectionCount === -2) { // In 1.18+, with sectionCount as -1/-2 we only get the biomes here
       this.loadBiomes(stream, StorageType.Runtime)
       const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
       if (borderblocks.length) {
