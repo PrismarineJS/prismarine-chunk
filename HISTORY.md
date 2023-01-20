@@ -1,5 +1,8 @@
 ## History
 
+## 1.33.0
+* Bedrock 1.19.1 support, fix pc 1.18 world height from disk
+
 ## 1.32.0
 
 * 1.19 support
