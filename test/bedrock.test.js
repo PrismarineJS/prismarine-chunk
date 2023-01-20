@@ -161,7 +161,7 @@ for (const version of versions) {
       // Make sure palette size is 3
       for (let cy = 0; cy < 4; cy++) {
         for (let l = 0; l < 4; l++) {
-          const subChunk = cc.getSection(cy)
+          const subChunk = cc.getSectionAtIndex(cy)
           // Our blocks we put in + air = 5 states
 
           assert.strictEqual(subChunk.palette[l].length, 5, 'Palette size should be 4 on y=' + cy + ' layer=' + l)

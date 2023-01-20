@@ -28,7 +28,7 @@ for (const version of versions) {
 
       // Make sure palette size is 3
       for (let cy = 0; cy < 4; cy++) {
-        const subChunk = column.getSection(cy)
+        const subChunk = column.getSectionAtIndex(cy)
         assert(subChunk.palette.length === 4, 'Palette size should be 4')
         console.log('Palette length', subChunk.palette.length)
       }
