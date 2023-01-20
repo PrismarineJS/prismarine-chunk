@@ -2,7 +2,7 @@ import { Biome } from "prismarine-biome"
 import { Block } from "prismarine-block"
 import { Vec3 } from "vec3"
 import { NBT } from "prismarine-nbt"
-import Registry from 'prismarine-registry'
+import { Registry } from 'prismarine-registry'
 import Section from "./section"
 
 declare class CommonChunk {
@@ -38,8 +38,8 @@ declare class PCChunk extends CommonChunk {
   setBlockStateId(pos: Vec3, stateId: number): number
   setBlockType(pos: Vec3, id: number): void
   setBlockData(pos: Vec3, data: Buffer): void
-  setBlockLight(pos: Vec3, light: number): Section
-  setSkyLight(pos: Vec3, light: number): Section
+  setBlockLight(pos: Vec3, light: number): void
+  setSkyLight(pos: Vec3, light: number): void
   setBiome(pos: Vec3, biome: number): void
 
   getBiomeColor(pos: Vec3): { r: number; g: number; b: number; }
@@ -51,6 +51,10 @@ declare class PCChunk extends CommonChunk {
   dump(bitMap?: number, skyLightSent?: boolean): Buffer
   load(data: Buffer, bitMap?: number, skyLightSent?: boolean, fullChunk?: boolean): void
   getMask(): number
+
+  getSection(pos: Vec3): Section
+  // Returns chunk at a Y index, adjusted for chunks at negative-Y
+  getSectionAtIndex(chunkY: number): SubChunk
 }
 
 //// Bedrock ////
@@ -196,7 +200,9 @@ declare class BedrockChunk extends CommonChunk {
 
   // 
   // Section management
-  getSection(y: number): SubChunk
+  getSection(pos): SubChunk
+  // Returns chunk at a Y index, adjusted for chunks at negative-Y
+  getSectionAtIndex(chunkY: number): SubChunk
   // Creates a new air section
   newSection(y: number): SubChunk
   // Creates a new section with the given blocks
@@ -220,4 +226,4 @@ export const enum BlobType {
   Biomes = 1,
 }
 
-export default function loader(mcVersionOrRegistry: string | ReturnType<typeof Registry>): typeof PCChunk | typeof BedrockChunk
+export default function loader(mcVersionOrRegistry: string | Registry): typeof PCChunk | typeof BedrockChunk

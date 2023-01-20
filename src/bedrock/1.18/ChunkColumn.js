@@ -11,10 +11,7 @@ const nbt = require('prismarine-nbt')
 
 class ChunkColumn180 extends ChunkColumn13 {
   Section = SubChunk
-  minCY = -4
-  maxCY = 20
-  worldHeight = 384
-  co = Math.abs(this.minCY)
+  bounds = this.setBounds(-4, 20) // World height changed
 
   // BIOMES
 
@@ -134,17 +131,16 @@ class ChunkColumn180 extends ChunkColumn13 {
     }
   }
 
-  async networkDecodeNoCache (buffer, sectionCount) {
-    const stream = new Stream(buffer)
+  networkDecodeNoCache (buffer, sectionCount) {
+    const stream = buffer instanceof Buffer ? new Stream(buffer) : buffer
 
-    if (sectionCount === -1) { // In 1.18+, with sectionCount as -1 we only get the biomes here
+    if (sectionCount === -1 || sectionCount === -2) { // In 1.18+, with sectionCount as -1/-2 we only get the biomes here
       this.loadBiomes(stream, StorageType.Runtime)
       const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
       if (borderblocks.length) {
         throw new Error(`Can't handle border blocks (length: ${borderblocks.length})`)
       }
     } else {
-      console.warn('ChunkColumn.networkDecodeNoCache: sectionCount is not -1, should not happen')
       // Possible some servers may send us a 1.17 chunk with 1.18 server version
       super.networkDecodeNoCache(stream, sectionCount)
     }
@@ -216,7 +212,7 @@ class ChunkColumn180 extends ChunkColumn13 {
   async networkEncodeSubChunkNoCache (y) {
     const tiles = this.getSectionBlockEntities(y)
 
-    const section = this.getSection(y)
+    const section = this.getSectionAtIndex(y)
     const subchunk = await section.encode(StorageType.Runtime, false, this.compactOnSave)
 
     const tileBufs = []
@@ -268,7 +264,7 @@ class ChunkColumn180 extends ChunkColumn13 {
 
   async networkEncodeSubChunk (y, blobStore) {
     const tiles = this.getSectionBlockEntities(y)
-    const section = this.getSection(y)
+    const section = this.getSectionAtIndex(y)
 
     if (section.updated) {
       const terrainBuffer = await section.encode(StorageType.Runtime, true, this.compactOnSave) // note Runtime, not NetworkPersistence

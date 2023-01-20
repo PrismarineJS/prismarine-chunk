@@ -206,7 +206,7 @@ class SubChunk {
     } else {
       const layer1 = this.getBlockStateId(0, x, y, z)
       const layer2 = this.getBlockStateId(1, x, y, z)
-      const block = this.Block.fromStateId(layer1)
+      const block = this.Block.fromStateId(layer1, biomeId)
       if (layer2) {
         block.superimposed = this.Block.fromStateId(layer2, biomeId)
         const name = block.superimposed.name

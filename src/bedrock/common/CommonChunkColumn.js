@@ -6,11 +6,6 @@ const keyFromLocalPos = pos => `${pos.x},${pos.y},${pos.z}`
 const keyFromGlobalPos = (x, y, z) => `${x & 0xf},${y},${z & 0xf}`
 
 class CommonChunkColumn {
-  minCY = 0
-  maxCY = 16
-  worldHeight = 256
-  co = 0
-
   constructor (options, registry) {
     this.x = options.x || 0
     this.z = options.z || 0
@@ -21,6 +16,16 @@ class CommonChunkColumn {
     this.entities = {}
     // TODO: this can be defaulted to true
     this.compactOnSave = false
+    this.setBounds(0, 16)
+  }
+
+  setBounds (minCY, maxCY) {
+    this.minCY = minCY
+    this.maxCY = maxCY
+    this.maxY = this.maxCY * 16
+    this.minY = this.minCY * 16
+    this.worldHeight = this.maxY + Math.abs(this.minY)
+    this.co = Math.abs(this.minCY)
   }
 
   initialize (func) {
@@ -155,7 +160,11 @@ class CommonChunkColumn {
 
   // Section management
 
-  getSection (y) {
+  getSection ({ y }) {
+    return this.sections[this.co + (y >> 4)]
+  }
+
+  getSectionAtIndex (y) {
     return this.sections[this.co + y]
   }
 

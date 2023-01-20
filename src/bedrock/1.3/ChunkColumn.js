@@ -10,9 +10,10 @@ const { getChecksum } = require('../common/util')
 class ChunkColumn13 extends CommonChunkColumn {
   Section = SubChunk
 
-  constructor (options = {}, registry, Block) {
+  constructor (options = {}, registry, Block, Biome) {
     super(options, registry)
     this.Block = Block
+    this.Biome = Biome
     this.biomes = []
     this.sections = []
     this.biomesUpdated = true
@@ -170,8 +171,8 @@ class ChunkColumn13 extends CommonChunkColumn {
     }
   }
 
-  async networkDecodeNoCache (buffer, sectionCount) {
-    const stream = new Stream(buffer)
+  networkDecodeNoCache (buffer, sectionCount) {
+    const stream = buffer instanceof Buffer ? new Stream(buffer) : buffer
 
     if (sectionCount === -1) { // In 1.18+, with sectionCount as -1 we only get the biomes here
       throw new RangeError('-1 section count not supported below 1.18')
@@ -196,7 +197,7 @@ class ChunkColumn13 extends CommonChunkColumn {
 
     let startOffset = stream.readOffset
     while (stream.peek() === 0x0A) {
-      const { data, metadata } = nbt.protos.littleVarint.parsePacketBuffer('nbt', buffer, startOffset)
+      const { data, metadata } = nbt.protos.littleVarint.parsePacketBuffer('nbt', stream.buffer, startOffset)
       stream.readOffset += metadata.size
       startOffset += metadata.size
       this.addBlockEntity(data)

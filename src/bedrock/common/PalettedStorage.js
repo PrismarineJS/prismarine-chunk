@@ -1,5 +1,6 @@
 const wordByteSize = 4
 const wordBitSize = wordByteSize * 8
+const storageSize = 4096 // 4096 -> total # of entities (e.g. blocks) in storage, 16^3
 
 class BetterUint32Array extends Uint32Array {
   toJSON () {
@@ -15,7 +16,7 @@ class PalettedStorage {
   constructor (bitsPerBlock) {
     this.bitsPerBlock = bitsPerBlock
     this.blocksPerWord = Math.floor(wordBitSize / bitsPerBlock)
-    this.wordsCount = Math.ceil(4096 / this.blocksPerWord)
+    this.wordsCount = Math.ceil(storageSize / this.blocksPerWord)
     this.mask = ((1 << bitsPerBlock) - 1)
     this.array = new BetterUint32Array(this.wordsCount)
   }
@@ -85,19 +86,19 @@ class PalettedStorage {
   }
 
   forEach (callback) {
-    for (let i = 0; i < this.wordsCount; i++) {
-      for (let j = 0; j < this.blocksPerWord; j++) {
-        callback(this.readBits(i, j * this.bitsPerBlock))
-      }
+    for (let i = 0; i < storageSize; i++) {
+      const index = Math.floor(i / this.blocksPerWord)
+      const offset = (i % this.blocksPerWord) * this.bitsPerBlock
+      callback(this.readBits(index, offset))
     }
   }
 
   incrementPalette (palette) {
-    for (let i = 0; i < this.wordsCount; i++) {
-      for (let j = 0; j < this.blocksPerWord; j++) {
-        const ix = this.readBits(i, j * this.bitsPerBlock)
-        palette[ix].count++
-      }
+    for (let i = 0; i < storageSize; i++) {
+      const index = Math.floor(i / this.blocksPerWord)
+      const offset = (i % this.blocksPerWord) * this.bitsPerBlock
+      const ix = this.readBits(index, offset)
+      palette[ix].count++
     }
   }
 }

@@ -302,18 +302,18 @@ module.exports = (Block, mcData) => {
 
     // Loads an disk serialized chunk
     loadSection (y, blockStates, biomes, blockLight, skyLight) {
-      const minCY = this.minY >> 4
+      const minCY = Math.abs(this.minY >> 4)
       const raiseUnknownBlock = block => { throw new Error(`Failed to map ${JSON.stringify(block)} to a block state ID`) }
       // TOOD: we should probably not fail, but because we use numerical biome IDs in pchunk we need to fail
       const raiseUnknownBiome = biome => { throw new Error(`Failed to map ${JSON.stringify(biome)} to a biome ID`) }
-      this.sections[y - minCY] = ChunkSection.fromLocalPalette({
+      this.sections[y + minCY] = ChunkSection.fromLocalPalette({
         data: BitArray.fromLongArray(blockStates.data || {}, blockStates.bitsPerBlock),
         palette: blockStates.palette
           .map(e => Block.fromProperties(e.Name.replace('minecraft:', ''), e.Properties || {}) ?? raiseUnknownBlock(e))
           .map(e => e.stateId)
       })
 
-      this.biomes[y - minCY] = BiomeSection.fromLocalPalette({
+      this.biomes[y + minCY] = BiomeSection.fromLocalPalette({
         data: BitArray.fromLongArray(biomes.data || {}, biomes.bitsPerBiome),
         palette: biomes.palette
           .map(e => mcData.biomesByName[e.replace('minecraft:', '')] ?? raiseUnknownBiome(e))
