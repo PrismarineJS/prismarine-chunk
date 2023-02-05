@@ -110,7 +110,7 @@ module.exports = (registry) => {
     }
 
     getSkyLight (pos) {
-      if (!this.skyLightSent) return 0
+      if (!this.skyLightSent) return undefined
       const section = this._getSection(pos)
       return section ? section.getSkyLight(posInSection(pos)) : 15
     }
