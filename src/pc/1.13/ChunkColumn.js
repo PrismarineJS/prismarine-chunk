@@ -74,7 +74,7 @@ module.exports = (Block, mcData) => {
       if (typeof block.biome !== 'undefined') {
         this.setBiome(pos, block.biome.id)
       }
-      if (typeof block.skyLight !== 'undefined') {
+      if (typeof block.skyLight !== 'undefined' && this.skyLightSent) {
         this.setSkyLight(pos, block.skyLight)
       }
       if (typeof block.light !== 'undefined') {
