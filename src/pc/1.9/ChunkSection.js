@@ -151,7 +151,7 @@ class ChunkSection {
   }
 
   getSkyLight (pos) {
-    return this.skyLight ? this.skyLight.get(getBlockIndex(pos)) : 0
+    return this.skyLight ? this.skyLight.get(getBlockIndex(pos)) : undefined
   }
 
   setBlockLight (pos, light) {
