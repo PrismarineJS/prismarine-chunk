@@ -103,7 +103,7 @@ Get the block light at `pos`
 
 #### Chunk.getSkyLight(pos)
 
-Get the block sky light at `pos`
+Get the block sky light at `pos`. Undefined when world does not have skylight (nether or end in Vanilla)
 
 #### Chunk.getBiome(pos)
 
@@ -223,7 +223,7 @@ See [index.d.ts](https://github.com/PrismarineJS/prismarine-chunk/blob/master/ty
 #### getBlockType(pos: Vec3): number
 #### getBlockData(pos: Vec3): number
 #### getBlockLight(pos: Vec3): number
-#### getSkyLight(pos: Vec3): number
+#### getSkyLight(pos: Vec3): number | undefined
 #### setBlockStateId(pos: Vec3, stateId: number): void
 #### setBlockType(pos: Vec3, id: number): void
 #### setBlockData(pos: Vec3, data: Buffer): void
