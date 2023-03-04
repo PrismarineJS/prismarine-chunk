@@ -67,7 +67,7 @@ module.exports = (Block, mcData) => {
       if (exists(block.type)) { this.setBlockType(pos, block.type) }
       if (exists(block.metadata)) { this.setBlockData(pos, block.metadata) }
       if (exists(block.biome)) { this.setBiome(pos, block.biome.id) }
-      if (exists(block.skyLight)) { this.setSkyLight(pos, block.skyLight) }
+      if (exists(block.skyLight) && this.skyLightSent) { this.setSkyLight(pos, block.skyLight) }
       if (exists(block.light)) { this.setBlockLight(pos, block.light) }
       if (block.entity) {
         this.setBlockEntity(pos, block.entity)
