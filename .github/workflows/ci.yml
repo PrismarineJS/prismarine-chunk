@@ -22,6 +22,4 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm install
-    - name: TEMP 
-      run: cd node_modules/minecraft-data/ && rm -fr minecraft-data && git clone https://github.com/PondWader/minecraft-data && node ./bin/generate_data.js
     - run: npm test
