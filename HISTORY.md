@@ -1,5 +1,9 @@
 ## History
 
+## 1.34.0
+
+* 1.20 support
+
 ## 1.33.1
 * Fix attempting to set skylight in chunks with no skylight
 
