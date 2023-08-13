@@ -4,6 +4,8 @@ const { getChecksum } = require('../common/util')
 const neededBits = require('../../pc/common/neededBits')
 const Stream = require('../common/Stream')
 const nbt = require('prismarine-nbt')
+const legacyBlockIdMap = Object.entries(require('./block_legacy_id_map.json'))
+  .reduce((obj, [key, value]) => ({ ...obj, [value]: key }), {})
 
 class SubChunk {
   constructor (registry, Block, options = {}) {
@@ -47,6 +49,28 @@ class SubChunk {
     let storageCount = 1
 
     switch (this.subChunkVersion) {
+      case 0: {
+        const blockIds = stream.readBuffer(4096)
+        const metas = stream.readBuffer(2048)
+
+        for (let x = 0; x < 16; x++) {
+          for (let y = 0; y < 16; y++) {
+            for (let z = 0; z < 16; z++) {
+              const index = (x << 8) + (z << 4) + y
+              const id = blockIds[index]
+              const meta = metas[index >> 1] >> (index & 1) * 4 & 15
+              const block = this.Block.fromProperties(legacyBlockIdMap[id].replace('minecraft:', ''), {}, 0)
+              if (meta > 0) {
+                const b = this.registry.blocksByStateId[block.stateId]
+                block.stateId = Math.min(b.minStateId + meta, b.maxStateId)
+              }
+              this.setBlock(undefined, x, y, z, block)
+            }
+          }
+        }
+        this.subChunkVersion = 8
+        return
+      }
       case 1:
         // This is a old SubChunk format that only has one layer - no need to read storage count
         // But when re-encoding, we want to use v8 to not loose data
