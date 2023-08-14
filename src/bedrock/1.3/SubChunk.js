@@ -59,10 +59,10 @@ class SubChunk {
               const index = (x << 8) + (z << 4) + y
               const id = blockIds[index]
               const meta = metas[index >> 1] >> (index & 1) * 4 & 15
-              const block = this.Block.fromProperties(legacyBlockIdMap[id].replace('minecraft:', ''), {}, 0)
+              let block = this.Block.fromProperties(legacyBlockIdMap[id].replace('minecraft:', ''), {}, 0)
               if (meta > 0) {
                 const b = this.registry.blocksByStateId[block.stateId]
-                block.stateId = Math.min(b.minStateId + meta, b.maxStateId)
+                block = this.Block.fromStateId(Math.min(b.minStateId + meta, b.maxStateId), 0)
               }
               this.setBlock(undefined, x, y, z, block)
             }
