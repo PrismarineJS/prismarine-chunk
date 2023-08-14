@@ -4,8 +4,7 @@ const { getChecksum } = require('../common/util')
 const neededBits = require('../../pc/common/neededBits')
 const Stream = require('../common/Stream')
 const nbt = require('prismarine-nbt')
-const legacyBlockIdMap = Object.entries(require('./block_legacy_id_map.json'))
-  .reduce((obj, [key, value]) => ({ ...obj, [value]: key }), {})
+const legacyBlockIdMap = require('./legacy.json').blocks
 
 class SubChunk {
   constructor (registry, Block, options = {}) {
@@ -59,12 +58,20 @@ class SubChunk {
               const index = (x << 8) + (z << 4) + y
               const id = blockIds[index]
               const meta = metas[index >> 1] >> (index & 1) * 4 & 15
-              let block = this.Block.fromProperties(legacyBlockIdMap[id].replace('minecraft:', ''), {}, 0)
-              if (meta > 0) {
-                const b = this.registry.blocksByStateId[block.stateId]
-                block = this.Block.fromStateId(Math.min(b.minStateId + meta, b.maxStateId), 0)
+
+              const str = legacyBlockIdMap[`${id}:${meta}`].substring(10)
+              const name = str.split('[', 1)[0]
+              let propertiesArr = []
+              if (str.slice(name.length + 1, -1) !== '') {
+                propertiesArr = str.slice(name.length + 1, -1).split(',')
               }
-              this.setBlock(undefined, x, y, z, block)
+              const properties = Object.fromEntries(propertiesArr.map(property => {
+                const [key, value] = property.split('=')
+                const intValue = parseInt(value)
+                return [key, isNaN(intValue) ? { true: 1, false: 0 }[value] ?? value : intValue]
+              }))
+              const b = this.Block.fromProperties(name, properties, 0)
+              this.setBlock(undefined, x, y, z, b)
             }
           }
         }
