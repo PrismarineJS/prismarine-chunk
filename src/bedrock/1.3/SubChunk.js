@@ -13,6 +13,20 @@ class SubChunk {
       throw new Error('registry is required')
     }
     this.Block = Block
+    this.legacyBlockIdToNewStateId = Object.fromEntries(Object.entries(legacyBlockIdMap).map(([k, v]) => [k, ((str) => {
+      str = str.substring(10)
+      const name = str.split('[', 1)[0]
+      let propertiesArr = []
+      if (str.slice(name.length + 1, -1) !== '') {
+        propertiesArr = str.slice(name.length + 1, -1).split(',')
+      }
+      const properties = Object.fromEntries(propertiesArr.map(property => {
+        const [key, value] = property.split('=')
+        const intValue = parseInt(value)
+        return [key, isNaN(intValue) ? { true: 1, false: 0 }[value] ?? value : intValue]
+      }))
+      return this.Block.fromProperties(name, properties, 0).stateId
+    })(v)]))
     this.y = options.y
     this.palette = options.palette || []
     this.blocks = []
@@ -59,19 +73,10 @@ class SubChunk {
               const id = blockIds[index]
               const meta = metas[index >> 1] >> (index & 1) * 4 & 15
 
-              const str = legacyBlockIdMap[`${id}:${meta}`].substring(10)
-              const name = str.split('[', 1)[0]
-              let propertiesArr = []
-              if (str.slice(name.length + 1, -1) !== '') {
-                propertiesArr = str.slice(name.length + 1, -1).split(',')
-              }
-              const properties = Object.fromEntries(propertiesArr.map(property => {
-                const [key, value] = property.split('=')
-                const intValue = parseInt(value)
-                return [key, isNaN(intValue) ? { true: 1, false: 0 }[value] ?? value : intValue]
-              }))
-              const b = this.Block.fromProperties(name, properties, 0)
-              this.setBlock(undefined, x, y, z, b)
+              const stateId = this.legacyBlockIdToNewStateId[id + ':' + meta] ??
+                this.legacyBlockIdToNewStateId[id + ':0'] ??
+                this.legacyBlockIdToNewStateId['248:0'] // minecraft:info_update
+              this.setBlockStateId(0, x, y, z, stateId)
             }
           }
         }
