@@ -16,6 +16,9 @@ class SubChunk {
     this.legacyBlockIdToNewStateId = Object.fromEntries(Object.entries(legacyBlockIdMap).map(([k, v]) => [k, ((str) => {
       str = str.substring(10)
       const name = str.split('[', 1)[0]
+      if (!registry.blocksByName[name]) {
+        return null
+      }
       let propertiesArr = []
       if (str.slice(name.length + 1, -1) !== '') {
         propertiesArr = str.slice(name.length + 1, -1).split(',')
@@ -25,7 +28,7 @@ class SubChunk {
         const intValue = parseInt(value)
         return [key, isNaN(intValue) ? { true: 1, false: 0 }[value] ?? value : intValue]
       }))
-      return this.Block.fromProperties(name, properties, 0).stateId
+      return this.Block.fromProperties(name, properties, 0)?.stateId
     })(v)]))
     this.y = options.y
     this.palette = options.palette || []
