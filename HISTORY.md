@@ -1,5 +1,12 @@
 ## History
 
+## 1.34.0
+
+* 1.20 support
+
+## 1.33.1
+* Fix attempting to set skylight in chunks with no skylight
+
 ## 1.33.0
 * Bedrock 1.19.1 support, fix pc 1.18 world height from disk
 

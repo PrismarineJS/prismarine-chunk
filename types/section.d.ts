@@ -6,6 +6,9 @@ declare class Section {
     static sectionSize(skyLightSent?: boolean): number;
     constructor(skyLightSent?: boolean);
     data: Buffer;
+    palette: number[];
+    isDirty: boolean;
+    solidBlockCount: number;
     toJson(): {
         type: "Buffer";
         data: number[];
@@ -21,14 +24,18 @@ declare class Section {
     getBlockType(pos: Vec3): number;
     getBlockData(pos: Vec3): number;
     getBlockLight(pos: Vec3): number;
+    getBlock(pos: number): number;
     getSkyLight(pos: Vec3): number;
     setBlockStateId(pos: Vec3, stateId: number): void;
     setBlockType(pos: Vec3, id: number): void;
     setBlockData(pos: Vec3, data: Buffer): void;
     setBlockLight(pos: Vec3, light: number): void;
+    setBlock(pos: number, stateId: number): void;
     setSkyLight(pos: Vec3, light: number): void;
     dump(): Buffer;
     load(data: Buffer, skyLightSent?: boolean): void;
+    isEmpty(): boolean;
+    write(smartBuffer: any): void;
 }
 declare namespace Section {
     export { w };

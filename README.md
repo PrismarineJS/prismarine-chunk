@@ -8,7 +8,7 @@
 
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/PrismarineJS/prismarine-chunk)
 
-A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10, 1.11, 1.12, 1.13, 1.14, 1.15 and 1.16 and Bedrock Edition 0.14 and 1.0, 1.16, 1.17, 1.18 and 1.19.1
+A class to hold chunk data for Minecraft: PC 1.8, 1.9, 1.10, 1.11, 1.12, 1.13, 1.14, 1.15 and 1.16 and Bedrock Edition 0.14 and 1.0, 1.16, 1.17, 1.18, 1.19 and 1.20
 
 ## Usage
 
@@ -39,7 +39,7 @@ Test data can be generated with [minecraftChunkDumper](https://github.com/Prisma
 
 Install it globally with `npm install minecraft-chunk-dumper -g` then run :
 
-`minecraftChunkDumper saveChunks 1.19 "1_19" 10`
+`minecraftChunkDumper saveChunks 1.20 "1_20" 10`
 
 ### bedrock
 
