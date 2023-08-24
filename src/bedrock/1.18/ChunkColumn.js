@@ -134,15 +134,28 @@ class ChunkColumn180 extends ChunkColumn13 {
   networkDecodeNoCache (buffer, sectionCount) {
     const stream = buffer instanceof Buffer ? new Stream(buffer) : buffer
 
-    if (sectionCount === -1 || sectionCount === -2) { // In 1.18+, with sectionCount as -1/-2 we only get the biomes here
-      this.loadBiomes(stream, StorageType.Runtime)
-      const borderblocks = stream.readBuffer(stream.readZigZagVarInt())
-      if (borderblocks.length) {
-        throw new Error(`Can't handle border blocks (length: ${borderblocks.length})`)
+    if (sectionCount !== -1 && sectionCount !== -2) { // In 1.18+, with sectionCount as -1/-2 we only get the biomes here
+      this.sections = []
+      for (let i = 0; i < sectionCount; i++) {
+        // in 1.17.30+, chunk index is sent in payload
+        const section = new SubChunk(this.registry, this.Block, { y: i, subChunkVersion: this.subChunkVersion })
+        section.decode(StorageType.Runtime, stream)
+        this.setSection(i, section)
       }
-    } else {
-      // Possible some servers may send us a 1.17 chunk with 1.18 server version
-      super.networkDecodeNoCache(stream, sectionCount)
+    }
+
+    this.loadBiomes(stream, StorageType.Runtime)
+    const borderBlocks = stream.readBuffer(stream.readZigZagVarInt())
+    if (borderBlocks.length) {
+      throw new Error(`Can't handle border blocks (length: ${borderBlocks.length})`)
+    }
+
+    let startOffset = stream.readOffset
+    while (stream.peek() === 0x0A) {
+      const { data, metadata } = nbt.protos.littleVarint.parsePacketBuffer('nbt', stream.buffer, startOffset)
+      stream.readOffset += metadata.size
+      startOffset += metadata.size
+      this.addBlockEntity(data)
     }
   }
 
