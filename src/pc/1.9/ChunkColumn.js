@@ -20,7 +20,7 @@ module.exports = (Block, mcData) => {
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
       ).fill(1)
-      this.maxBitsPerBlock = neededBits(mcData.blocks.reduce((high, block) => Math.max(high, block.maxStateId), 0))
+      this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
     }
 
     toJson () {

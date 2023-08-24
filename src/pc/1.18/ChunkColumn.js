@@ -15,8 +15,8 @@ module.exports = (Block, mcData) => {
       this.minY = options?.minY ?? 0
       this.worldHeight = options?.worldHeight ?? constants.CHUNK_HEIGHT
       this.numSections = this.worldHeight >> 4
-      this.maxBitsPerBlock = neededBits(mcData.blocks.reduce((high, block) => Math.max(high, block.maxStateId), 0))
-      this.maxBitsPerBiome = neededBits(mcData.biomes.length)
+      this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
+      this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
 
       this.sections = options?.sections ?? Array.from(
         { length: this.numSections }, _ => new ChunkSection()

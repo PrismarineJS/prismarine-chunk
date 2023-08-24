@@ -19,7 +19,7 @@ module.exports = (Block, mcData) => {
       this.blockLightMask = 0
       this.skyLightSections = Array(constants.NUM_SECTIONS + 2).fill(null)
       this.blockLightSections = Array(constants.NUM_SECTIONS + 2).fill(null)
-      this.maxBitsPerBlock = neededBits(mcData.blocks.reduce((high, block) => Math.max(high, block.maxStateId), 0))
+      this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
     }
 
     toJson () {
