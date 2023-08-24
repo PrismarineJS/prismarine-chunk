@@ -181,6 +181,7 @@ class ChunkSection {
     varInt.write(smartBuffer, this.data.length())
 
     // write block data
+    varInt.write(smartBuffer, this.data.length())
     this.data.writeBuffer(smartBuffer)
 
     // write block light data

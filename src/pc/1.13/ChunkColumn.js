@@ -240,7 +240,7 @@ module.exports = (Block, mcData) => {
         const dataArray = new BitArray({
           bitsPerValue: bitsPerBlock > constants.MAX_BITS_PER_BLOCK ? this.maxBitsPerBlock : bitsPerBlock,
           capacity: 4096
-        }).readBuffer(reader)
+        }).readBuffer(reader, varInt.read(reader) * 2)
 
         const blockLight = new BitArray({
           bitsPerValue: 4,

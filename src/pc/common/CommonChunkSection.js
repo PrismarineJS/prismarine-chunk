@@ -145,10 +145,8 @@ module.exports = BitArray => {
         })
       }
 
-      // write the number of longs to be written
-      varInt.write(smartBuffer, this.data.length())
-
       // write block data
+      varInt.write(smartBuffer, this.data.length())
       this.data.writeBuffer(smartBuffer)
     }
   }
