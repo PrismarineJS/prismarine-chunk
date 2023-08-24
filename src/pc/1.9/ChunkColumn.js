@@ -4,6 +4,7 @@ const constants = require('../common/constants')
 const BitArray = require('../common/BitArray')
 const varInt = require('../common/varInt')
 const CommonChunkColumn = require('../common/CommonChunkColumn')
+const neededBits = require('../common/neededBits')
 
 const exists = val => val !== undefined
 
@@ -19,6 +20,7 @@ module.exports = (Block, mcData) => {
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
       ).fill(1)
+      this.maxBitsPerBlock = neededBits(mcData.blocks.reduce((high, block) => Math.max(high, block.maxStateId), 0))
     }
 
     toJson () {
@@ -221,9 +223,8 @@ module.exports = (Block, mcData) => {
         }
 
         // number of items in data array
-        const numLongs = varInt.read(reader)
         const dataArray = new BitArray({
-          bitsPerValue: Math.ceil((numLongs * 64) / 4096),
+          bitsPerValue: bitsPerBlock > constants.MAX_BITS_PER_BLOCK ? this.maxBitsPerBlock : bitsPerBlock,
           capacity: 4096
         }).readBuffer(reader)
 

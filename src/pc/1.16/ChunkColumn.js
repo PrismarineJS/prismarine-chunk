@@ -4,6 +4,7 @@ const ChunkSection = require('../common/CommonChunkSection')(BitArray)
 const CommonChunkColumn = require('../common/CommonChunkColumn')
 const constants = require('../common/constants')
 const varInt = require('../common/varInt')
+const neededBits = require('../common/neededBits')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
@@ -18,6 +19,7 @@ module.exports = (Block, mcData) => {
       this.blockLightMask = 0
       this.skyLightSections = Array(constants.NUM_SECTIONS + 2).fill(null)
       this.blockLightSections = Array(constants.NUM_SECTIONS + 2).fill(null)
+      this.maxBitsPerBlock = neededBits(mcData.blocks.reduce((high, block) => Math.max(high, block.maxStateId), 0))
     }
 
     toJson () {
@@ -254,9 +256,8 @@ module.exports = (Block, mcData) => {
         }
 
         // number of items in data array
-        varInt.read(reader) // numLongs
         const dataArray = new BitArray({
-          bitsPerValue: bitsPerBlock,
+          bitsPerValue: bitsPerBlock > constants.MAX_BITS_PER_BLOCK ? this.maxBitsPerBlock : bitsPerBlock,
           capacity: 4096
         }).readBuffer(reader)
 

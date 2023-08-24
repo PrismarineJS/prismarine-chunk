@@ -90,7 +90,7 @@ class ChunkSection {
     })
   }
 
-  static read (smartBuffer) {
+  static read (smartBuffer, maxBitsPerBlock = 15) {
     const solidBlockCount = smartBuffer.readInt16BE()
     const bitsPerBlock = smartBuffer.readUInt8()
     if (!bitsPerBlock) {
@@ -103,11 +103,10 @@ class ChunkSection {
     }
 
     if (bitsPerBlock > constants.MAX_BITS_PER_BLOCK) {
-      varInt.read(smartBuffer)
       return new ChunkSection({
         solidBlockCount,
         data: new DirectPaletteContainer({
-          bitsPerValue: bitsPerBlock,
+          bitsPerValue: maxBitsPerBlock,
           capacity: constants.BLOCK_SECTION_VOLUME
         }).readBuffer(smartBuffer)
       })

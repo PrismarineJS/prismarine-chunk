@@ -1,5 +1,6 @@
 // const assert = require('assert')
 const neededBits = require('./neededBits')
+const varInt = require('./varInt')
 
 class BitArray {
   constructor (options) {
@@ -132,6 +133,9 @@ class BitArray {
   }
 
   readBuffer (smartBuffer) {
+    const size = varInt.read(smartBuffer)
+    if (size !== this.data.length) return
+
     for (let i = 0; i < this.data.length; i += 2) {
       this.data[i + 1] = smartBuffer.readUInt32BE()
       this.data[i] = smartBuffer.readUInt32BE()
