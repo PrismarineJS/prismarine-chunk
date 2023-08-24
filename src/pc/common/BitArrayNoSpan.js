@@ -180,7 +180,10 @@ class BitArray {
 
   readBuffer (smartBuffer) {
     const size = varInt.read(smartBuffer)
-    if (size !== this.data.length) return
+    if (size * 2 !== this.data.length) {
+      this.data = new Uint32Array(size * 2)
+      return
+    }
 
     for (let i = 0; i < this.data.length; i += 2) {
       this.data[i + 1] = smartBuffer.readUInt32BE()
@@ -190,6 +193,7 @@ class BitArray {
   }
 
   writeBuffer (smartBuffer) {
+    varInt.write(smartBuffer, this.data.length / 2);
     for (let i = 0; i < this.data.length; i += 2) {
       smartBuffer.writeUInt32BE(this.data[i + 1])
       smartBuffer.writeUInt32BE(this.data[i])
