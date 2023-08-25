@@ -1,6 +1,5 @@
 // const assert = require('assert')
 const neededBits = require('./neededBits')
-const varInt = require('./varInt')
 
 class BitArray {
   constructor (options) {
