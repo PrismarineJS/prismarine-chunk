@@ -91,7 +91,7 @@ class ChunkSection {
     })
   }
 
-  static read (smartBuffer, maxBitsPerBlock = 15) {
+  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK) {
     const solidBlockCount = smartBuffer.readInt16BE()
     const bitsPerBlock = smartBuffer.readUInt8()
     if (!bitsPerBlock) {

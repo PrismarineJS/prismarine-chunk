@@ -103,7 +103,8 @@ class IndirectPaletteContainer {
   }
 
   readBuffer (smartBuffer) {
-    this.data.readBuffer(smartBuffer, varInt.read(smartBuffer) * 2)
+    const longs = varInt.read(smartBuffer);
+    this.data.readBuffer(smartBuffer, longs * 2)
     return this
   }
 
