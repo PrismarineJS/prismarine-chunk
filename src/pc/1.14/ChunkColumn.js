@@ -152,7 +152,9 @@ module.exports = (Block, mcData) => {
         if (stateId === 0) {
           return
         }
-        section = new ChunkSection()
+        section = new ChunkSection({
+          maxBitsPerBlock: this.maxBitsPerBlock
+        })
         this.sectionMask |= 1 << sectionIndex
         this.sections[sectionIndex] = section
       }
@@ -267,7 +269,8 @@ module.exports = (Block, mcData) => {
         const section = new ChunkSection({
           data: dataArray,
           palette,
-          solidBlockCount
+          solidBlockCount,
+          maxBitsPerBlock: this.maxBitsPerBlock
         })
         this.sections[y] = section
       }
