@@ -180,6 +180,7 @@ class BitArray {
   readBuffer (smartBuffer, size = this.data.length) {
     if (size !== this.data.length) {
       this.data = new Uint32Array(size)
+      smartBuffer.readOffset += size * 4
       return
     }
 
