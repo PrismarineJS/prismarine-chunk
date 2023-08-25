@@ -14,7 +14,7 @@ const expect = require('expect').default
 const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18', '1.19', '1.20']
 const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18', '1.19', '1.20']
 
-versions.filter(version => version === '1.20').forEach((version) => describe(`Chunk implementation for minecraft ${version}`, () => {
+versions.forEach((version) => describe(`Chunk implementation for minecraft ${version}`, () => {
   const registry = require('prismarine-registry')(version)
   const Chunk = chunkLoader(registry)
   const Block = prismarineBlockLoader(registry)
