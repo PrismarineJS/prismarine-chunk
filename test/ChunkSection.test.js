@@ -5,7 +5,7 @@ const ChunkSection = require('../src/pc/1.13/ChunkSection')
 const constants = require('../src/pc/common/constants')
 const assert = require('assert')
 
-describe('ChunkSection', () => {
+describe('pc 1.13 ChunkSection', () => {
   it('insert into middle of palette', () => {
     const section = new ChunkSection()
     section.setBlock(new Vec3(0, 0, 0), 14)
