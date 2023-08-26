@@ -2,6 +2,7 @@ const BitArray = require('../common/BitArray')
 const neededBits = require('../common/neededBits')
 const constants = require('../common/constants')
 const varInt = require('../common/varInt')
+const GLOBAL_BITS_PER_BLOCK = 13
 
 function getBlockIndex (pos) {
   return (pos.y << 8) | (pos.z << 4) | pos.x
@@ -55,6 +56,7 @@ class ChunkSection {
     this.blockLight = options.blockLight
     this.skyLight = options.skyLight
     this.solidBlockCount = options.solidBlockCount
+    this.maxBitsPerBlock = options.maxBitsPerBlock || GLOBAL_BITS_PER_BLOCK
   }
 
   toJson () {
@@ -116,7 +118,7 @@ class ChunkSection {
           } else {
             // switches to the global palette
             const newData = new BitArray({
-              bitsPerValue: constants.GLOBAL_BITS_PER_BLOCK,
+              bitsPerValue: this.maxBitsPerBlock,
               capacity: constants.BLOCK_SECTION_VOLUME
             })
             for (let i = 0; i < constants.BLOCK_SECTION_VOLUME; i++) {
@@ -177,10 +179,8 @@ class ChunkSection {
       })
     }
 
-    // write the number of longs to be written
-    varInt.write(smartBuffer, this.data.length())
-
     // write block data
+    varInt.write(smartBuffer, this.data.length())
     this.data.writeBuffer(smartBuffer)
 
     // write block light data

@@ -56,6 +56,7 @@ class ChunkSection {
     this.blockLight = options.blockLight
     this.skyLight = options.skyLight
     this.solidBlockCount = options.solidBlockCount
+    this.maxBitsPerBlock = options.maxBitsPerBlock || GLOBAL_BITS_PER_BLOCK
   }
 
   toJson () {
@@ -117,7 +118,7 @@ class ChunkSection {
           } else {
             // switches to the global palette
             const newData = new BitArray({
-              bitsPerValue: GLOBAL_BITS_PER_BLOCK,
+              bitsPerValue: this.maxBitsPerBlock,
               capacity: constants.BLOCK_SECTION_VOLUME
             })
             for (let i = 0; i < constants.BLOCK_SECTION_VOLUME; i++) {
@@ -181,10 +182,8 @@ class ChunkSection {
       varInt.write(smartBuffer, 0)
     }
 
-    // write the number of longs to be written
-    varInt.write(smartBuffer, this.data.length())
-
     // write block data
+    varInt.write(smartBuffer, this.data.length())
     this.data.writeBuffer(smartBuffer)
 
     // write block light data

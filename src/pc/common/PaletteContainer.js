@@ -27,7 +27,7 @@ class DirectPaletteContainer {
   }
 
   readBuffer (smartBuffer) {
-    this.data.readBuffer(smartBuffer)
+    this.data.readBuffer(smartBuffer, varInt.read(smartBuffer) * 2)
     return this
   }
 
@@ -41,7 +41,8 @@ class DirectPaletteContainer {
   static fromJson (j) {
     const parsed = JSON.parse(j)
     return new DirectPaletteContainer({
-      data: BitArray.fromJson(parsed.data)
+      data: BitArray.fromJson(parsed.data),
+      bitsPerValue: parsed.bitsPerValue
     })
   }
 }
@@ -55,6 +56,7 @@ class IndirectPaletteContainer {
 
     this.palette = options?.palette ?? [0]
     this.maxBits = options?.maxBits ?? constants.MAX_BITS_PER_BLOCK
+    this.maxBitsPerBlock = options?.maxBitsPerBlock ?? constants.MAX_BITS_PER_BLOCK
   }
 
   get (index) {
@@ -71,7 +73,7 @@ class IndirectPaletteContainer {
         if (bitsPerValue <= this.maxBits) {
           this.data = this.data.resizeTo(bitsPerValue)
         } else {
-          return this.convertToDirect().set(index, value)
+          return this.convertToDirect(this.maxBitsPerBlock).set(index, value)
         }
       }
     }
@@ -101,7 +103,8 @@ class IndirectPaletteContainer {
   }
 
   readBuffer (smartBuffer) {
-    this.data.readBuffer(smartBuffer)
+    const longs = varInt.read(smartBuffer)
+    this.data.readBuffer(smartBuffer, longs * 2)
     return this
   }
 
@@ -130,6 +133,7 @@ class SingleValueContainer {
     this.bitsPerValue = options?.bitsPerValue ?? constants.MIN_BITS_PER_BLOCK
     this.capacity = options?.capacity ?? constants.BLOCK_SECTION_VOLUME
     this.maxBits = options?.maxBits ?? constants.MAX_BITS_PER_BLOCK
+    this.maxBitsPerBlock = options?.maxBitsPerBlock ?? constants.MAX_BITS_PER_BLOCK
   }
 
   get (index) {
@@ -150,7 +154,8 @@ class SingleValueContainer {
       palette: [this.value, value],
       capacity: this.capacity,
       bitsPerValue: this.bitsPerValue,
-      maxBits: this.maxBits
+      maxBits: this.maxBits,
+      maxBitsPerBlock: this.maxBitsPerBlock
     })
   }
 

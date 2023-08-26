@@ -35,10 +35,6 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
 
   const unifiedPaletteFormat = version.startsWith('1.18') || version.startsWith('1.19') || version.startsWith('1.20')
   const tallWorld = version.startsWith('1.18') || version.startsWith('1.19') || version.startsWith('1.20')
-  const chunkOptions = {
-    minY: tallWorld ? -64 : 0,
-    worldHeight: tallWorld ? 384 : 256
-  }
 
   if (version === '1.8') {
     it('Handles {skylightSent: false}', () => {
@@ -229,6 +225,7 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
     const files = fs.readdirSync(folder)
     const chunkFiles = files.filter(file => file.includes('.dump') && !file.includes('light'))
     const dataFiles = files.filter(file => file.includes('.meta') && !file.includes('light'))
+    const worldFiles = files.filter(file => file.includes('.world'))
 
     chunkFiles.forEach(chunkDump => {
       const name = chunkDump.substring(0, chunkDump.length - 5)
@@ -237,6 +234,19 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
       const data = JSON.parse(
         fs.readFileSync(path.join(folder, packetData)).toString()
       )
+      const worldFile = worldFiles.find(worldFile => worldFile.includes(name))
+      const chunkOptions = {
+        minY: tallWorld ? -64 : 0,
+        worldHeight: tallWorld ? 384 : 256
+      }
+      if (worldFile) {
+        const worldData = JSON.parse(
+          fs.readFileSync(path.join(folder, worldFile)).toString()
+        )
+        chunkOptions.minY = worldData.minY
+        chunkOptions.worldHeight = worldData.worldHeight
+      }
+
       data.skylightSent = !packetData.includes('nether') && !packetData.includes('end')
 
       let lightData, lightDump
@@ -262,43 +272,45 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
         }
       })
 
-      it('Loads chunk buffers and histogram looks ok ' + chunkDump, () => {
-        const chunk = new Chunk(chunkOptions)
-        chunk.load(dump, data.bitMap, data.skyLightSent)
-        if (serializesLightingDataSeparately) {
-          if (newLightingDataFormat) {
-            chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
-          } else {
-            chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
-          }
-        }
-
-        const histogram = {}
-        const p = new Vec3(0, chunkOptions.minY, 0)
-        const maxHeight = chunkOptions.worldHeight + chunkOptions.minY
-        let total = 0
-        for (p.y = chunkOptions.minY; p.y < maxHeight; p.y++) {
-          for (p.z = 0; p.z < 16; p.z++) {
-            for (p.x = 0; p.x < 16; p.x++) {
-              const b = chunk.getBlock(p)
-              histogram[b.name] = histogram[b.name] === undefined ? 1 : histogram[b.name] + 1
-              total += 1
+      if (!chunkDump.includes('hypixel')) {
+        it('Loads chunk buffers and histogram looks ok ' + chunkDump, () => {
+          const chunk = new Chunk(chunkOptions)
+          chunk.load(dump, data.bitMap, data.skyLightSent)
+          if (serializesLightingDataSeparately) {
+            if (newLightingDataFormat) {
+              chunk.loadParsedLight(lightData.skyLight, lightData.blockLight, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
+            } else {
+              chunk.loadLight(lightDump, lightData.skyLightMask, lightData.blockLightMask, lightData.emptySkyLightMask, lightData.emptyBlockLightMask)
             }
           }
-        }
-        Object.keys(histogram).forEach(k => { histogram[k] = histogram[k] / total })
-        // console.log(histogram)
-        const checkBlockKind = (name, value) => assert(histogram[name] > value, `${name} ${histogram[name]} <= ${value}`)
-        const checkBlockKindSome = (thresholds) => assert(
-          Object.keys(thresholds).some(name => histogram[name] > thresholds[name]),
-          Object.keys(thresholds).map(name => `${name} ${histogram[name]} <= ${thresholds[name]}`).join(' && '))
-        if (!chunkDump.includes('end') && !chunkDump.includes('nether')) {
-          checkBlockKind('stone', 0.01)
-          checkBlockKindSome({ dirt: 0.001, granite: 0.001, lava: 0.001 })
-          checkBlockKindSome({ coal_ore: 0.0001, iron_ore: 0.0001, diamond_ore: 0.0001 })
-        }
-        checkBlockKind('air', 0.5)
-      })
+
+          const histogram = {}
+          const p = new Vec3(0, chunkOptions.minY, 0)
+          const maxHeight = chunkOptions.worldHeight + chunkOptions.minY
+          let total = 0
+          for (p.y = chunkOptions.minY; p.y < maxHeight; p.y++) {
+            for (p.z = 0; p.z < 16; p.z++) {
+              for (p.x = 0; p.x < 16; p.x++) {
+                const b = chunk.getBlock(p)
+                histogram[b.name] = histogram[b.name] === undefined ? 1 : histogram[b.name] + 1
+                total += 1
+              }
+            }
+          }
+          Object.keys(histogram).forEach(k => { histogram[k] = histogram[k] / total })
+          // console.log(histogram)
+          const checkBlockKind = (name, value) => assert(histogram[name] > value, `${name} ${histogram[name]} <= ${value}`)
+          const checkBlockKindSome = (thresholds) => assert(
+            Object.keys(thresholds).some(name => histogram[name] > thresholds[name]),
+            Object.keys(thresholds).map(name => `${name} ${histogram[name]} <= ${thresholds[name]}`).join(' && '))
+          if (!chunkDump.includes('end') && !chunkDump.includes('nether')) {
+            checkBlockKind('stone', 0.01)
+            checkBlockKindSome({ dirt: 0.001, granite: 0.001, lava: 0.001 })
+            checkBlockKindSome({ coal_ore: 0.0001, iron_ore: 0.0001, diamond_ore: 0.0001 })
+          }
+          checkBlockKind('air', 0.5)
+        })
+      }
 
       it('Correctly cycles through chunks ' + chunkDump, () => {
         const chunk = new Chunk(chunkOptions)
@@ -376,7 +388,7 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
           }
         }
 
-        if (!version.startsWith('1.8')) {
+        if (!version.startsWith('1.8') && !chunkDump.includes('hypixel')) {
           assert(Buffer.compare(dump.slice(0, dump.length - num), buffer) === 0, 'chunk buffers are not equal')
         }
       })

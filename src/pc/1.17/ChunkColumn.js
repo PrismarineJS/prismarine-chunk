@@ -4,6 +4,7 @@ const ChunkSection = require('../common/CommonChunkSection')(BitArray)
 const CommonChunkColumn = require('../common/CommonChunkColumn')
 const constants = require('../common/constants')
 const varInt = require('../common/varInt')
+const neededBits = require('../common/neededBits')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
@@ -14,6 +15,7 @@ module.exports = (Block, mcData) => {
       this.minY = options?.minY ?? 0
       this.worldHeight = options?.worldHeight ?? constants.CHUNK_HEIGHT
       this.numSections = this.worldHeight >> 4
+      this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
 
       this.sectionMask = new BitArray({
         bitsPerValue: 1,
@@ -181,7 +183,7 @@ module.exports = (Block, mcData) => {
         if (stateId === 0) {
           return
         }
-        section = new ChunkSection()
+        section = new ChunkSection({ maxBitsPerBlock: this.maxBitsPerBlock })
         if (sectionIndex > this.sectionMask.capacity) {
           this.sectionMask = this.sectionMask.resize(sectionIndex)
         }
@@ -296,16 +298,16 @@ module.exports = (Block, mcData) => {
         }
 
         // number of items in data array
-        varInt.read(reader) // numLongs
         const dataArray = new BitArray({
-          bitsPerValue: bitsPerBlock,
+          bitsPerValue: bitsPerBlock > constants.MAX_BITS_PER_BLOCK ? this.maxBitsPerBlock : bitsPerBlock,
           capacity: 4096
-        }).readBuffer(reader)
+        }).readBuffer(reader, varInt.read(reader) * 2)
 
         this.sections[y] = new ChunkSection({
           data: dataArray,
           palette,
-          solidBlockCount
+          solidBlockCount,
+          maxBitsPerBlock: this.maxBitsPerBlock
         })
       }
     }
