@@ -35,10 +35,6 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
 
   const unifiedPaletteFormat = version.startsWith('1.18') || version.startsWith('1.19') || version.startsWith('1.20')
   const tallWorld = version.startsWith('1.18') || version.startsWith('1.19') || version.startsWith('1.20')
-  const chunkOptions = {
-    minY: tallWorld ? -64 : 0,
-    worldHeight: tallWorld ? 384 : 256
-  }
 
   if (version === '1.8') {
     it('Handles {skylightSent: false}', () => {
@@ -276,7 +272,7 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
         }
       })
 
-      if(!chunkDump.includes('hypixel')) {
+      if (!chunkDump.includes('hypixel')) {
         it('Loads chunk buffers and histogram looks ok ' + chunkDump, () => {
           const chunk = new Chunk(chunkOptions)
           chunk.load(dump, data.bitMap, data.skyLightSent)
