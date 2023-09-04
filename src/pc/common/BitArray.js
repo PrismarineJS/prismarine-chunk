@@ -131,7 +131,13 @@ class BitArray {
     return this.data.length / 2
   }
 
-  readBuffer (smartBuffer) {
+  readBuffer (smartBuffer, size = this.data.length) {
+    if (size !== this.data.length) {
+      this.data = new Uint32Array(size)
+      this.readOffset = size * 4
+      return
+    }
+
     for (let i = 0; i < this.data.length; i += 2) {
       this.data[i + 1] = smartBuffer.readUInt32BE()
       this.data[i] = smartBuffer.readUInt32BE()

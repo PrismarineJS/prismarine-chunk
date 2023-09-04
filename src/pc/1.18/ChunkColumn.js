@@ -4,6 +4,7 @@ const ChunkSection = require('../common/PaletteChunkSection')
 const BiomeSection = require('../common/PaletteBiome')
 const CommonChunkColumn = require('../common/CommonChunkColumn')
 const constants = require('../common/constants')
+const neededBits = require('../common/neededBits')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
@@ -14,9 +15,11 @@ module.exports = (Block, mcData) => {
       this.minY = options?.minY ?? 0
       this.worldHeight = options?.worldHeight ?? constants.CHUNK_HEIGHT
       this.numSections = this.worldHeight >> 4
+      this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
+      this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
 
       this.sections = options?.sections ?? Array.from(
-        { length: this.numSections }, _ => new ChunkSection()
+        { length: this.numSections }, _ => new ChunkSection({ maxBitsPerBlock: this.maxBitsPerBlock })
       )
       this.biomes = options?.biomes ?? Array.from(
         { length: this.numSections }, _ => new BiomeSection()
@@ -243,8 +246,8 @@ module.exports = (Block, mcData) => {
     load (data) {
       const reader = SmartBuffer.fromBuffer(data)
       for (let i = 0; i < this.numSections; ++i) {
-        this.sections[i] = ChunkSection.read(reader)
-        this.biomes[i] = BiomeSection.read(reader)
+        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock)
+        this.biomes[i] = BiomeSection.read(reader, this.maxBitsPerBiome)
       }
     }
 

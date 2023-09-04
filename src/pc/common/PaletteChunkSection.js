@@ -18,7 +18,8 @@ class ChunkSection {
         value,
         bitsPerValue: constants.MIN_BITS_PER_BLOCK,
         capacity: constants.BLOCK_SECTION_VOLUME,
-        maxBits: constants.MAX_BITS_PER_BLOCK
+        maxBits: constants.MAX_BITS_PER_BLOCK,
+        maxBitsPerBlock: options?.maxBitsPerBlock ?? constants.GLOBAL_BITS_PER_BLOCK
       })
       this.solidBlockCount = value ? constants.BLOCK_SECTION_VOLUME : 0
     } else {
@@ -90,24 +91,24 @@ class ChunkSection {
     })
   }
 
-  static read (smartBuffer) {
+  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK) {
     const solidBlockCount = smartBuffer.readInt16BE()
     const bitsPerBlock = smartBuffer.readUInt8()
     if (!bitsPerBlock) {
       const section = new ChunkSection({
         solidBlockCount,
-        singleValue: varInt.read(smartBuffer)
+        singleValue: varInt.read(smartBuffer),
+        maxBitsPerBlock
       })
       smartBuffer.readUInt8()
       return section
     }
 
     if (bitsPerBlock > constants.MAX_BITS_PER_BLOCK) {
-      varInt.read(smartBuffer)
       return new ChunkSection({
         solidBlockCount,
         data: new DirectPaletteContainer({
-          bitsPerValue: bitsPerBlock,
+          bitsPerValue: maxBitsPerBlock,
           capacity: constants.BLOCK_SECTION_VOLUME
         }).readBuffer(smartBuffer)
       })
@@ -119,13 +120,13 @@ class ChunkSection {
       palette.push(varInt.read(smartBuffer))
     }
 
-    varInt.read(smartBuffer)
     return new ChunkSection({
       solidBlockCount,
       data: new IndirectPaletteContainer({
         bitsPerValue: bitsPerBlock,
         capacity: constants.BLOCK_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BLOCK,
+        maxBitsPerBlock,
         palette
       }).readBuffer(smartBuffer)
     })

@@ -57,7 +57,7 @@ class BiomeSection {
     this.data.write(smartBuffer)
   }
 
-  static read (smartBuffer) {
+  static read (smartBuffer, maxBitsPerBiome = constants.GLOBAL_BITS_PER_BIOME) {
     const bitsPerBlock = smartBuffer.readUInt8()
     if (!bitsPerBlock) {
       const section = new BiomeSection({
@@ -68,10 +68,9 @@ class BiomeSection {
     }
 
     if (bitsPerBlock > constants.MAX_BITS_PER_BIOME) {
-      varInt.read(smartBuffer)
       return new BiomeSection({
         data: new DirectPaletteContainer({
-          bitsPerValue: bitsPerBlock,
+          bitsPerValue: maxBitsPerBiome,
           capacity: constants.BIOME_SECTION_VOLUME
         }).readBuffer(smartBuffer)
       })
@@ -83,7 +82,6 @@ class BiomeSection {
       palette.push(varInt.read(smartBuffer))
     }
 
-    varInt.read(smartBuffer)
     return new BiomeSection({
       data: new IndirectPaletteContainer({
         bitsPerValue: bitsPerBlock,

@@ -4,6 +4,7 @@ const constants = require('../common/constants')
 const BitArray = require('../common/BitArray')
 const varInt = require('../common/varInt')
 const CommonChunkColumn = require('../common/CommonChunkColumn')
+const neededBits = require('../common/neededBits')
 
 const exists = val => val !== undefined
 
@@ -19,6 +20,7 @@ module.exports = (Block, mcData) => {
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
       ).fill(1)
+      this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
     }
 
     toJson () {
@@ -123,7 +125,9 @@ module.exports = (Block, mcData) => {
         if (stateId === 0) {
           return
         }
-        section = new ChunkSection()
+        section = new ChunkSection({
+          maxBitsPerBlock: this.maxBitsPerBlock
+        })
         this.sectionMask |= 1 << sectionIndex
         this.sections[sectionIndex] = section
       }
@@ -221,11 +225,10 @@ module.exports = (Block, mcData) => {
         }
 
         // number of items in data array
-        const numLongs = varInt.read(reader)
         const dataArray = new BitArray({
-          bitsPerValue: Math.ceil((numLongs * 64) / 4096),
+          bitsPerValue: bitsPerBlock > constants.MAX_BITS_PER_BLOCK ? this.maxBitsPerBlock : bitsPerBlock,
           capacity: 4096
-        }).readBuffer(reader)
+        }).readBuffer(reader, varInt.read(reader) * 2)
 
         const blockLight = new BitArray({
           bitsPerValue: 4,
@@ -243,7 +246,8 @@ module.exports = (Block, mcData) => {
           data: dataArray,
           palette,
           blockLight,
-          ...(skyLightSent ? { skyLight } : { skyLight: null })
+          ...(skyLightSent ? { skyLight } : { skyLight: null }),
+          maxBitsPerBlock: this.maxBitsPerBlock
         })
         this.sections[y] = section
       }
