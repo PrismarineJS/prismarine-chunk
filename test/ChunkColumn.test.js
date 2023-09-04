@@ -29,8 +29,6 @@ for (const version of allVersions) {
         for (p.y = 0; p.y < chunkHeight; p.y++) {
           for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
             if (column.getBlock(p).stateId !== stateId) {
-              console.log(p, 'Block A, B', block, column.getBlock(p))
-              console.log(new Block(1, 0, 4))
               throw new Error('id mismatch: expected ' + stateId + ' got ' + column.getBlock(p).stateId)
             }
           }
