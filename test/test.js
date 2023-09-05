@@ -25,11 +25,6 @@ pcVersions.forEach((version) => describe(`Chunk implementation for minecraft ${v
   const tallWorld = registry.supportFeature('tallWorld')
   const unifiedPaletteFormat = tallWorld
 
-  const chunkOptions = {
-    minY: tallWorld ? -64 : 0,
-    worldHeight: tallWorld ? 384 : 256
-  }
-
   if (version === '1.8') {
     it('Handles {skylightSent: false}', () => {
       const chunk = new Chunk()
