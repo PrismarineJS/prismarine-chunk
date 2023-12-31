@@ -9,32 +9,21 @@ const chunkLoader = require('../index')
 const SingleValueContainer = require('../src/pc/common/PaletteContainer').SingleValueContainer
 const constants = require('../src/pc/common/constants')
 const { performance } = require('perf_hooks')
+const { pcVersions, pcCycleTests } = require('./versions')
 const expect = require('expect').default
 
-const versions = ['bedrock_0.14', 'bedrock_1.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18', '1.19', '1.20']
-const cycleTests = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18', '1.19', '1.20']
-
-versions.forEach((version) => describe(`Chunk implementation for minecraft ${version}`, () => {
+pcVersions.forEach((version) => describe(`Chunk implementation for minecraft ${version}`, () => {
   const registry = require('prismarine-registry')(version)
   const Chunk = chunkLoader(registry)
   const Block = prismarineBlockLoader(registry)
 
-  const isPostFlattening = version.startsWith('1.13') || version.startsWith('1.14') ||
-    version.startsWith('1.15') || version.startsWith('1.16') || version.startsWith('1.17') ||
-    version.startsWith('1.18') || version.startsWith('1.19') || version.startsWith('1.20')
-
-  const serializesLightingDataSeparately = version.startsWith('1.14') || version.startsWith('1.15') ||
-    version.startsWith('1.16') || version.startsWith('1.17') || version.startsWith('1.18') ||
-    version.startsWith('1.19') || version.startsWith('1.20')
-
-  const newLightingDataFormat = version.startsWith('1.17') || version.startsWith('1.18') || version.startsWith('1.19') ||
-    version.startsWith('1.20')
-
-  const serializesBiomesSeparately = version.startsWith('1.15') || version.startsWith('1.16') ||
-    version.startsWith('1.17')
-
-  const unifiedPaletteFormat = version.startsWith('1.18') || version.startsWith('1.19') || version.startsWith('1.20')
-  const tallWorld = version.startsWith('1.18') || version.startsWith('1.19') || version.startsWith('1.20')
+  // TODO: remove these in favor of direct registry.feature calls
+  const isPostFlattening = registry.supportFeature('usesBlockStates')
+  const serializesLightingDataSeparately = registry.supportFeature('lightSentSeparately')
+  const newLightingDataFormat = registry.supportFeature('newLightingDataFormat')
+  const serializesBiomesSeparately = registry.supportFeature('biomesSentSeparately')
+  const tallWorld = registry.supportFeature('tallWorld')
+  const unifiedPaletteFormat = tallWorld
 
   if (version === '1.8') {
     it('Handles {skylightSent: false}', () => {
@@ -220,7 +209,7 @@ versions.forEach((version) => describe(`Chunk implementation for minecraft ${ver
     }
   }
 
-  if (cycleTests.includes(version)) {
+  if (pcCycleTests.includes(version)) {
     const folder = path.join(__dirname, version)
     const files = fs.readdirSync(folder)
     const chunkFiles = files.filter(file => file.includes('.dump') && !file.includes('light'))
