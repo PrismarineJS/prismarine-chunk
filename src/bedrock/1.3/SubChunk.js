@@ -4,7 +4,7 @@ const { getChecksum } = require('../common/util')
 const neededBits = require('../../pc/common/neededBits')
 const Stream = require('../common/Stream')
 const nbt = require('prismarine-nbt')
-const legacyBlockIdMap = require('./legacy.json').blocks
+const legacyBlockIdMap = require('minecraft-data').legacy.bedrock.blocks
 
 class SubChunk {
   constructor (registry, Block, options = {}) {
