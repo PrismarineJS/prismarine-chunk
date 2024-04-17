@@ -113,6 +113,7 @@ class IndirectPaletteContainer {
       type: 'indirect',
       palette: this.palette,
       maxBits: this.maxBits,
+      maxBitsPerBlock: this.maxBitsPerBlock,
       data: this.data.toJson()
     })
   }
@@ -122,6 +123,7 @@ class IndirectPaletteContainer {
     return new IndirectPaletteContainer({
       palette: parsed.palette,
       maxBits: parsed.maxBits,
+      maxBitsPerBlock: parsed.maxBitsPerBlock,
       data: BitArray.fromJson(parsed.data)
     })
   }
@@ -171,7 +173,8 @@ class SingleValueContainer {
       value: this.value,
       bitsPerValue: this.bitsPerValue,
       capacity: this.capacity,
-      maxBits: this.maxBits
+      maxBits: this.maxBits,
+      maxBitsPerBlock: this.maxBitsPerBlock
     })
   }
 
@@ -181,7 +184,8 @@ class SingleValueContainer {
       value: parsed.value,
       bitsPerValue: parsed.bitsPerValue,
       capacity: parsed.capacity,
-      maxBits: parsed.maxBits
+      maxBits: parsed.maxBits,
+      maxBitsPerBlock: parsed.maxBitsPerBlock
     })
   }
 }
@@ -196,14 +200,16 @@ function containerFromJson (j) {
     return new IndirectPaletteContainer({
       palette: parsed.palette,
       maxBits: parsed.maxBits,
-      data: BitArray.fromJson(parsed.data)
+      data: BitArray.fromJson(parsed.data),
+      maxBitsPerBlock: parsed.maxBitsPerBlock
     })
   } else if (parsed.type === 'single') {
     return new SingleValueContainer({
       value: parsed.value,
       bitsPerValue: parsed.bitsPerValue,
       capacity: parsed.capacity,
-      maxBits: parsed.maxBits
+      maxBits: parsed.maxBits,
+      maxBitsPerBlock: parsed.maxBitsPerBlock
     })
   }
   return undefined
