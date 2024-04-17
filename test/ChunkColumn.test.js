@@ -144,7 +144,6 @@ for (const version of allVersions) {
       assert.strictEqual(3, cc2.getBlockLight(new Vec3(0, 3, 0)))
       assert.strictEqual(4, cc2.getSkyLight(new Vec3(0, 4, 0)))
       assert.strictEqual(cc.toJson(), cc2.toJson())
-
     })
     it('to/from JSON work and keep maxBitsPerBlock', () => {
       const cc = new ChunkColumn()
