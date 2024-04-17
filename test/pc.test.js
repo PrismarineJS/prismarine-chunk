@@ -1,17 +1,17 @@
 /* eslint-env mocha */
 const { Vec3 } = require('vec3')
 const assert = require('assert')
+const { pcVersions } = require('./versions')
 
-const versions = ['1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18', '1.19', '1.20']
+for (const version of pcVersions) {
+  const registry = require('prismarine-registry')(version)
+  if (!registry.supportFeature('usesPalettedChunks')) {
+    continue
+  }
+  if (version === 'bedrock_0.14') continue // todo: remove after https://github.com/PrismarineJS/minecraft-data/pull/769
 
-for (const version of versions) {
   describe('pc section tests ' + version, () => {
-    const registry = require('prismarine-registry')(version)
     const ChunkColumn = require('prismarine-chunk')(registry)
-
-    if (registry.version['<']('1.9')) {
-      return
-    }
 
     it('compaction works', () => {
       const column = new ChunkColumn()

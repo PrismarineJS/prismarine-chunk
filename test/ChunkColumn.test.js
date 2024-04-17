@@ -1,26 +1,32 @@
 /* eslint-env mocha */
 
-const versions = ['bedrock_1.16.220', 'bedrock_1.17.40', 'bedrock_1.18.0', '1.8', '1.9', '1.10', '1.11', '1.12', '1.13.2', '1.14.4', '1.15.2', '1.16.1', '1.17', '1.18']
+const { allVersions } = require('./versions')
 const constants = require('../src/pc/common/constants')
 const { Vec3 } = require('vec3')
 const assert = require('assert')
 const expect = require('expect').default
 
-for (const version of versions) {
+for (const version of allVersions) {
   const registry = require('prismarine-registry')(version)
   const Block = require('prismarine-block')(registry)
   const ChunkColumn = require('prismarine-chunk')(registry)
+
+  // TODO: fix 2 bugs: node-mc-data feature checks fail on bedrock 0.14, is missing some functions and bedrock v1.0 chunk impl fails here
+  // let chunkHeight
+  const chunkHeight = constants.CHUNK_HEIGHT
+  if (version === 'bedrock_0.14' || version === 'bedrock_1.0') continue
 
   describe('ChunkColumn on ' + version, () => {
     it('use function to initialize the chunk column', () => {
       const stateId = 20
       const block = Block.fromStateId(stateId, 1)
+      assert(block.stateId === stateId)
       const column = new ChunkColumn()
       column.initialize(() => { return block })
 
       const p = new Vec3(0, 0, 0)
       for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
-        for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+        for (p.y = 0; p.y < chunkHeight; p.y++) {
           for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
             if (column.getBlock(p).stateId !== stateId) {
               throw new Error('id mismatch: expected ' + stateId + ' got ' + column.getBlock(p).stateId)
@@ -35,7 +41,7 @@ for (const version of versions) {
 
       let different = 0
       const p = new Vec3(0, 0, 0)
-      for (p.y = 0; p.y < constants.CHUNK_HEIGHT; p.y++) {
+      for (p.y = 0; p.y < chunkHeight; p.y++) {
         for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
           for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
             // 0 cannot be assumed as air, bedrock assigns stateIds alphabetically
@@ -61,7 +67,7 @@ for (const version of versions) {
     it('Defaults to all blocks being air', function () {
       const chunk = new ChunkColumn()
       assert.strictEqual(registry.blocksByName.air.id, chunk.getBlock(new Vec3(0, 0, 0)).type)
-      assert.strictEqual(registry.blocksByName.air.id, chunk.getBlock(new Vec3(15, constants.CHUNK_HEIGHT - 1, 15)).type)
+      assert.strictEqual(registry.blocksByName.air.id, chunk.getBlock(new Vec3(15, chunkHeight - 1, 15)).type)
     })
 
     it('Out of bounds blocks being air', function () {
@@ -97,11 +103,11 @@ for (const version of versions) {
 
       // Everything should have a stateId
       {
-        const birchPlanksId = registry.blocksByName.planks?.defaultState || registry.blocksByName.birch_planks.defaultState
+        const birchPlanksId = registry.blocksByName.planks?.defaultState || registry.blocksByName.wood_planks?.defaultState || registry.blocksByName.birch_planks.defaultState
         chunk.setBlock(new Vec3(0, 0, 0), Block.fromStateId(birchPlanksId))
         assert.strictEqual(birchPlanksId, chunk.getBlock(new Vec3(0, 0, 0)).stateId)
 
-        const ironBlockId = registry.blocksByName.iron_block.defaultState
+        const ironBlockId = registry.blocksByName.iron_block?.defaultState || registry.blocksByName.block_of_iron.defaultState
         chunk.setBlock(new Vec3(0, 37, 0), Block.fromStateId(ironBlockId))
         assert.strictEqual(ironBlockId, chunk.getBlock(new Vec3(0, 37, 0)).stateId)
       }
