@@ -145,6 +145,16 @@ for (const version of allVersions) {
       assert.strictEqual(4, cc2.getSkyLight(new Vec3(0, 4, 0)))
       assert.strictEqual(cc.toJson(), cc2.toJson())
     })
+    it('to/from JSON work and keep maxBitsPerBlock', () => {
+      const cc = new ChunkColumn()
+      const cc2 = ChunkColumn.fromJson(cc.toJson())
+
+      for (let i = 0; i < 4096; i++) {
+        cc2.setBlockStateId(new Vec3(0, 0, 0), i) // Decides to switch to Direct pallete at some point
+        const blockStateId = cc2.getBlockStateId(new Vec3(0, 0, 0))
+        if (blockStateId !== i) throw new Error(`Expected ${i} but got ${blockStateId}`)
+      }
+    })
 
     //
 
