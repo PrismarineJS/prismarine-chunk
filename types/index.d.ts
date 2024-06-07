@@ -46,7 +46,7 @@ declare class PCChunk extends CommonChunk {
   dumpBiomes(): Array<number>
   dumpLight(): Buffer
   loadLight(data: Buffer, skyLightMask: number, blockLightMask: number, emptySkyLightMask?: number, emptyBlockLightMask?: number): void
-  loadParsedLights?(skyLight: Buffer[], blockLight: Buffer[], skyLightMask: number[][], blockLightMask: number[][], emptySkyLightMask: number[][], emptyBlockLightMask: number[][]): void
+  loadParsedLight?(skyLight: Buffer[], blockLight: Buffer[], skyLightMask: number[][], blockLightMask: number[][], emptySkyLightMask: number[][], emptyBlockLightMask: number[][]): void
   loadBiomes(newBiomesArray: Array<number>): void;
   dump(bitMap?: number, skyLightSent?: boolean): Buffer
   load(data: Buffer, bitMap?: number, skyLightSent?: boolean, fullChunk?: boolean): void
