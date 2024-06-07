@@ -34,7 +34,7 @@ declare class PCChunk extends CommonChunk {
   getBlockData(pos: Vec3): number
   getBlockLight(pos: Vec3): number
   getSkyLight(pos: Vec3): number
-  getBiome(pos: Vec3): number  
+  getBiome(pos: Vec3): number
   setBlockStateId(pos: Vec3, stateId: number): number
   setBlockType(pos: Vec3, id: number): void
   setBlockData(pos: Vec3, data: Buffer): void
@@ -46,7 +46,7 @@ declare class PCChunk extends CommonChunk {
   dumpBiomes(): Array<number>
   dumpLight(): Buffer
   loadLight(data: Buffer, skyLightMask: number, blockLightMask: number, emptySkyLightMask?: number, emptyBlockLightMask?: number): void
-  loadParsedLights(skyLight: Buffer[], blockLight: Buffer[], skyLightMask: number[][], blockLightMask: number[][], emptySkyLightMask: number[][], emptyBlockLightMask: number[][]): void
+  loadParsedLights?(skyLight: Buffer[], blockLight: Buffer[], skyLightMask: number[][], blockLightMask: number[][], emptySkyLightMask: number[][], emptyBlockLightMask: number[][]): void
   loadBiomes(newBiomesArray: Array<number>): void;
   dump(bitMap?: number, skyLightSent?: boolean): Buffer
   load(data: Buffer, bitMap?: number, skyLightSent?: boolean, fullChunk?: boolean): void
@@ -113,7 +113,7 @@ declare class BedrockChunk extends CommonChunk {
   maxCY: number
   // The version of the chunk column (analog to DataVersion on PCChunk)
   chunkVersion: number
-  // Holds all the block entities in the chunk, the string keys are 
+  // Holds all the block entities in the chunk, the string keys are
   // the concatenated chunk column-relative position of the block.
   blockEntities: Record<string, NBT>
   // Holds entities in the chunk, the string key is the entity ID
@@ -174,7 +174,7 @@ declare class BedrockChunk extends CommonChunk {
   networkEncodeSubChunkNoCache(y: number): Promise<Buffer>
 
   /**
-   * 
+   *
    * @param blobs The blob hashes sent in the SubChunk packet
    * @param blobStore The Blob Store holding the chunk data
    * @param payload The remaining data sent in the SubChunk packet, border blocks
@@ -198,7 +198,7 @@ declare class BedrockChunk extends CommonChunk {
   loadHeights(map: Uint16Array): void
   writeHeightMap(stream): void
 
-  // 
+  //
   // Section management
   getSection(pos): SubChunk
   // Returns chunk at a Y index, adjusted for chunks at negative-Y
