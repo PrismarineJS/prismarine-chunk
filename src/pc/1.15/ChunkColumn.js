@@ -211,7 +211,7 @@ module.exports = (Block, mcData) => {
         }
       })
       if (!smartBuffer.length) {
-        return Buffer.alloc(4096)
+        return Buffer.alloc(1024)
       }
       return smartBuffer.toBuffer()
     }

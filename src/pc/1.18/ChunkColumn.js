@@ -234,7 +234,7 @@ module.exports = (Block, mcData) => {
         this.biomes[i].write(smartBuffer)
       }
       if (!smartBuffer.length) {
-        return Buffer.alloc(4096)
+        return Buffer.alloc(1024)
       }
       return smartBuffer.toBuffer()
     }
