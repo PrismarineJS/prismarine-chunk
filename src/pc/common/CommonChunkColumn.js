@@ -63,7 +63,7 @@ class CommonChunkColumn {
 
   loadBlockEntities (entities) {
     for (const entity of entities) {
-      this.setBlockEntity({ x: entity.x.value >> 4, y: entity.y.value, z: entity.z.value >> 4 }, entity)
+      this.setBlockEntity({ x: entity.x.value, y: entity.y.value, z: entity.z.value }, entity)
     }
   }
 }
