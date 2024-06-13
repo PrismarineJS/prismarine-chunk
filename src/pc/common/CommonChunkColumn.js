@@ -53,7 +53,6 @@ class CommonChunkColumn {
   }
 
   setBlockEntity (pos, tag) {
-    // Note: `pos` is relative to the chunk, not the world, tag's XYZ is
     this.blockEntities[posKey(pos)] = tag
   }
 
