@@ -98,7 +98,6 @@ declare class SubChunk {
 type ExtendedBlock = Block & {
   light?: number
   skyLight?: number
-  entity?: NBT
 }
 
 // A stub
