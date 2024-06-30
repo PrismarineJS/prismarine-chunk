@@ -210,6 +210,9 @@ module.exports = (Block, mcData) => {
           section.write(smartBuffer)
         }
       })
+      if (!smartBuffer.length) {
+        return Buffer.alloc(1024)
+      }
       return smartBuffer.toBuffer()
     }
 
