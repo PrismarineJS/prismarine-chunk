@@ -29,7 +29,7 @@ const chunkImplementations = {
 }
 
 module.exports = loader
-// Cachingg
+// Caching
 const blobCache = require('./bedrock/common/BlobCache')
 module.exports.BlobEntry = blobCache.BlobEntry
 module.exports.BlobType = blobCache.BlobType
