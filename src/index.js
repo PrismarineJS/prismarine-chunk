@@ -13,7 +13,7 @@ const chunkImplementations = {
     1.18: require('./pc/1.18/chunk'),
     1.19: require('./pc/1.18/chunk'),
     '1.20': require('./pc/1.18/chunk'),
-    '1.21': require('./pc/1.18/chunk')
+    1.21: require('./pc/1.18/chunk')
   },
   bedrock: {
     0.14: require('./bedrock/0.14/chunk'),
@@ -24,7 +24,7 @@ const chunkImplementations = {
     1.18: require('./bedrock/1.18/chunk'),
     1.19: require('./bedrock/1.18/chunk'),
     '1.20': require('./bedrock/1.18/chunk'),
-     '1.21': require('./bedrock/1.18/chunk')
+    1.21: require('./bedrock/1.18/chunk')
   }
 }
 
