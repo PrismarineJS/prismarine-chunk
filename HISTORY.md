@@ -1,5 +1,13 @@
 ## History
 
+### 1.36.0
+* [1.21 (#263)](https://github.com/PrismarineJS/prismarine-chunk/commit/381497b893857a0c60836873f3c26f8efc52f29b) (thanks @Madlykeanu)
+* [Bump @types/node from 20.16.11 to 22.7.5 (#262)](https://github.com/PrismarineJS/prismarine-chunk/commit/4cc2384fb49aba138644f2ef5b35cef07e56f6eb) (thanks @dependabot[bot])
+* [Update index.d.ts](https://github.com/PrismarineJS/prismarine-chunk/commit/2dc9a9d467810c906b132595567b05d8f58b7bed) (thanks @extremeheat)
+* [Minor fix loadParsedLights type (#239)](https://github.com/PrismarineJS/prismarine-chunk/commit/18d786e31ab3f4f7c3f61058e08e9e421feecfd2) (thanks @zardoy)
+* [fix: toJson / fromJson didn't use maxBitsPerBlock (#238)](https://github.com/PrismarineJS/prismarine-chunk/commit/eb39a905761a36f733a456110e6b49d655bf5c16) (thanks @zardoy)
+* [use features in tests (#233)](https://github.com/PrismarineJS/prismarine-chunk/commit/0631db23c79f63d0bd37cb2764a9d6364c95688c) (thanks @extremeheat)
+
 ### 1.35.0
 * [Fix direct palettes (#232)](https://github.com/PrismarineJS/prismarine-chunk/commit/6422abc93ac121f635a03ffa339feb6e5b7b37bf) (thanks @frej4189)
 * [Fixes issue https://github.com/PrismarineJS/prismarine-chunk/issues/229 (#231)](https://github.com/PrismarineJS/prismarine-chunk/commit/bed78672ba07cb6d82ee66d148f8ce0ae1ce83c2) (thanks @Flonja)
