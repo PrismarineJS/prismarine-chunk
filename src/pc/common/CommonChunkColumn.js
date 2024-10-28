@@ -53,7 +53,6 @@ class CommonChunkColumn {
   }
 
   setBlockEntity (pos, tag) {
-    // Note: `pos` is relative to the chunk, not the world, tag's XYZ is
     this.blockEntities[posKey(pos)] = tag
   }
 
@@ -63,7 +62,7 @@ class CommonChunkColumn {
 
   loadBlockEntities (entities) {
     for (const entity of entities) {
-      this.setBlockEntity({ x: entity.x.value >> 4, y: entity.y.value, z: entity.z.value >> 4 }, entity)
+      this.setBlockEntity({ x: entity.x.value, y: entity.y.value, z: entity.z.value }, entity)
     }
   }
 }
