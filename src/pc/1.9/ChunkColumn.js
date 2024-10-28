@@ -183,6 +183,10 @@ module.exports = (Block, mcData) => {
         smartBuffer.writeUInt8(biome)
       })
 
+      if (!smartBuffer.length) {
+        return Buffer.alloc(1024)
+      }
+
       return smartBuffer.toBuffer()
     }
 
