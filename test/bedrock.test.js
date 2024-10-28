@@ -175,19 +175,22 @@ for (const version of versions) {
 
 describe('special bedrock tests', () => {
   // Test for some special cases that are not covered by the normal tests
-  it('can load v1 subchunks in level_chunk', async () => {
-    // SubChunk v1 is only sent by 3rd party servers
-    const ChunkColumn = require('prismarine-chunk')('bedrock_1.17.10')
-    const packet = require('./bedrock_1.17.10/subchunkv1.json').params
-    const column = new ChunkColumn({ x: packet.x, z: packet.z })
-    const payload = Buffer.from(packet.payload)
-    await column.networkDecodeNoCache(payload, packet.sub_chunk_count)
-    await column.networkEncodeNoCache()
-    const blocks = column.getBlocks()
-    assert(blocks.length > 0, 'No blocks in column')
-    console.log('Unique blocks', blocks.map(e => e.name))
-    // No error is OK
-  })
+  const subchunkVersions = { v0: './bedrock_1.17.10/subchunkv0.json', v1: './bedrock_1.17.10/subchunkv1.json' }
+  for (const [subchunkVersion, path] of Object.entries(subchunkVersions)) {
+    it(`can load ${subchunkVersion} subchunks in level_chunk`, async () => {
+      // SubChunk v1 is only sent by 3rd party servers
+      const ChunkColumn = require('prismarine-chunk')('bedrock_1.17.10')
+      const packet = require(path).params
+      const column = new ChunkColumn({ x: packet.x, z: packet.z })
+      const payload = Buffer.from(packet.payload)
+      await column.networkDecodeNoCache(payload, packet.sub_chunk_count)
+      await column.networkEncodeNoCache()
+      const blocks = column.getBlocks()
+      assert(blocks.length > 0, 'No blocks in column')
+      console.log('Unique blocks', blocks.map(e => e.name))
+      // No error is OK
+    })
+  }
 })
 
 const dbdiff = (last, now) => {
