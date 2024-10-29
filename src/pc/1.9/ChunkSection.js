@@ -59,6 +59,60 @@ class ChunkSection {
     this.maxBitsPerBlock = options.maxBitsPerBlock || GLOBAL_BITS_PER_BLOCK
   }
 
+  isEqual (other) {
+    if (this.isDirty !== other.isDirty) {
+      return {
+        isEqual: false,
+        diff: 'isDirty current: ' + this.isDirty + ' other: ' + other.isDirty
+      }
+    }
+    if (this.solidBlockCount !== other.solidBlockCount) {
+      return {
+        isEqual: false,
+        diff: 'solidBlockCount current: ' + this.solidBlockCount + ' other: ' + other.solidBlockCount
+      }
+    }
+    if (this.maxBitsPerBlock !== other.maxBitsPerBlock) {
+      return {
+        isEqual: false,
+        diff: 'maxBitsPerBlock current: ' + this.maxBitsPerBlock + ' other: ' + other.maxBitsPerBlock
+      }
+    }
+    for (let i = 0; i < this.palette.length; i++) {
+      if (this.palette[i] !== other.palette[i]) {
+        return {
+          isEqual: false,
+          diff: 'palette ' + i + ' current: ' + this.palette[i] + ' other: ' + other.palette[i]
+        }
+      }
+    }
+    for (let i = 0; i < this.blockLight.data.length; i++) {
+      if (this.blockLight.data[i] !== other.blockLight.data[i]) {
+        return {
+          isEqual: false,
+          diff: 'blockLight current: ' + this.blockLight.data[i] + ' other: ' + other.blockLight.data[i]
+        }
+      }
+    }
+    for (let i = 0; i < this.skyLight.data.length; i++) {
+      if (this.skyLight.data[i] !== other.skyLight.data[i]) {
+        return {
+          isEqual: false,
+          diff: 'skyLight current: ' + this.skyLight.data[i] + ' other: ' + other.skyLight.data[i]
+        }
+      }
+    }
+    if (this.data.isEqual(other.data).isEqual === false) {
+      return {
+        isEqual: false,
+        diff: this.data.isEqual(other.data).diff
+      }
+    }
+    return {
+      isEqual: true
+    }
+  }
+
   toJson () {
     return JSON.stringify({
       data: this.data.toJson(),
