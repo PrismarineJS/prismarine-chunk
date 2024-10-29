@@ -23,6 +23,89 @@ module.exports = (Block, mcData) => {
       this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
     }
 
+    isEqual (other) {
+      if (this.sectionMask !== other.sectionMask) {
+        return {
+          isEqual: false,
+          diff: 'sectionMask difference: ' +
+          'chunk1' + this.sectionMask +
+          ' chunk2 ' + other.sectionMask
+        }
+      }
+      if (this.skyLightSent !== other.skyLightSent) {
+        return {
+          isEqual: false,
+          diff: 'skyLightSent difference: ' +
+          'chunk1' + this.skyLightSent +
+          ' chunk2 ' + other.skyLightSent
+        }
+      }
+      if (this.maxBitsPerBlock !== other.maxBitsPerBlock) {
+        return {
+          isEqual: false,
+          diff: 'maxBitsPerBlock difference: ' +
+          'chunk1' + this.maxBitsPerBlock +
+          ' chunk2 ' + other.maxBitsPerBlock
+        }
+      }
+      if (this.biomes.length !== other.biomes.length) {
+        return {
+          isEqual: false,
+          diff: 'biomes length difference: ' +
+          'chunk1' + this.biomes.length +
+          ' chunk2 ' + other.biomes.length
+        }
+      }
+      if (this.sections.length !== other.sections.length) {
+        return {
+          isEqual: false,
+          diff: 'sections length difference: ' +
+          'chunk1' + this.sections.length +
+          ' chunk2 ' + other.sections.length
+        }
+      }
+      if (this.blockEntities.length !== other.blockEntities.length) {
+        return {
+          isEqual: false,
+          diff: 'blockEntities length difference: ' +
+          'chunk1' + this.blockEntities.length +
+          ' chunk2 ' + other.blockEntities.length
+        }
+      }
+      for (let i = 0; i < this.biomes.length; i++) {
+        if (this.biomes[i] !== other.biomes[i]) {
+          return {
+            isEqual: false,
+            diff: 'biomes difference: ' +
+            'chunk1' + this.biomes[i] +
+            ' chunk2 ' + other.biomes[i]
+          }
+        }
+      }
+      for (let i = 0; i < this.sections.length; i++) {
+        if (this.sections[i] === null && other.sections[i] === null) {
+          continue
+        }
+        if ((this.sections[i] === null && other.sections[i] !== null) || (this.sections[i] !== null && other.sections[i] === null)) {
+          return {
+            isEqual: false,
+            diff: 'sections ' + i + ' difference: ' +
+            'chunk1' + this.sections[i] +
+            ' chunk2 ' + other.sections[i]
+          }
+        }
+        const { isEqual, diff } = this.sections[i].isEqual(other.sections[i])
+        if (!isEqual) {
+          return {
+            isEqual: false,
+            diff: 'sections ' + i + ' difference: ' +
+            'chunk1' + diff
+          }
+        }
+      }
+      return { isEqual: true }
+    }
+
     toJson () {
       return JSON.stringify({
         biomes: this.biomes,
