@@ -6,14 +6,17 @@ const CommonChunkColumn = require('../common/CommonChunkColumn')
 const constants = require('../common/constants')
 const neededBits = require('../common/neededBits')
 
+const AQUATIC_UPDATE_MIN_Y = -64
+const AQUATIC_UPDATE_WORLD_HEIGHT = 384
+
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
   return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor (options) {
       super(mcData)
-      this.minY = options?.minY ?? 0
-      this.worldHeight = options?.worldHeight ?? constants.CHUNK_HEIGHT
+      this.minY = options?.minY ?? AQUATIC_UPDATE_MIN_Y
+      this.worldHeight = options?.worldHeight ?? AQUATIC_UPDATE_WORLD_HEIGHT
       this.numSections = this.worldHeight >> 4
       this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
       this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
@@ -283,9 +286,9 @@ module.exports = (Block, mcData) => {
 
     _loadBlockLightNibbles (y, buffer) {
       if (buffer.length !== 2048) throw new Error('Invalid light nibble buffer length ' + buffer.length)
-      const minCY = this.minY >> 4
-      this.blockLightMask.set(y + minCY + 1, 1) // minCY + 1 extra layer below
-      this.blockLightSections[y - (this.minY >> 4) + 1] = new BitArray({
+      const minCY = Math.abs(this.minY >> 4)
+      this.blockLightMask.set(y + minCY, 1) // minCY + 1 extra layer below
+      this.blockLightSections[y + minCY] = new BitArray({
         bitsPerValue: 4,
         capacity: 4096,
         data: new Int8Array(buffer).buffer
@@ -294,9 +297,9 @@ module.exports = (Block, mcData) => {
 
     _loadSkyLightNibbles (y, buffer) {
       if (buffer.length !== 2048) throw new Error('Invalid light nibble buffer length: ' + buffer.length)
-      const minCY = this.minY >> 4
-      this.skyLightMask.set(y + minCY + 1, 1) // minCY + 1 extra layer below
-      this.skyLightSections[y - minCY + 1] = new BitArray({
+     const minCY = Math.abs(this.minY >> 4)
+      this.skyLightMask.set(y + minCY, 1) // minCY + 1 extra layer below
+      this.skyLightSections[y + minCY] = new BitArray({
         bitsPerValue: 4,
         capacity: 4096,
         data: new Int8Array(buffer).buffer
