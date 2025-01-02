@@ -297,7 +297,7 @@ module.exports = (Block, mcData) => {
 
     _loadSkyLightNibbles (y, buffer) {
       if (buffer.length !== 2048) throw new Error('Invalid light nibble buffer length: ' + buffer.length)
-     const minCY = Math.abs(this.minY >> 4)
+      const minCY = Math.abs(this.minY >> 4)
       this.skyLightMask.set(y + minCY, 1) // minCY + 1 extra layer below
       this.skyLightSections[y + minCY] = new BitArray({
         bitsPerValue: 4,
