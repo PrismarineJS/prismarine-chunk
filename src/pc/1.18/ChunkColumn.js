@@ -96,7 +96,8 @@ module.exports = (Block, mcData) => {
 
     initialize (func) {
       const p = { x: 0, y: 0, z: 0 }
-      for (p.y = 0; p.y < this.worldHeight; p.y++) {
+      const maxY = this.worldHeight + this.minY
+      for (p.y = this.minY; p.y < maxY; p.y++) {
         for (p.z = 0; p.z < constants.SECTION_WIDTH; p.z++) {
           for (p.x = 0; p.x < constants.SECTION_WIDTH; p.x++) {
             const block = func(p.x, p.y, p.z)
