@@ -1,5 +1,8 @@
 ## History
 
+### 1.38.0
+* [Support for hashed block network ID's (#237)](https://github.com/PrismarineJS/prismarine-chunk/commit/f1c1f9a7d4cf977ce46975503f8f92db7836e8c9) (thanks @FreezeEngine)
+
 ### 1.37.0
 * [Bump mocha from 10.8.2 to 11.0.1 (#266)](https://github.com/PrismarineJS/prismarine-chunk/commit/ccd97e55d4e60db9f70c093e507ff69598eb3f43) (thanks @dependabot[bot])
 * [pc1.18+: Fix world height defaults and light masks (#267)](https://github.com/PrismarineJS/prismarine-chunk/commit/92ae1d347299a9925a23d97014ece07c98627fd0) (thanks @extremeheat)
