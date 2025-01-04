@@ -1,5 +1,9 @@
 ## History
 
+### 1.37.0
+* [Bump mocha from 10.8.2 to 11.0.1 (#266)](https://github.com/PrismarineJS/prismarine-chunk/commit/ccd97e55d4e60db9f70c093e507ff69598eb3f43) (thanks @dependabot[bot])
+* [pc1.18+: Fix world height defaults and light masks (#267)](https://github.com/PrismarineJS/prismarine-chunk/commit/92ae1d347299a9925a23d97014ece07c98627fd0) (thanks @extremeheat)
+
 ### 1.36.0
 * [1.21 (#263)](https://github.com/PrismarineJS/prismarine-chunk/commit/381497b893857a0c60836873f3c26f8efc52f29b) (thanks @Madlykeanu)
 * [Bump @types/node from 20.16.11 to 22.7.5 (#262)](https://github.com/PrismarineJS/prismarine-chunk/commit/4cc2384fb49aba138644f2ef5b35cef07e56f6eb) (thanks @dependabot[bot])
