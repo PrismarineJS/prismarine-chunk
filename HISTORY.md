@@ -1,5 +1,8 @@
 ## History
 
+### 1.38.1
+* [Fix pc1.18 light index (#271)](https://github.com/PrismarineJS/prismarine-chunk/commit/9a9673b8a7e4b4810dd128febf25467bf2b99b85) (thanks @extremeheat)
+
 ### 1.38.0
 * [Support for hashed block network ID's (#237)](https://github.com/PrismarineJS/prismarine-chunk/commit/f1c1f9a7d4cf977ce46975503f8f92db7836e8c9) (thanks @FreezeEngine)
 
