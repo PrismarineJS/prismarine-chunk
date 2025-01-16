@@ -1,6 +1,6 @@
 {
   "name": "prismarine-chunk",
-  "version": "1.38.0",
+  "version": "1.38.1",
   "description": "A class to hold chunk data for prismarine",
   "main": "index.js",
   "types": "./types/index.d.ts",
