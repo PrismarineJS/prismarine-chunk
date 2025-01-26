@@ -1,7 +1,7 @@
 const BiomeSection = require('./BiomeSection')
 
 /**
- * Micro-optimization from Mojang's 1.18.x chunk implementation..
+ * Micro-optimization from Mojang's 1.22.x chunk implementation..
  * Biome sections can point to n-1 section if the data is the same in section `n` and `n-1`
  * How it works: Server sends biome data for each chunk section from ground up to the world section height.
  * Ground up, if the biome data is the same as the previous section, it is encoded with a special 0xff
