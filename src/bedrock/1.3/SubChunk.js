@@ -56,7 +56,7 @@ class SubChunk {
       case 9:
         storageCount = stream.readByte()
         if (this.subChunkVersion >= 9) {
-          this.y = stream.readByte() // Sub Chunk Index
+          this.y = stream.readInt8() // Sub Chunk Index
         }
         if (storageCount > 2) {
           // This is technically not an error, but not currently aware of any servers
@@ -160,7 +160,7 @@ class SubChunk {
     stream.writeUInt8(this.subChunkVersion)
     stream.writeUInt8(this.blocks.length)
     if (this.subChunkVersion >= 9) { // Caves and cliffs (1.17-1.18)
-      stream.writeUInt8(this.y)
+      stream.writeInt8(this.y)
     }
     for (let l = 0; l < this.blocks.length; l++) {
       if (compact) this.compact(l) // Compact before encoding
@@ -185,7 +185,7 @@ class SubChunk {
 
     if (format === StorageType.Runtime) {
       for (const block of this.palette[storageLayer]) {
-        stream.writeZigZagVarInt(block.stateId)
+        stream.writeZigZagVarInt(block.runtimeId ?? block.stateId)
       }
     } else {
       for (const block of this.palette[storageLayer]) {
@@ -271,7 +271,7 @@ class SubChunk {
   }
 
   addToPalette (l, stateId, count = 0) {
-    const block = this.registry.blockStates[stateId]
+    const block = this.registry.supportFeature('blockHashes') ? this.registry.blocksByRuntimeId[stateId] : this.registry.blockStates[stateId]
     this.palette[l].push({ stateId, name: block.name, states: block.states, count })
     const minBits = neededBits(this.palette[l].length - 1)
     if (minBits > this.blocks[l].bitsPerBlock) {
