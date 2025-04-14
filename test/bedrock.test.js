@@ -12,6 +12,7 @@ const blobStore = new BlobStore()
 for (const version of versions) {
   const registry = require('prismarine-registry')(version)
   const ChunkColumn = require('prismarine-chunk')(registry)
+  registry.handleStartGame({ block_network_ids_are_hashes: false, itemstates: [] })
 
   describe('bedrock network chunks on ' + version, () => {
     const fixtures = fs.readdirSync(join(__dirname, version))
@@ -87,10 +88,10 @@ for (const version of versions) {
         const packet = require(join(__dirname, version, packetSubChunkWithoutCaching))
         if (packet.entries) {
           for (const entry of packet.entries) {
-            processSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, packet.blob_id, Buffer.from(entry.payload))
+            await processSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, Buffer.from(entry.payload))
           }
         } else {
-          processSubChunk(packet.x, packet.y, packet.z, Buffer.from(packet.data))
+          await processSubChunk(packet.x, packet.y, packet.z, Buffer.from(packet.data))
         }
       })
 
@@ -98,7 +99,6 @@ for (const version of versions) {
         const column = new ChunkColumn({ x, z })
         const misses = await column.networkDecodeSubChunk([blobId], blobStore, extraData)
         assert(misses.length > 0, 'Blob cache should be empty, so networkDecode() should return the missing blob hashes')
-
         const missResponse = require(join(__dirname, version, packetSubChunkCacheMissReponse))
 
         for (const [hash, buffer] of Object.entries(missResponse.blobs)) {
@@ -125,14 +125,16 @@ for (const version of versions) {
 
       it('can re-encode subchunk packet with caching', async () => {
         const packet = require(join(__dirname, version, packetSubChunkWithCaching))
+        const missResponse = require(join(__dirname, version, packetSubChunkCacheMissReponse))
         assert(packet.cache_enabled, "you didn't dump packets correctly")
 
         if (packet.entries) {
           for (const entry of packet.entries) {
-            processCachedSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, packet.blob_id, Buffer.from(entry.payload))
+            if (missResponse.blobs[entry.blob_id] === undefined) { continue }
+            await processCachedSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, entry.blob_id, Buffer.from(entry.payload))
           }
         } else {
-          processCachedSubChunk(packet.x, packet.y, packet.z, packet.blob_id, Buffer.from(packet.data))
+          await processCachedSubChunk(packet.x, packet.y, packet.z, packet.blob_id, Buffer.from(packet.data))
         }
       })
     }
