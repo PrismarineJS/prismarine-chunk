@@ -224,7 +224,7 @@ module.exports = (Block, mcData) => {
 
     setBiome (pos, biomeId) {
       const biome = this.biomes[(pos.y - this.minY) >> 4]
-      if (biome) { biome.set(toBiomePos(pos), biomeId) }
+      if (biome) { biome.set(toBiomePos(pos, this.minY), biomeId) }
     }
 
     getMask () {
