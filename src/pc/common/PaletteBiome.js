@@ -11,6 +11,7 @@ function getBiomeIndex (pos) {
 
 class BiomeSection {
   constructor (options) {
+    this.noSizePrefix = options.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
     this.data = options?.data ?? new SingleValueContainer({
       value: options?.singleValue ?? 0,
       bitsPerValue: constants.MIN_BITS_PER_BIOME,
@@ -37,8 +38,9 @@ class BiomeSection {
     this.data = this.data.set(getBiomeIndex(pos), biomeId)
   }
 
-  static fromLocalPalette ({ palette, data }) {
+  static fromLocalPalette ({ palette, data, noSizePrefix }) {
     return new BiomeSection({
+      noSizePrefix,
       data: palette.length === 1
         ? new SingleValueContainer({
           value: palette[0],
@@ -57,22 +59,24 @@ class BiomeSection {
     this.data.write(smartBuffer)
   }
 
-  static read (smartBuffer, maxBitsPerBiome = constants.GLOBAL_BITS_PER_BIOME) {
+  static read (smartBuffer, maxBitsPerBiome = constants.GLOBAL_BITS_PER_BIOME, noSizePrefix) {
     const bitsPerBlock = smartBuffer.readUInt8()
     if (!bitsPerBlock) {
       const section = new BiomeSection({
+        noSizePrefix,
         singleValue: varInt.read(smartBuffer)
       })
-      smartBuffer.readUInt8()
+      if (!this.noSizePrefix) smartBuffer.readUInt8()
       return section
     }
 
     if (bitsPerBlock > constants.MAX_BITS_PER_BIOME) {
       return new BiomeSection({
+        noSizePrefix,
         data: new DirectPaletteContainer({
           bitsPerValue: maxBitsPerBiome,
           capacity: constants.BIOME_SECTION_VOLUME
-        }).readBuffer(smartBuffer)
+        }).readBuffer(smartBuffer, bitsPerBlock)
       })
     }
 
@@ -84,11 +88,12 @@ class BiomeSection {
 
     return new BiomeSection({
       data: new IndirectPaletteContainer({
+        noSizePrefix,
         bitsPerValue: bitsPerBlock,
         capacity: constants.BIOME_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BIOME,
         palette
-      }).readBuffer(smartBuffer)
+      }).readBuffer(smartBuffer, bitsPerBlock)
     })
   }
 }

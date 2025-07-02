@@ -11,6 +11,7 @@ function getBlockIndex (pos) {
 
 class ChunkSection {
   constructor (options) {
+    this.noSizePrefix = options.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
     this.data = options?.data
     if (!this.data) {
       const value = options?.singleValue ?? 0
@@ -75,8 +76,9 @@ class ChunkSection {
     this.data.write(smartBuffer)
   }
 
-  static fromLocalPalette ({ data, palette }) {
+  static fromLocalPalette ({ data, palette, noSizePrefix }) {
     return new ChunkSection({
+      noSizePrefix,
       data: palette.length === 1
         ? new SingleValueContainer({
           value: palette[0],
@@ -91,26 +93,29 @@ class ChunkSection {
     })
   }
 
-  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK) {
+  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK, noSizePrefix) {
     const solidBlockCount = smartBuffer.readInt16BE()
     const bitsPerBlock = smartBuffer.readUInt8()
     if (!bitsPerBlock) {
       const section = new ChunkSection({
+        noSizePrefix,
         solidBlockCount,
         singleValue: varInt.read(smartBuffer),
         maxBitsPerBlock
       })
-      smartBuffer.readUInt8()
+      if (!this.noSizePrefix) smartBuffer.readUInt8()
       return section
     }
 
     if (bitsPerBlock > constants.MAX_BITS_PER_BLOCK) {
       return new ChunkSection({
+        noSizePrefix,
         solidBlockCount,
         data: new DirectPaletteContainer({
+          noSizePrefix,
           bitsPerValue: maxBitsPerBlock,
           capacity: constants.BLOCK_SECTION_VOLUME
-        }).readBuffer(smartBuffer)
+        }).readBuffer(smartBuffer, bitsPerBlock)
       })
     }
 
@@ -121,14 +126,16 @@ class ChunkSection {
     }
 
     return new ChunkSection({
+      noSizePrefix,
       solidBlockCount,
       data: new IndirectPaletteContainer({
+        noSizePrefix,
         bitsPerValue: bitsPerBlock,
         capacity: constants.BLOCK_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BLOCK,
         maxBitsPerBlock,
         palette
-      }).readBuffer(smartBuffer)
+      }).readBuffer(smartBuffer, bitsPerBlock)
     })
   }
 }
