@@ -5,7 +5,7 @@ const varInt = require('./varInt')
 
 class DirectPaletteContainer {
   constructor (options) {
-    this.noSizePrefix = options.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
+    this.noSizePrefix = options?.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
     this.data = new BitArray({
       bitsPerValue: options?.bitsPerValue ?? constants.GLOBAL_BITS_PER_BLOCK,
       capacity: options?.capacity ?? constants.BLOCK_SECTION_VOLUME
@@ -53,7 +53,7 @@ class DirectPaletteContainer {
 
 class IndirectPaletteContainer {
   constructor (options) {
-    this.noSizePrefix = options.noSizePrefix
+    this.noSizePrefix = options?.noSizePrefix
     this.data = options?.data ?? new BitArray({
       bitsPerValue: options?.bitsPerValue ?? constants.MIN_BITS_PER_BLOCK,
       capacity: options?.capacity ?? constants.BLOCK_SECTION_VOLUME
@@ -138,7 +138,7 @@ class IndirectPaletteContainer {
 
 class SingleValueContainer {
   constructor (options) {
-    this.noSizePrefix = options.noSizePrefix
+    this.noSizePrefix = options?.noSizePrefix
     this.value = options?.value ?? 0
     this.bitsPerValue = options?.bitsPerValue ?? constants.MIN_BITS_PER_BLOCK
     this.capacity = options?.capacity ?? constants.BLOCK_SECTION_VOLUME

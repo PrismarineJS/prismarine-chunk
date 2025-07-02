@@ -11,7 +11,7 @@ function getBlockIndex (pos) {
 
 class ChunkSection {
   constructor (options) {
-    this.noSizePrefix = options.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
+    this.noSizePrefix = options?.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
     this.data = options?.data
     if (!this.data) {
       const value = options?.singleValue ?? 0
