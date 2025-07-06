@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 const fs = require('fs')
 const { join } = require('path')
-const versions = ['bedrock_1.16.220', 'bedrock_1.17.10', 'bedrock_1.18.0', 'bedrock_1.19.1']
+const versions = ['bedrock_1.16.220', 'bedrock_1.17.10', 'bedrock_1.18.0', 'bedrock_1.19.1', 'bedrock_1.21.60']
 const assert = require('assert')
 
 const { BlobEntry, BlobType } = require('prismarine-chunk')
