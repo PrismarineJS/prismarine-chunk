@@ -7,20 +7,34 @@ const assert = require('assert')
 const { BlobEntry, BlobType } = require('prismarine-chunk')
 
 const BlobStore = Map
-const blobStore = new BlobStore()
 
 for (const version of versions) {
-  const registry = require('prismarine-registry')(version)
-  const ChunkColumn = require('prismarine-chunk')(registry)
-  registry.handleStartGame({ block_network_ids_are_hashes: false, itemstates: [] })
-
+  const registryForVersionCheck = require('prismarine-registry')(version)
   describe('bedrock network chunks on ' + version, () => {
-    const fixtures = fs.readdirSync(join(__dirname, version))
-    const packetLevelChunkWithoutCaching = fixtures.find(f => f.includes('level_chunk') && !f.toLowerCase().includes('cache'))
-    const packetLevelChunkWithCaching = fixtures.find(f => f.includes('level_chunk') && f.includes('cached'))
-    const packetLevelChunkCacheMissReponse = fixtures.find(f => f.includes('level_chunk') && f.includes('CacheMiss'))
-
     it('can re-encode level_chunk packet without caching', async () => {
+      await reEncodeLevelChunkWithoutCaching(false)
+    })
+
+    it('can re-encode level_chunk with caching', async () => {
+      await reEncodeLevelChunkWithCaching(false)
+    })
+
+    if (registryForVersionCheck.version['>=']('1.18')) {
+      it('can re-encode subchunk packet without caching', async () => {
+        await reEncodeSubChunkWithoutCaching(false)
+      })
+
+      it('can re-encode subchunk packet with caching', async () => {
+        await reEncodeSubChunkWithCaching(false)
+      })
+    }
+
+    async function reEncodeLevelChunkWithoutCaching (blockNetworkIdsAreHashes) {
+      const registry = require('prismarine-registry')(version)
+      const ChunkColumn = require('prismarine-chunk')(registry)
+      const fixtures = fs.readdirSync(join(__dirname, version))
+      registry.handleStartGame({ block_network_ids_are_hashes: blockNetworkIdsAreHashes, itemstates: [] })
+      const packetLevelChunkWithoutCaching = fixtures.find(f => f.includes('level_chunk') && !f.toLowerCase().includes('cache'))
       const packet = require(join(__dirname, version, packetLevelChunkWithoutCaching))
 
       const column = new ChunkColumn({ x: packet.x, z: packet.z })
@@ -36,9 +50,16 @@ for (const version of versions) {
         dbdiff(payload, encoded)
         throw new Error('Encoded payload does not match original')
       }
-    })
+    }
 
-    it('can re-encode level_chunk with caching', async () => {
+    async function reEncodeLevelChunkWithCaching (blockNetworkIdsAreHashes) {
+      const blobStore = new BlobStore()
+      const registry = require('prismarine-registry')(version)
+      const ChunkColumn = require('prismarine-chunk')(registry)
+      const fixtures = fs.readdirSync(join(__dirname, version))
+      registry.handleStartGame({ block_network_ids_are_hashes: blockNetworkIdsAreHashes, itemstates: [] })
+      const packetLevelChunkWithCaching = fixtures.find(f => f.includes('level_chunk') && f.includes('cached'))
+      const packetLevelChunkCacheMissReponse = fixtures.find(f => f.includes('level_chunk') && f.includes('CacheMiss'))
       const packet = require(join(__dirname, version, packetLevelChunkWithCaching))
       const column = new ChunkColumn({ x: packet.x, z: packet.z })
       const payload = Buffer.from(packet.payload)
@@ -66,12 +87,22 @@ for (const version of versions) {
         throw new Error('Encoded payload contains extraneous blobs')
       }
       // OK
-    })
+    }
 
-    if (registry.version['>=']('1.18')) {
+    async function reEncodeSubChunkWithoutCaching (blockNetworkIdsAreHashes) {
+      const registry = require('prismarine-registry')(version)
+      const ChunkColumn = require('prismarine-chunk')(registry)
+      const fixtures = fs.readdirSync(join(__dirname, version))
+      registry.handleStartGame({ block_network_ids_are_hashes: blockNetworkIdsAreHashes, itemstates: [] })
       const packetSubChunkWithoutCaching = fixtures.find(f => f.includes('subchunk') && !f.toLowerCase().includes('cache'))
-      const packetSubChunkWithCaching = fixtures.find(f => f.includes('subchunk') && f.includes('cached'))
-      const packetSubChunkCacheMissReponse = fixtures.find(f => f.includes('subchunk') && f.includes('CacheMiss'))
+      const packet = require(join(__dirname, version, packetSubChunkWithoutCaching))
+      if (packet.entries) {
+        for (const entry of packet.entries) {
+          await processSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, Buffer.from(entry.payload))
+        }
+      } else {
+        await processSubChunk(packet.x, packet.y, packet.z, Buffer.from(packet.data))
+      }
 
       async function processSubChunk (x, y, z, payload) {
         const column = new ChunkColumn({ x, z })
@@ -83,17 +114,28 @@ for (const version of versions) {
           throw new Error('Encoded payload does not match original')
         }
       }
+    }
 
-      it('can re-encode subchunk packet without caching', async () => {
-        const packet = require(join(__dirname, version, packetSubChunkWithoutCaching))
-        if (packet.entries) {
-          for (const entry of packet.entries) {
-            await processSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, Buffer.from(entry.payload))
-          }
-        } else {
-          await processSubChunk(packet.x, packet.y, packet.z, Buffer.from(packet.data))
+    async function reEncodeSubChunkWithCaching (blockNetworkIdsAreHashes) {
+      const blobStore = new BlobStore()
+      const registry = require('prismarine-registry')(version)
+      const ChunkColumn = require('prismarine-chunk')(registry)
+      const fixtures = fs.readdirSync(join(__dirname, version))
+      registry.handleStartGame({ block_network_ids_are_hashes: blockNetworkIdsAreHashes, itemstates: [] })
+      const packetSubChunkWithCaching = fixtures.find(f => f.includes('subchunk') && f.includes('cached'))
+      const packetSubChunkCacheMissReponse = fixtures.find(f => f.includes('subchunk') && f.includes('CacheMiss'))
+      const packet = require(join(__dirname, version, packetSubChunkWithCaching))
+      const missResponse = require(join(__dirname, version, packetSubChunkCacheMissReponse))
+      assert(packet.cache_enabled, "you didn't dump packets correctly")
+
+      if (packet.entries) {
+        for (const entry of packet.entries) {
+          if (missResponse.blobs[entry.blob_id] === undefined) { continue }
+          await processCachedSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, entry.blob_id, Buffer.from(entry.payload))
         }
-      })
+      } else {
+        await processCachedSubChunk(packet.x, packet.y, packet.z, packet.blob_id, Buffer.from(packet.data))
+      }
 
       async function processCachedSubChunk (x, y, z, blobId, extraData) {
         const column = new ChunkColumn({ x, z })
@@ -122,26 +164,14 @@ for (const version of versions) {
         }
         // OK
       }
-
-      it('can re-encode subchunk packet with caching', async () => {
-        const packet = require(join(__dirname, version, packetSubChunkWithCaching))
-        const missResponse = require(join(__dirname, version, packetSubChunkCacheMissReponse))
-        assert(packet.cache_enabled, "you didn't dump packets correctly")
-
-        if (packet.entries) {
-          for (const entry of packet.entries) {
-            if (missResponse.blobs[entry.blob_id] === undefined) { continue }
-            await processCachedSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, entry.blob_id, Buffer.from(entry.payload))
-          }
-        } else {
-          await processCachedSubChunk(packet.x, packet.y, packet.z, packet.blob_id, Buffer.from(packet.data))
-        }
-      })
     }
   })
 
   describe('bedrock subchunk tests on ' + version, () => {
     it('compaction works on ' + version, async () => {
+      const registry = require('prismarine-registry')(version)
+      const ChunkColumn = require('prismarine-chunk')(registry)
+      registry.handleStartGame({ block_network_ids_are_hashes: false, itemstates: [] })
       const cc = new ChunkColumn({ x: 0, z: 0 })
       const fakeBlocks = [1, 2, 3]
       let i = 0
@@ -152,11 +182,11 @@ for (const version of versions) {
             // Here we set some blocks and replace it with air right after
             for (let z = 0; z < 16; z++) {
               section.setBlockStateId(l, x, y, z, fakeBlocks[i++ % fakeBlocks.length])
-              section.setBlockStateId(l, x, y, z, registry.blocksByName.air.defaultState)
+              section.setBlockStateId(l, x, y, z, registryForVersionCheck.blocksByName.air.defaultState)
             }
           }
           // Here we set some dirt. We don't replace it with air, so it should stay dirt
-          section.setBlockStateId(l, 0, 10, 0, registry.blocksByName.dirt.defaultState)
+          section.setBlockStateId(l, 0, 10, 0, registryForVersionCheck.blocksByName.dirt.defaultState)
         }
       }
 
