@@ -29,7 +29,7 @@ class DirectPaletteContainer {
 
   readBuffer (smartBuffer, bitsPerValue) {
     const longs = this.noSizePrefix
-      ? Math.ceil(constants.BLOCK_SECTION_VOLUME / Math.floor(64 / bitsPerValue))
+      ? Math.ceil(this.data.capacity / Math.floor(64 / bitsPerValue))
       : varInt.read(smartBuffer)
     this.data.readBuffer(smartBuffer, longs * 2)
     return this
@@ -109,7 +109,7 @@ class IndirectPaletteContainer {
 
   readBuffer (smartBuffer, bitsPerValue) {
     const longs = this.noSizePrefix
-      ? Math.ceil(constants.BLOCK_SECTION_VOLUME / Math.floor(64 / bitsPerValue))
+      ? Math.ceil(this.data.capacity / Math.floor(64 / bitsPerValue))
       : varInt.read(smartBuffer)
     this.data.readBuffer(smartBuffer, longs * 2)
     return this

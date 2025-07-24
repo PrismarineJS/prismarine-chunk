@@ -96,7 +96,9 @@ class ChunkSection {
   static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK, noSizePrefix) {
     const solidBlockCount = smartBuffer.readInt16BE()
     const bitsPerBlock = smartBuffer.readUInt8()
-    if (!bitsPerBlock) {
+    if (bitsPerBlock > 16) throw new Error(`Bits per block is too big: ${bitsPerBlock}`)
+    // Case 1: Single Value Container (all blocks in the section are the same)
+    if (bitsPerBlock === 0) {
       const section = new ChunkSection({
         noSizePrefix,
         solidBlockCount,
@@ -107,6 +109,7 @@ class ChunkSection {
       return section
     }
 
+    // Case 2: Direct Palette (global palette)
     if (bitsPerBlock > constants.MAX_BITS_PER_BLOCK) {
       return new ChunkSection({
         noSizePrefix,
@@ -119,6 +122,7 @@ class ChunkSection {
       })
     }
 
+    // Case 3: Indirect Palette (local palette)
     const palette = []
     const paletteLength = varInt.read(smartBuffer)
     for (let i = 0; i < paletteLength; ++i) {

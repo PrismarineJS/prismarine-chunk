@@ -183,7 +183,7 @@ class BitArray {
       console.warn(`Invalid size in BitArray.readBuffer: ${size}, using default size`)
       size = this.data.length
     }
-    
+
     if (size !== this.data.length) {
       this.data = new Uint32Array(size)
       // Read the actual data instead of just skipping
