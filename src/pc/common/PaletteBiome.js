@@ -66,7 +66,7 @@ class BiomeSection {
         noSizePrefix,
         singleValue: varInt.read(smartBuffer)
       })
-      if (!this.noSizePrefix) smartBuffer.readUInt8()
+      if (!noSizePrefix) smartBuffer.readUInt8()
       return section
     }
 
