@@ -43,9 +43,25 @@ Install it globally with `npm install minecraft-chunk-dumper -g` then run :
 
 ### bedrock
 
-Run tests in [bedrock-provider](https://github.com/PrismarineJS/bedrock-provider/) (which loads chunks through a client as part of its tests) and copy the generated data from `fixtures/$version/pchunk` into `tests/bedrock_$version`.
+Test data can be generated using the included script:
+```bash
+node tools/generate-bedrock-test-data.mjs <version> <chunkX> <chunkZ> <levelSeed>
+```
 
-For the version, copy one chunk column of `level_chunk` without caching, `level_chunk` with caching, `level_chunk CacheMissResponse`, `subchunk` without caching, `subchunk cached` and `subchunk CacheMissResponse` into the test/version folder.
+Example:
+```bash
+node tools/generate-bedrock-test-data.mjs 1.21.90 -7 10 8403237569561413924
+```
+
+This script will generate test data for different caching and hash configurations in the `test/bedrock_<version>/` directory. 
+
+For the version, keep only one chunk column of test data with the following files:
+- `level_chunk` without caching (one file per hash/no-hash configuration)
+- `level_chunk` with caching (one file per hash/no-hash configuration)
+- `level_chunk CacheMissResponse` (one file per hash/no-hash configuration)
+- `subchunk` without caching (one file per hash/no-hash configuration)
+- `subchunk` with caching (one file per hash/no-hash configuration)
+- `subchunk CacheMissResponse` (only one representative file per hash/no-hash configuration)
 
 Note: bedrock-provider tests network decoding and loading chunks from a save database. The tests in prismarine-chunk test other parts of the chunk API, such as
 setting and getting block light, type, biome, entity and block entity data.
