@@ -20,7 +20,8 @@ class ChunkSection {
         bitsPerValue: constants.MIN_BITS_PER_BLOCK,
         capacity: constants.BLOCK_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BLOCK,
-        maxBitsPerBlock: options?.maxBitsPerBlock ?? constants.GLOBAL_BITS_PER_BLOCK
+        maxBitsPerBlock: options?.maxBitsPerBlock ?? constants.GLOBAL_BITS_PER_BLOCK,
+        noSizePrefix: this.noSizePrefix
       })
       this.solidBlockCount = value ? constants.BLOCK_SECTION_VOLUME : 0
     } else {
@@ -81,12 +82,14 @@ class ChunkSection {
       noSizePrefix,
       data: palette.length === 1
         ? new SingleValueContainer({
+          noSizePrefix,
           value: palette[0],
           bitsPerValue: constants.MIN_BITS_PER_BLOCK,
           capacity: constants.BIOME_SECTION_VOLUME,
           maxBits: constants.MAX_BITS_PER_BLOCK
         })
         : new IndirectPaletteContainer({
+          noSizePrefix,
           data,
           palette
         })

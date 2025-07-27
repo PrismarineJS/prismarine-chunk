@@ -45,6 +45,7 @@ class DirectPaletteContainer {
   static fromJson (j) {
     const parsed = JSON.parse(j)
     return new DirectPaletteContainer({
+      noSizePrefix: parsed.noSizePrefix,
       data: BitArray.fromJson(parsed.data),
       bitsPerValue: parsed.bitsPerValue
     })
@@ -88,6 +89,7 @@ class IndirectPaletteContainer {
 
   convertToDirect (bitsPerValue) {
     const direct = new DirectPaletteContainer({
+      noSizePrefix: this.noSizePrefix,
       bitsPerValue: bitsPerValue ?? constants.GLOBAL_BITS_PER_BLOCK,
       capacity: this.data.capacity
     })
@@ -128,6 +130,7 @@ class IndirectPaletteContainer {
   static fromJson (j) {
     const parsed = JSON.parse(j)
     return new IndirectPaletteContainer({
+      noSizePrefix: parsed.noSizePrefix,
       palette: parsed.palette,
       maxBits: parsed.maxBits,
       maxBitsPerBlock: parsed.maxBitsPerBlock,
@@ -160,6 +163,7 @@ class SingleValueContainer {
     data.set(index, 1)
 
     return new IndirectPaletteContainer({
+      noSizePrefix: this.noSizePrefix,
       data,
       palette: [this.value, value],
       capacity: this.capacity,
@@ -189,6 +193,7 @@ class SingleValueContainer {
   static fromJson (j) {
     const parsed = JSON.parse(j)
     return new SingleValueContainer({
+      noSizePrefix: parsed.noSizePrefix,
       value: parsed.value,
       bitsPerValue: parsed.bitsPerValue,
       capacity: parsed.capacity,
@@ -202,10 +207,12 @@ function containerFromJson (j) {
   const parsed = JSON.parse(j)
   if (parsed.type === 'direct') {
     return new DirectPaletteContainer({
+      noSizePrefix: parsed.noSizePrefix,
       data: BitArray.fromJson(parsed.data)
     })
   } else if (parsed.type === 'indirect') {
     return new IndirectPaletteContainer({
+      noSizePrefix: parsed.noSizePrefix,
       palette: parsed.palette,
       maxBits: parsed.maxBits,
       data: BitArray.fromJson(parsed.data),
@@ -213,6 +220,7 @@ function containerFromJson (j) {
     })
   } else if (parsed.type === 'single') {
     return new SingleValueContainer({
+      noSizePrefix: parsed.noSizePrefix,
       value: parsed.value,
       bitsPerValue: parsed.bitsPerValue,
       capacity: parsed.capacity,

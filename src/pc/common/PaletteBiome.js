@@ -13,6 +13,7 @@ class BiomeSection {
   constructor (options) {
     this.noSizePrefix = options?.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
     this.data = options?.data ?? new SingleValueContainer({
+      noSizePrefix: this.noSizePrefix,
       value: options?.singleValue ?? 0,
       bitsPerValue: constants.MIN_BITS_PER_BIOME,
       capacity: constants.BIOME_SECTION_VOLUME,
@@ -43,12 +44,14 @@ class BiomeSection {
       noSizePrefix,
       data: palette.length === 1
         ? new SingleValueContainer({
+          noSizePrefix,
           value: palette[0],
           bitsPerValue: constants.MIN_BITS_PER_BIOME,
           capacity: constants.BIOME_SECTION_VOLUME,
           maxBits: constants.MAX_BITS_PER_BIOME
         })
         : new IndirectPaletteContainer({
+          noSizePrefix,
           palette,
           data
         })
@@ -78,6 +81,7 @@ class BiomeSection {
       return new BiomeSection({
         noSizePrefix,
         data: new DirectPaletteContainer({
+          noSizePrefix,
           bitsPerValue: maxBitsPerBiome,
           capacity: constants.BIOME_SECTION_VOLUME
         }).readBuffer(smartBuffer, bitsPerBiome)
