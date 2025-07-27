@@ -24,10 +24,10 @@ module.exports = (Block, mcData) => {
       this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
 
       this.sections = options?.sections ?? Array.from(
-        { length: this.numSections }, _ => new ChunkSection({ maxBitsPerBlock: this.maxBitsPerBlock })
+        { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, maxBitsPerBlock: this.maxBitsPerBlock })
       )
       this.biomes = options?.biomes ?? Array.from(
-        { length: this.numSections }, _ => new BiomeSection()
+        { length: this.numSections }, _ => new BiomeSection({ noSizePrefix })
       )
 
       this.skyLightMask = options?.skyLightMask ?? new BitArray({
