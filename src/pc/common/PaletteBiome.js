@@ -11,7 +11,9 @@ function getBiomeIndex (pos) {
 
 class BiomeSection {
   constructor (options) {
+    this.noSizePrefix = options?.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
     this.data = options?.data ?? new SingleValueContainer({
+      noSizePrefix: this.noSizePrefix,
       value: options?.singleValue ?? 0,
       bitsPerValue: constants.MIN_BITS_PER_BIOME,
       capacity: constants.BIOME_SECTION_VOLUME,
@@ -37,16 +39,19 @@ class BiomeSection {
     this.data = this.data.set(getBiomeIndex(pos), biomeId)
   }
 
-  static fromLocalPalette ({ palette, data }) {
+  static fromLocalPalette ({ palette, data, noSizePrefix }) {
     return new BiomeSection({
+      noSizePrefix,
       data: palette.length === 1
         ? new SingleValueContainer({
+          noSizePrefix,
           value: palette[0],
           bitsPerValue: constants.MIN_BITS_PER_BIOME,
           capacity: constants.BIOME_SECTION_VOLUME,
           maxBits: constants.MAX_BITS_PER_BIOME
         })
         : new IndirectPaletteContainer({
+          noSizePrefix,
           palette,
           data
         })
@@ -57,25 +62,33 @@ class BiomeSection {
     this.data.write(smartBuffer)
   }
 
-  static read (smartBuffer, maxBitsPerBiome = constants.GLOBAL_BITS_PER_BIOME) {
-    const bitsPerBlock = smartBuffer.readUInt8()
-    if (!bitsPerBlock) {
+  static read (smartBuffer, maxBitsPerBiome = constants.GLOBAL_BITS_PER_BIOME, noSizePrefix) {
+    const bitsPerBiome = smartBuffer.readUInt8()
+    if (bitsPerBiome > 8) throw new Error(`Bits per biome is too big: ${bitsPerBiome}`)
+
+    // Case 1: Single Value Container (all biomes in the section are the same)
+    if (bitsPerBiome === 0) {
       const section = new BiomeSection({
+        noSizePrefix,
         singleValue: varInt.read(smartBuffer)
       })
-      smartBuffer.readUInt8()
+      if (!noSizePrefix) smartBuffer.readUInt8()
       return section
     }
 
-    if (bitsPerBlock > constants.MAX_BITS_PER_BIOME) {
+    // Case 2: Direct Palette (global palette)
+    if (bitsPerBiome > constants.MAX_BITS_PER_BIOME) {
       return new BiomeSection({
+        noSizePrefix,
         data: new DirectPaletteContainer({
+          noSizePrefix,
           bitsPerValue: maxBitsPerBiome,
           capacity: constants.BIOME_SECTION_VOLUME
-        }).readBuffer(smartBuffer)
+        }).readBuffer(smartBuffer, bitsPerBiome)
       })
     }
 
+    // Case 3: Indirect Palette (local palette)
     const palette = []
     const paletteLength = varInt.read(smartBuffer)
     for (let i = 0; i < paletteLength; ++i) {
@@ -84,11 +97,12 @@ class BiomeSection {
 
     return new BiomeSection({
       data: new IndirectPaletteContainer({
-        bitsPerValue: bitsPerBlock,
+        noSizePrefix,
+        bitsPerValue: bitsPerBiome,
         capacity: constants.BIOME_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BIOME,
         palette
-      }).readBuffer(smartBuffer)
+      }).readBuffer(smartBuffer, bitsPerBiome)
     })
   }
 }

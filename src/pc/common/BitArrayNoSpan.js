@@ -178,9 +178,19 @@ class BitArray {
   }
 
   readBuffer (smartBuffer, size = this.data.length) {
+    // Validate size to prevent Infinity or invalid values
+    if (!Number.isFinite(size) || size < 0 || size > 1000000) {
+      console.warn(`Invalid size in BitArray.readBuffer: ${size}, using default size`)
+      size = this.data.length
+    }
+
     if (size !== this.data.length) {
       this.data = new Uint32Array(size)
-      smartBuffer.readOffset += size * 4
+      // Read the actual data instead of just skipping
+      for (let i = 0; i < size; i += 2) {
+        this.data[i + 1] = smartBuffer.readUInt32BE()
+        this.data[i] = smartBuffer.readUInt32BE()
+      }
       return
     }
 

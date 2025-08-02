@@ -11,6 +11,8 @@ const CAVES_UPDATE_WORLD_HEIGHT = 384
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
+  // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
+  const noSizePrefix = mcData.version['>=']('1.21.5')
   return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor (options) {
@@ -22,10 +24,10 @@ module.exports = (Block, mcData) => {
       this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
 
       this.sections = options?.sections ?? Array.from(
-        { length: this.numSections }, _ => new ChunkSection({ maxBitsPerBlock: this.maxBitsPerBlock })
+        { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, maxBitsPerBlock: this.maxBitsPerBlock })
       )
       this.biomes = options?.biomes ?? Array.from(
-        { length: this.numSections }, _ => new BiomeSection()
+        { length: this.numSections }, _ => new BiomeSection({ noSizePrefix })
       )
 
       this.skyLightMask = options?.skyLightMask ?? new BitArray({
@@ -250,8 +252,8 @@ module.exports = (Block, mcData) => {
     load (data) {
       const reader = SmartBuffer.fromBuffer(data)
       for (let i = 0; i < this.numSections; ++i) {
-        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock)
-        this.biomes[i] = BiomeSection.read(reader, this.maxBitsPerBiome)
+        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock, noSizePrefix)
+        this.biomes[i] = BiomeSection.read(reader, this.maxBitsPerBiome, noSizePrefix)
       }
     }
 
@@ -314,6 +316,7 @@ module.exports = (Block, mcData) => {
       // TOOD: we should probably not fail, but because we use numerical biome IDs in pchunk we need to fail
       const raiseUnknownBiome = biome => { throw new Error(`Failed to map ${JSON.stringify(biome)} to a biome ID`) }
       this.sections[y + minCY] = ChunkSection.fromLocalPalette({
+        noSizePrefix,
         data: BitArray.fromLongArray(blockStates.data || {}, blockStates.bitsPerBlock),
         palette: blockStates.palette
           .map(e => Block.fromProperties(e.Name.replace('minecraft:', ''), e.Properties || {}) ?? raiseUnknownBlock(e))
@@ -321,6 +324,7 @@ module.exports = (Block, mcData) => {
       })
 
       this.biomes[y + minCY] = BiomeSection.fromLocalPalette({
+        noSizePrefix,
         data: BitArray.fromLongArray(biomes.data || {}, biomes.bitsPerBiome),
         palette: biomes.palette
           .map(e => mcData.biomesByName[e.replace('minecraft:', '')] ?? raiseUnknownBiome(e))

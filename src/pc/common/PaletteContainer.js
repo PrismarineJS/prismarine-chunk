@@ -5,6 +5,7 @@ const varInt = require('./varInt')
 
 class DirectPaletteContainer {
   constructor (options) {
+    this.noSizePrefix = options?.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
     this.data = new BitArray({
       bitsPerValue: options?.bitsPerValue ?? constants.GLOBAL_BITS_PER_BLOCK,
       capacity: options?.capacity ?? constants.BLOCK_SECTION_VOLUME
@@ -22,12 +23,15 @@ class DirectPaletteContainer {
 
   write (smartBuffer) {
     smartBuffer.writeUInt8(this.data.bitsPerValue)
-    varInt.write(smartBuffer, this.data.length())
+    if (!this.noSizePrefix) varInt.write(smartBuffer, this.data.length())
     this.data.writeBuffer(smartBuffer)
   }
 
-  readBuffer (smartBuffer) {
-    this.data.readBuffer(smartBuffer, varInt.read(smartBuffer) * 2)
+  readBuffer (smartBuffer, bitsPerValue) {
+    const longs = this.noSizePrefix
+      ? Math.ceil(this.data.capacity / Math.floor(64 / bitsPerValue))
+      : varInt.read(smartBuffer)
+    this.data.readBuffer(smartBuffer, longs * 2)
     return this
   }
 
@@ -41,6 +45,7 @@ class DirectPaletteContainer {
   static fromJson (j) {
     const parsed = JSON.parse(j)
     return new DirectPaletteContainer({
+      noSizePrefix: parsed.noSizePrefix,
       data: BitArray.fromJson(parsed.data),
       bitsPerValue: parsed.bitsPerValue
     })
@@ -49,6 +54,7 @@ class DirectPaletteContainer {
 
 class IndirectPaletteContainer {
   constructor (options) {
+    this.noSizePrefix = options?.noSizePrefix
     this.data = options?.data ?? new BitArray({
       bitsPerValue: options?.bitsPerValue ?? constants.MIN_BITS_PER_BLOCK,
       capacity: options?.capacity ?? constants.BLOCK_SECTION_VOLUME
@@ -83,6 +89,7 @@ class IndirectPaletteContainer {
 
   convertToDirect (bitsPerValue) {
     const direct = new DirectPaletteContainer({
+      noSizePrefix: this.noSizePrefix,
       bitsPerValue: bitsPerValue ?? constants.GLOBAL_BITS_PER_BLOCK,
       capacity: this.data.capacity
     })
@@ -98,12 +105,14 @@ class IndirectPaletteContainer {
     for (const paletteElement of this.palette) {
       varInt.write(smartBuffer, paletteElement)
     }
-    varInt.write(smartBuffer, this.data.length())
+    if (!this.noSizePrefix) varInt.write(smartBuffer, this.data.length())
     this.data.writeBuffer(smartBuffer)
   }
 
-  readBuffer (smartBuffer) {
-    const longs = varInt.read(smartBuffer)
+  readBuffer (smartBuffer, bitsPerValue) {
+    const longs = this.noSizePrefix
+      ? Math.ceil(this.data.capacity / Math.floor(64 / bitsPerValue))
+      : varInt.read(smartBuffer)
     this.data.readBuffer(smartBuffer, longs * 2)
     return this
   }
@@ -121,6 +130,7 @@ class IndirectPaletteContainer {
   static fromJson (j) {
     const parsed = JSON.parse(j)
     return new IndirectPaletteContainer({
+      noSizePrefix: parsed.noSizePrefix,
       palette: parsed.palette,
       maxBits: parsed.maxBits,
       maxBitsPerBlock: parsed.maxBitsPerBlock,
@@ -131,6 +141,7 @@ class IndirectPaletteContainer {
 
 class SingleValueContainer {
   constructor (options) {
+    this.noSizePrefix = options?.noSizePrefix
     this.value = options?.value ?? 0
     this.bitsPerValue = options?.bitsPerValue ?? constants.MIN_BITS_PER_BLOCK
     this.capacity = options?.capacity ?? constants.BLOCK_SECTION_VOLUME
@@ -152,6 +163,7 @@ class SingleValueContainer {
     data.set(index, 1)
 
     return new IndirectPaletteContainer({
+      noSizePrefix: this.noSizePrefix,
       data,
       palette: [this.value, value],
       capacity: this.capacity,
@@ -162,9 +174,9 @@ class SingleValueContainer {
   }
 
   write (smartBuffer) {
-    smartBuffer.writeUInt8(0)
+    smartBuffer.writeUInt8(0) // bitsPerValue is 0 for single value
     varInt.write(smartBuffer, this.value)
-    smartBuffer.writeUInt8(0)
+    if (!this.noSizePrefix) smartBuffer.writeUInt8(0)
   }
 
   toJson () {
@@ -181,6 +193,7 @@ class SingleValueContainer {
   static fromJson (j) {
     const parsed = JSON.parse(j)
     return new SingleValueContainer({
+      noSizePrefix: parsed.noSizePrefix,
       value: parsed.value,
       bitsPerValue: parsed.bitsPerValue,
       capacity: parsed.capacity,
@@ -194,10 +207,12 @@ function containerFromJson (j) {
   const parsed = JSON.parse(j)
   if (parsed.type === 'direct') {
     return new DirectPaletteContainer({
+      noSizePrefix: parsed.noSizePrefix,
       data: BitArray.fromJson(parsed.data)
     })
   } else if (parsed.type === 'indirect') {
     return new IndirectPaletteContainer({
+      noSizePrefix: parsed.noSizePrefix,
       palette: parsed.palette,
       maxBits: parsed.maxBits,
       data: BitArray.fromJson(parsed.data),
@@ -205,6 +220,7 @@ function containerFromJson (j) {
     })
   } else if (parsed.type === 'single') {
     return new SingleValueContainer({
+      noSizePrefix: parsed.noSizePrefix,
       value: parsed.value,
       bitsPerValue: parsed.bitsPerValue,
       capacity: parsed.capacity,

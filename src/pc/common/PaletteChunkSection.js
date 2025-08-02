@@ -11,6 +11,7 @@ function getBlockIndex (pos) {
 
 class ChunkSection {
   constructor (options) {
+    this.noSizePrefix = options?.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
     this.data = options?.data
     if (!this.data) {
       const value = options?.singleValue ?? 0
@@ -19,7 +20,8 @@ class ChunkSection {
         bitsPerValue: constants.MIN_BITS_PER_BLOCK,
         capacity: constants.BLOCK_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BLOCK,
-        maxBitsPerBlock: options?.maxBitsPerBlock ?? constants.GLOBAL_BITS_PER_BLOCK
+        maxBitsPerBlock: options?.maxBitsPerBlock ?? constants.GLOBAL_BITS_PER_BLOCK,
+        noSizePrefix: this.noSizePrefix
       })
       this.solidBlockCount = value ? constants.BLOCK_SECTION_VOLUME : 0
     } else {
@@ -75,45 +77,55 @@ class ChunkSection {
     this.data.write(smartBuffer)
   }
 
-  static fromLocalPalette ({ data, palette }) {
+  static fromLocalPalette ({ data, palette, noSizePrefix }) {
     return new ChunkSection({
+      noSizePrefix,
       data: palette.length === 1
         ? new SingleValueContainer({
+          noSizePrefix,
           value: palette[0],
           bitsPerValue: constants.MIN_BITS_PER_BLOCK,
           capacity: constants.BIOME_SECTION_VOLUME,
           maxBits: constants.MAX_BITS_PER_BLOCK
         })
         : new IndirectPaletteContainer({
+          noSizePrefix,
           data,
           palette
         })
     })
   }
 
-  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK) {
+  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK, noSizePrefix) {
     const solidBlockCount = smartBuffer.readInt16BE()
     const bitsPerBlock = smartBuffer.readUInt8()
-    if (!bitsPerBlock) {
+    if (bitsPerBlock > 16) throw new Error(`Bits per block is too big: ${bitsPerBlock}`)
+    // Case 1: Single Value Container (all blocks in the section are the same)
+    if (bitsPerBlock === 0) {
       const section = new ChunkSection({
+        noSizePrefix,
         solidBlockCount,
         singleValue: varInt.read(smartBuffer),
         maxBitsPerBlock
       })
-      smartBuffer.readUInt8()
+      if (!noSizePrefix) smartBuffer.readUInt8()
       return section
     }
 
+    // Case 2: Direct Palette (global palette)
     if (bitsPerBlock > constants.MAX_BITS_PER_BLOCK) {
       return new ChunkSection({
+        noSizePrefix,
         solidBlockCount,
         data: new DirectPaletteContainer({
+          noSizePrefix,
           bitsPerValue: maxBitsPerBlock,
           capacity: constants.BLOCK_SECTION_VOLUME
-        }).readBuffer(smartBuffer)
+        }).readBuffer(smartBuffer, bitsPerBlock)
       })
     }
 
+    // Case 3: Indirect Palette (local palette)
     const palette = []
     const paletteLength = varInt.read(smartBuffer)
     for (let i = 0; i < paletteLength; ++i) {
@@ -121,14 +133,16 @@ class ChunkSection {
     }
 
     return new ChunkSection({
+      noSizePrefix,
       solidBlockCount,
       data: new IndirectPaletteContainer({
+        noSizePrefix,
         bitsPerValue: bitsPerBlock,
         capacity: constants.BLOCK_SECTION_VOLUME,
         maxBits: constants.MAX_BITS_PER_BLOCK,
         maxBitsPerBlock,
         palette
-      }).readBuffer(smartBuffer)
+      }).readBuffer(smartBuffer, bitsPerBlock)
     })
   }
 }
