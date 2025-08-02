@@ -1,5 +1,10 @@
 ## History
 
+### 1.39.0
+* [1.21.5 continued (#295)](https://github.com/PrismarineJS/prismarine-chunk/commit/3ecb645d103f7105211356029e9b1a58b7c7ea98) (thanks @rom1504)
+* [Bump expect from 29.7.0 to 30.0.5 (#297)](https://github.com/PrismarineJS/prismarine-chunk/commit/15c6bc772615c922882a319c2e367d9fddb0dbbe) (thanks @dependabot[bot])
+* [node 22 (#273)](https://github.com/PrismarineJS/prismarine-chunk/commit/43d54461520ab09fe1aebd613f45160389ef40ca) (thanks @rom1504)
+
 ### 1.38.1
 * [Fix pc1.18 light index (#271)](https://github.com/PrismarineJS/prismarine-chunk/commit/9a9673b8a7e4b4810dd128febf25467bf2b99b85) (thanks @extremeheat)
 
