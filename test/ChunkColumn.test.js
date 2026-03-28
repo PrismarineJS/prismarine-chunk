@@ -195,5 +195,15 @@ for (const version of allVersions) {
         expect(block.entity.z).toEqual(testTag.z)
       }
     })
+
+    if (registry.type === 'pc' && registry.version['>=']('1.18')) {
+      it('setBiome works below Y=0', () => {
+        const column = new ChunkColumn()
+        const biomeId = 1
+        const pos = new Vec3(4, -32, 4)
+        column.setBiomeId(pos, biomeId)
+        assert.strictEqual(biomeId, column.getBiomeId(pos))
+      })
+    }
   })
 }
