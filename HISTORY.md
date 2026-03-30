@@ -1,5 +1,11 @@
 ## History
 
+### 1.40.0
+* [Update CI to Node 24 (#322)](https://github.com/PrismarineJS/prismarine-chunk/commit/f6ccf52e9c5125c4f5f3aee211318e972fa42550) (thanks @rom1504)
+* [Fix setBiome() fails below Y = 0 (missing minY offset) (#279)](https://github.com/PrismarineJS/prismarine-chunk/commit/7e935d44d395fff264a69d6a01a93477dc8020d2) (thanks @kinkainosaba)
+* [Fix publish condition for npm-publish v4 (#321)](https://github.com/PrismarineJS/prismarine-chunk/commit/9c00542a0b360804f01846fa2a981ab82497bf7d) (thanks @rom1504)
+* [Switch to trusted publishing via OIDC (#320)](https://github.com/PrismarineJS/prismarine-chunk/commit/0260f14b09d8fa871724b588053e972ea6adbae3) (thanks @rom1504)
+
 ### 1.39.0
 * [1.21.5 continued (#295)](https://github.com/PrismarineJS/prismarine-chunk/commit/3ecb645d103f7105211356029e9b1a58b7c7ea98) (thanks @rom1504)
 * [Bump expect from 29.7.0 to 30.0.5 (#297)](https://github.com/PrismarineJS/prismarine-chunk/commit/15c6bc772615c922882a319c2e367d9fddb0dbbe) (thanks @dependabot[bot])
