@@ -12,6 +12,7 @@ function getBlockIndex (pos) {
 class ChunkSection {
   constructor (options) {
     this.noSizePrefix = options?.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
+    this.usesFluidCount = options?.usesFluidCount ?? false
     this.data = options?.data
     if (!this.data) {
       const value = options?.singleValue ?? 0
@@ -32,21 +33,29 @@ class ChunkSection {
         }
       }
     }
+    this.fluidCount = options?.fluidCount ?? 0
     this.palette = this.data.palette
   }
 
   toJson () {
-    return JSON.stringify({
+    const payload = {
       data: this.data.toJson(),
       solidBlockCount: this.solidBlockCount
-    })
+    }
+    if (this.usesFluidCount) {
+      payload.usesFluidCount = true
+      payload.fluidCount = this.fluidCount
+    }
+    return JSON.stringify(payload)
   }
 
   static fromJson (j) {
     const parsed = JSON.parse(j)
     return new ChunkSection({
+      usesFluidCount: parsed.usesFluidCount ?? false,
       data: paletteContainer.fromJson(parsed.data),
-      solidBlockCount: parsed.solidBlockCount
+      solidBlockCount: parsed.solidBlockCount,
+      fluidCount: parsed.fluidCount ?? 0
     })
   }
 
@@ -74,11 +83,15 @@ class ChunkSection {
 
   write (smartBuffer) {
     smartBuffer.writeInt16BE(this.solidBlockCount)
+    if (this.usesFluidCount) {
+      smartBuffer.writeInt16BE(this.fluidCount)
+    }
     this.data.write(smartBuffer)
   }
 
-  static fromLocalPalette ({ data, palette, noSizePrefix }) {
+  static fromLocalPalette ({ data, palette, noSizePrefix, usesFluidCount }) {
     return new ChunkSection({
+      usesFluidCount,
       noSizePrefix,
       data: palette.length === 1
         ? new SingleValueContainer({
@@ -96,15 +109,18 @@ class ChunkSection {
     })
   }
 
-  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK, noSizePrefix) {
+  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK, noSizePrefix, usesFluidCount = false) {
     const solidBlockCount = smartBuffer.readInt16BE()
+    const fluidCount = usesFluidCount ? smartBuffer.readInt16BE() : 0
     const bitsPerBlock = smartBuffer.readUInt8()
     if (bitsPerBlock > 16) throw new Error(`Bits per block is too big: ${bitsPerBlock}`)
     // Case 1: Single Value Container (all blocks in the section are the same)
     if (bitsPerBlock === 0) {
       const section = new ChunkSection({
+        usesFluidCount,
         noSizePrefix,
         solidBlockCount,
+        fluidCount,
         singleValue: varInt.read(smartBuffer),
         maxBitsPerBlock
       })
@@ -115,8 +131,10 @@ class ChunkSection {
     // Case 2: Direct Palette (global palette)
     if (bitsPerBlock > constants.MAX_BITS_PER_BLOCK) {
       return new ChunkSection({
+        usesFluidCount,
         noSizePrefix,
         solidBlockCount,
+        fluidCount,
         data: new DirectPaletteContainer({
           noSizePrefix,
           bitsPerValue: maxBitsPerBlock,
@@ -133,8 +151,10 @@ class ChunkSection {
     }
 
     return new ChunkSection({
+      usesFluidCount,
       noSizePrefix,
       solidBlockCount,
+      fluidCount,
       data: new IndirectPaletteContainer({
         noSizePrefix,
         bitsPerValue: bitsPerBlock,

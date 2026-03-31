@@ -13,6 +13,7 @@ const CAVES_UPDATE_WORLD_HEIGHT = 384
 module.exports = (Block, mcData) => {
   // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
   const noSizePrefix = mcData.version['>=']('1.21.5')
+  const usesFluidCount = String(mcData.version.majorVersion) === '26.1'
   return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor (options) {
@@ -24,7 +25,7 @@ module.exports = (Block, mcData) => {
       this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
 
       this.sections = options?.sections ?? Array.from(
-        { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, maxBitsPerBlock: this.maxBitsPerBlock })
+        { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, maxBitsPerBlock: this.maxBitsPerBlock, usesFluidCount })
       )
       this.biomes = options?.biomes ?? Array.from(
         { length: this.numSections }, _ => new BiomeSection({ noSizePrefix })
@@ -252,7 +253,7 @@ module.exports = (Block, mcData) => {
     load (data) {
       const reader = SmartBuffer.fromBuffer(data)
       for (let i = 0; i < this.numSections; ++i) {
-        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock, noSizePrefix)
+        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock, noSizePrefix, usesFluidCount)
         this.biomes[i] = BiomeSection.read(reader, this.maxBitsPerBiome, noSizePrefix)
       }
     }
@@ -316,6 +317,7 @@ module.exports = (Block, mcData) => {
       // TOOD: we should probably not fail, but because we use numerical biome IDs in pchunk we need to fail
       const raiseUnknownBiome = biome => { throw new Error(`Failed to map ${JSON.stringify(biome)} to a biome ID`) }
       this.sections[y + minCY] = ChunkSection.fromLocalPalette({
+        usesFluidCount,
         noSizePrefix,
         data: BitArray.fromLongArray(blockStates.data || {}, blockStates.bitsPerBlock),
         palette: blockStates.palette
