@@ -2,7 +2,9 @@
 
 const Vec3 = require('vec3').Vec3
 const ChunkSection = require('../src/pc/1.13/ChunkSection')
+const PaletteChunkSection = require('../src/pc/common/PaletteChunkSection')
 const constants = require('../src/pc/common/constants')
+const SmartBuffer = require('smart-buffer').SmartBuffer
 const assert = require('assert')
 
 describe('pc 1.13 ChunkSection', () => {
@@ -35,5 +37,28 @@ describe('pc 1.13 ChunkSection', () => {
         }
       }
     }
+  })
+})
+
+describe('pc palette ChunkSection', () => {
+  it('preserves fluid count through binary serialization', () => {
+    const section = new PaletteChunkSection({ hasFluidCount: true, fluidCount: 9 })
+    const writer = new SmartBuffer()
+
+    section.write(writer)
+
+    const read = PaletteChunkSection.read(SmartBuffer.fromBuffer(writer.toBuffer()), undefined, undefined, true)
+    assert.strictEqual(read.hasFluidCount, true)
+    assert.strictEqual(read.fluidCount, 9)
+  })
+
+  it('preserves fluid count through JSON serialization', () => {
+    const section = new PaletteChunkSection({ hasFluidCount: true, fluidCount: 4 })
+
+    const read = PaletteChunkSection.fromJson(section.toJson())
+
+    assert.strictEqual(read.hasFluidCount, true)
+    assert.strictEqual(read.fluidCount, 4)
+    assert.strictEqual(read.toJson(), section.toJson())
   })
 })

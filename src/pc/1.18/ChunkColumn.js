@@ -13,6 +13,19 @@ const CAVES_UPDATE_WORLD_HEIGHT = 384
 module.exports = (Block, mcData) => {
   // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
   const noSizePrefix = mcData.version['>=']('1.21.5')
+  // 26.1.2 serializes a fluid-count short after nonEmptyBlockCount in each section.
+  const hasFluidCount = mcData.version.minecraftVersion === '26.1.2'
+  const fluidStateCache = new Map()
+  const fluidBlockNames = new Set(['water', 'lava', 'seagrass', 'tall_seagrass', 'kelp', 'kelp_plant', 'bubble_column'])
+  function hasFluidState (stateId) {
+    if (!stateId) return false
+    if (!fluidStateCache.has(stateId)) {
+      const block = Block.fromStateId(stateId)
+      fluidStateCache.set(stateId, fluidBlockNames.has(block.name) || block.isWaterlogged === true)
+    }
+    return fluidStateCache.get(stateId)
+  }
+
   return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor (options) {
@@ -24,7 +37,7 @@ module.exports = (Block, mcData) => {
       this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
 
       this.sections = options?.sections ?? Array.from(
-        { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, maxBitsPerBlock: this.maxBitsPerBlock })
+        { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, hasFluidCount, maxBitsPerBlock: this.maxBitsPerBlock })
       )
       this.biomes = options?.biomes ?? Array.from(
         { length: this.numSections }, _ => new BiomeSection({ noSizePrefix })
@@ -180,7 +193,16 @@ module.exports = (Block, mcData) => {
 
     setBlockStateId (pos, stateId) {
       const section = this.sections[(pos.y - this.minY) >> 4]
-      if (section) { section.set(toSectionPos(pos, this.minY), stateId) }
+      if (section) {
+        const sectionPos = toSectionPos(pos, this.minY)
+        if (hasFluidCount) {
+          const oldStateId = section.get(sectionPos)
+          const oldHasFluid = hasFluidState(oldStateId)
+          const newHasFluid = hasFluidState(stateId)
+          if (oldHasFluid !== newHasFluid) section.fluidCount += newHasFluid ? 1 : -1
+        }
+        section.set(sectionPos, stateId)
+      }
     }
 
     setBlockLight (pos, light) {
@@ -252,7 +274,7 @@ module.exports = (Block, mcData) => {
     load (data) {
       const reader = SmartBuffer.fromBuffer(data)
       for (let i = 0; i < this.numSections; ++i) {
-        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock, noSizePrefix)
+        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock, noSizePrefix, hasFluidCount)
         this.biomes[i] = BiomeSection.read(reader, this.maxBitsPerBiome, noSizePrefix)
       }
     }
@@ -317,6 +339,7 @@ module.exports = (Block, mcData) => {
       const raiseUnknownBiome = biome => { throw new Error(`Failed to map ${JSON.stringify(biome)} to a biome ID`) }
       this.sections[y + minCY] = ChunkSection.fromLocalPalette({
         noSizePrefix,
+        hasFluidCount,
         data: BitArray.fromLongArray(blockStates.data || {}, blockStates.bitsPerBlock),
         palette: blockStates.palette
           .map(e => Block.fromProperties(e.Name.replace('minecraft:', ''), e.Properties || {}) ?? raiseUnknownBlock(e))

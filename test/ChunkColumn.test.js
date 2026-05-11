@@ -205,5 +205,34 @@ for (const version of allVersions) {
         assert.strictEqual(biomeId, column.getBiomeId(pos))
       })
     }
+
+    if (version === '26.1.2') {
+      it('updates section fluid count when block states change', () => {
+        const column = new ChunkColumn()
+        const pos = new Vec3(0, 0, 0)
+        const section = column.sections[(pos.y - column.minY) >> 4]
+        const airStateId = registry.blocksByName.air.defaultState
+        const waterStateId = registry.blocksByName.water.defaultState
+        const oakStairs = registry.blocksByName.oak_stairs
+        let waterloggedStairsStateId
+        let dryStairsStateId
+
+        for (let stateId = oakStairs.minStateId; stateId <= oakStairs.maxStateId; stateId++) {
+          const block = Block.fromStateId(stateId)
+          if (block.isWaterlogged === true && waterloggedStairsStateId === undefined) waterloggedStairsStateId = stateId
+          if (block.isWaterlogged === false && dryStairsStateId === undefined) dryStairsStateId = stateId
+        }
+
+        assert.strictEqual(section.fluidCount, 0)
+        column.setBlockStateId(pos, waterStateId)
+        assert.strictEqual(section.fluidCount, 1)
+        column.setBlockStateId(pos.offset(1, 0, 0), waterloggedStairsStateId)
+        assert.strictEqual(section.fluidCount, 2)
+        column.setBlockStateId(pos, airStateId)
+        assert.strictEqual(section.fluidCount, 1)
+        column.setBlockStateId(pos.offset(1, 0, 0), dryStairsStateId)
+        assert.strictEqual(section.fluidCount, 0)
+      })
+    }
   })
 }

@@ -12,6 +12,8 @@ function getBlockIndex (pos) {
 class ChunkSection {
   constructor (options) {
     this.noSizePrefix = options?.noSizePrefix // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
+    this.hasFluidCount = options?.hasFluidCount ?? false
+    this.fluidCount = options?.fluidCount ?? 0
     this.data = options?.data
     if (!this.data) {
       const value = options?.singleValue ?? 0
@@ -26,6 +28,7 @@ class ChunkSection {
       this.solidBlockCount = value ? constants.BLOCK_SECTION_VOLUME : 0
     } else {
       this.solidBlockCount = options?.solidBlockCount ?? 0
+      this.fluidCount = options?.fluidCount ?? 0
       if (options?.solidBlockCount == null) {
         for (let i = 0; i < constants.BLOCK_SECTION_VOLUME; ++i) {
           if (this.data.get(i)) { this.solidBlockCount++ }
@@ -38,7 +41,9 @@ class ChunkSection {
   toJson () {
     return JSON.stringify({
       data: this.data.toJson(),
-      solidBlockCount: this.solidBlockCount
+      solidBlockCount: this.solidBlockCount,
+      hasFluidCount: this.hasFluidCount,
+      fluidCount: this.fluidCount
     })
   }
 
@@ -46,7 +51,9 @@ class ChunkSection {
     const parsed = JSON.parse(j)
     return new ChunkSection({
       data: paletteContainer.fromJson(parsed.data),
-      solidBlockCount: parsed.solidBlockCount
+      solidBlockCount: parsed.solidBlockCount,
+      hasFluidCount: parsed.hasFluidCount,
+      fluidCount: parsed.fluidCount
     })
   }
 
@@ -74,12 +81,15 @@ class ChunkSection {
 
   write (smartBuffer) {
     smartBuffer.writeInt16BE(this.solidBlockCount)
+    if (this.hasFluidCount) smartBuffer.writeInt16BE(this.fluidCount ?? 0)
     this.data.write(smartBuffer)
   }
 
-  static fromLocalPalette ({ data, palette, noSizePrefix }) {
+  static fromLocalPalette ({ data, palette, noSizePrefix, hasFluidCount, fluidCount }) {
     return new ChunkSection({
       noSizePrefix,
+      hasFluidCount,
+      fluidCount,
       data: palette.length === 1
         ? new SingleValueContainer({
           noSizePrefix,
@@ -96,15 +106,18 @@ class ChunkSection {
     })
   }
 
-  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK, noSizePrefix) {
+  static read (smartBuffer, maxBitsPerBlock = constants.GLOBAL_BITS_PER_BLOCK, noSizePrefix, hasFluidCount = false) {
     const solidBlockCount = smartBuffer.readInt16BE()
+    const fluidCount = hasFluidCount ? smartBuffer.readInt16BE() : 0
     const bitsPerBlock = smartBuffer.readUInt8()
     if (bitsPerBlock > 16) throw new Error(`Bits per block is too big: ${bitsPerBlock}`)
     // Case 1: Single Value Container (all blocks in the section are the same)
     if (bitsPerBlock === 0) {
       const section = new ChunkSection({
         noSizePrefix,
+        hasFluidCount,
         solidBlockCount,
+        fluidCount,
         singleValue: varInt.read(smartBuffer),
         maxBitsPerBlock
       })
@@ -116,7 +129,9 @@ class ChunkSection {
     if (bitsPerBlock > constants.MAX_BITS_PER_BLOCK) {
       return new ChunkSection({
         noSizePrefix,
+        hasFluidCount,
         solidBlockCount,
+        fluidCount,
         data: new DirectPaletteContainer({
           noSizePrefix,
           bitsPerValue: maxBitsPerBlock,
@@ -134,7 +149,9 @@ class ChunkSection {
 
     return new ChunkSection({
       noSizePrefix,
+      hasFluidCount,
       solidBlockCount,
+      fluidCount,
       data: new IndirectPaletteContainer({
         noSizePrefix,
         bitsPerValue: bitsPerBlock,
