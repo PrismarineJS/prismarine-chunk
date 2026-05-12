@@ -43,6 +43,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "minecraft-data": "github:mneuhaus/node-minecraft-data#add-26.1.2-data-wrapper",
     "prismarine-biome": "^1.2.0",
     "prismarine-block": "^1.14.1",
     "prismarine-nbt": "^2.2.1",
