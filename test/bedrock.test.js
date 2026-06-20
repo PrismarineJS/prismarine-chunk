@@ -211,6 +211,7 @@ for (const version of versions) {
   describe('bedrock subchunk tests on ' + version, () => {
     it('compaction works on ' + version, async () => {
       const registry = require('prismarine-registry')(version)
+      registry.handleStartGame({ block_network_ids_are_hashes: false, itemstates: [] })
       const ChunkColumn = require('prismarine-chunk')(registry)
       const cc = new ChunkColumn({ x: 0, z: 0 })
       const fakeBlocks = [1, 2, 3]

@@ -271,7 +271,7 @@ class SubChunk {
   }
 
   addToPalette (l, stateId, count = 0) {
-    const block = this.registry.blockStates[stateId]
+    const block = this.registry.supportFeature('blockHashes') ? this.registry.blocksByRuntimeId[stateId] : this.registry.blockStates[stateId]
     this.palette[l].push({ stateId, name: block.name, states: block.states, count })
     const minBits = neededBits(this.palette[l].length - 1)
     if (minBits > this.blocks[l].bitsPerBlock) {
