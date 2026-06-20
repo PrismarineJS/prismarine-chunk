@@ -41,7 +41,7 @@ class BiomeSection {
     this.biomes.read(buf)
 
     // now read palette
-    if (type === StorageType.Runtime) {
+    if (type === StorageType.Runtime || type === StorageType.NetworkPersistence) {
       // Shift 1 bit to un-zigzag (we cannot be negative)
       const biomePaletteLength = buf.readVarInt() >> 1
       for (let i = 0; i < biomePaletteLength; i++) {
