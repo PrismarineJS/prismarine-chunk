@@ -30,18 +30,55 @@ for (const version of versions) {
       })
     }
 
-    function setup (blockNetworkIdsAreHashes) {
+    function setup ({ version, cachingEnabled, blockNetworkIdsAreHashes }) {
       const registry = require('prismarine-registry')(version)
       const ChunkColumn = require('prismarine-chunk')(registry)
-      const fixtures = fs.readdirSync(join(__dirname, version))
+      const fixture = getFixture(version, cachingEnabled, blockNetworkIdsAreHashes)
       registry.handleStartGame({ block_network_ids_are_hashes: blockNetworkIdsAreHashes, itemstates: [] })
-      return { registry, ChunkColumn, fixtures }
+      return { registry, ChunkColumn, fixture }
+    }
+
+    function getFixture (version, cachingEnabled, blockNetworkIdsAreHashes) {
+      const testCase = getTestCaseName(cachingEnabled, blockNetworkIdsAreHashes)
+      const fixtures = fs
+        .readdirSync(join(__dirname, version, testCase))
+        .map((filename) => join(__dirname, version, testCase, filename))
+
+      const levelChunk = fixtures.find(x => x.includes('level_chunk') && !x.includes('CacheMissResponse'))
+      const levelChunkCacheMiss = fixtures.find(x => x.includes('level_chunk') && x.includes('CacheMissResponse'))
+
+      const subChunks = fixtures.filter(x => x.includes('subchunk') && !x.includes('CacheMissResponse'))
+      const subChunksCacheMiss = fixtures.filter(x => x.includes('subchunk') && x.includes('CacheMissResponse'))
+
+      return {
+        level_chunk: require(levelChunk),
+        level_chunk_missResponse: levelChunkCacheMiss ? require(levelChunkCacheMiss) : undefined,
+        subchunks: subChunks.map(x => require(x)),
+        subchunks_cache_miss: subChunksCacheMiss ? subChunksCacheMiss.map(x => require(x)) : undefined
+      }
+
+      function getTestCaseName (cachingEnabled, blockNetworkIdsAreHashes) {
+        let description = ''
+
+        if (cachingEnabled) {
+          description = 'cache'
+        } else {
+          description = 'no-cache'
+        }
+
+        if (blockNetworkIdsAreHashes) {
+          description += ' hash'
+        } else {
+          description += ' no-hash'
+        }
+
+        return description
+      }
     }
 
     async function reEncodeLevelChunkWithoutCaching (blockNetworkIdsAreHashes) {
-      const { registry, ChunkColumn, fixtures } = setup(blockNetworkIdsAreHashes)
-      const packetLevelChunkWithoutCaching = fixtures.find(f => f.includes('level_chunk') && !f.toLowerCase().includes('cache'))
-      const packet = require(join(__dirname, version, packetLevelChunkWithoutCaching))
+      const { registry, ChunkColumn, fixture } = setup({ blockNetworkIdsAreHashes, version, cachingEnabled: false })
+      const packet = fixture.level_chunk
 
       const column = new ChunkColumn({ x: packet.x, z: packet.z })
       const payload = Buffer.from(packet.payload)
@@ -60,10 +97,8 @@ for (const version of versions) {
 
     async function reEncodeLevelChunkWithCaching (blockNetworkIdsAreHashes) {
       const blobStore = new BlobStore()
-      const { registry, ChunkColumn, fixtures } = setup(blockNetworkIdsAreHashes)
-      const packetLevelChunkWithCaching = fixtures.find(f => f.includes('level_chunk') && f.includes('cached'))
-      const packetLevelChunkCacheMissReponse = fixtures.find(f => f.includes('level_chunk') && f.includes('CacheMiss'))
-      const packet = require(join(__dirname, version, packetLevelChunkWithCaching))
+      const { registry, ChunkColumn, fixture } = setup({ blockNetworkIdsAreHashes, version, cachingEnabled: true })
+      const packet = fixture.level_chunk
       const column = new ChunkColumn({ x: packet.x, z: packet.z })
       const payload = Buffer.from(packet.payload)
 
@@ -72,7 +107,7 @@ for (const version of versions) {
       const misses = await column.networkDecode(packet.blobs.hashes, blobStore, payload)
       assert(misses.length > 0, 'Blob cache should be empty, so networkDecode() should return the missing blob hashes')
 
-      const missResponse = require(join(__dirname, version, packetLevelChunkCacheMissReponse))
+      const missResponse = fixture.level_chunk_missResponse
 
       for (const [hash, buffer] of Object.entries(missResponse.blobs)) {
         blobStore.set(hash, new BlobEntry({ type: registry.version['>=']('1.18') ? BlobType.Biomes : BlobType.ChunkSection, buffer: Buffer.from(buffer) }))
@@ -93,15 +128,18 @@ for (const version of versions) {
     }
 
     async function reEncodeSubChunkWithoutCaching (blockNetworkIdsAreHashes) {
-      const { ChunkColumn, fixtures } = setup(blockNetworkIdsAreHashes)
-      const packetSubChunkWithoutCaching = fixtures.find(f => f.includes('subchunk') && !f.toLowerCase().includes('cache'))
-      const packet = require(join(__dirname, version, packetSubChunkWithoutCaching))
-      if (packet.entries) {
-        for (const entry of packet.entries) {
-          await processSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, Buffer.from(entry.payload))
+      const { ChunkColumn, fixture } = setup({ blockNetworkIdsAreHashes, version, cachingEnabled: false })
+
+      for (const packet of fixture.subchunks) {
+        if (packet.entries) {
+          for (const entry of packet.entries) {
+            if (entry.result === 'success') {
+              await processSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, Buffer.from(entry.payload))
+            }
+          }
+        } else {
+          await processSubChunk(packet.x, packet.y, packet.z, Buffer.from(packet.data))
         }
-      } else {
-        await processSubChunk(packet.x, packet.y, packet.z, Buffer.from(packet.data))
       }
 
       async function processSubChunk (x, y, z, payload) {
@@ -118,26 +156,27 @@ for (const version of versions) {
 
     async function reEncodeSubChunkWithCaching (blockNetworkIdsAreHashes) {
       const blobStore = new BlobStore()
-      const { ChunkColumn, fixtures } = setup(blockNetworkIdsAreHashes)
-      const packetSubChunkWithCaching = fixtures.find(f => f.includes('subchunk') && f.includes('cached'))
-      const packetSubChunkCacheMissReponse = fixtures.find(f => f.includes('subchunk') && f.includes('CacheMiss'))
-      const packet = require(join(__dirname, version, packetSubChunkWithCaching))
-      const missResponse = require(join(__dirname, version, packetSubChunkCacheMissReponse))
-      assert(packet.cache_enabled, "you didn't dump packets correctly")
+      const { ChunkColumn, fixture } = setup({ blockNetworkIdsAreHashes, version, cachingEnabled: true })
 
-      if (packet.entries) {
-        for (const entry of packet.entries) {
-          if (missResponse.blobs[entry.blob_id] === undefined) { continue }
-          await processCachedSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, entry.blob_id, Buffer.from(entry.payload))
+      for (const packet of fixture.subchunks) {
+        assert(packet.cache_enabled, "you didn't dump packets correctly")
+
+        if (packet.entries) {
+          for (const entry of packet.entries) {
+            if (entry.result !== 'success' || !fixture.subchunks_cache_miss.some(x => x.blobs[entry.blob_id])) { continue }
+
+            await processCachedSubChunk(packet.origin.x + entry.dx, packet.origin.y + entry.dy, packet.origin.z + entry.dz, entry.blob_id, Buffer.from(entry.payload))
+          }
+        } else {
+          await processCachedSubChunk(packet.x, packet.y, packet.z, packet.blob_id, Buffer.from(packet.data))
         }
-      } else {
-        await processCachedSubChunk(packet.x, packet.y, packet.z, packet.blob_id, Buffer.from(packet.data))
       }
 
       async function processCachedSubChunk (x, y, z, blobId, extraData) {
         const column = new ChunkColumn({ x, z })
         const misses = await column.networkDecodeSubChunk([blobId], blobStore, extraData)
         assert(misses.length > 0, 'Blob cache should be empty, so networkDecode() should return the missing blob hashes')
+        const missResponse = fixture.subchunks_cache_miss.find(x => x.blobs[blobId])
 
         for (const [hash, buffer] of Object.entries(missResponse.blobs)) {
           blobStore.set(hash, new BlobEntry({ type: BlobType.ChunkSection, buffer: Buffer.from(buffer) }))
@@ -165,7 +204,8 @@ for (const version of versions) {
 
   describe('bedrock subchunk tests on ' + version, () => {
     it('compaction works on ' + version, async () => {
-      const { registry, ChunkColumn } = setup(false)
+      const registry = require('prismarine-registry')(version)
+      const ChunkColumn = require('prismarine-chunk')(registry)
       const cc = new ChunkColumn({ x: 0, z: 0 })
       const fakeBlocks = [1, 2, 3]
       let i = 0
