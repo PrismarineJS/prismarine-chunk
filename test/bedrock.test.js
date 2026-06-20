@@ -12,22 +12,46 @@ for (const version of versions) {
   const registryForVersionCheck = require('prismarine-registry')(version)
 
   describe('bedrock network chunks on ' + version, () => {
-    it('can re-encode level_chunk packet without caching', async () => {
+    it('can re-encode level_chunk packet without caching, block block_network_ids_are_hashes = false', async () => {
       await reEncodeLevelChunkWithoutCaching(false)
     })
 
-    it('can re-encode level_chunk with caching', async () => {
+    it('can re-encode level_chunk with caching, block block_network_ids_are_hashes = false', async () => {
       await reEncodeLevelChunkWithCaching(false)
     })
 
+    if (fs.existsSync(join(__dirname, version, getTestCaseName(false, true)))) {
+      it('can re-encode level_chunk packet without caching, block_network_ids_are_hashes = true', async () => {
+        await reEncodeLevelChunkWithoutCaching(true)
+      })
+    }
+
+    if (fs.existsSync(join(__dirname, version, getTestCaseName(true, true)))) {
+      it('can re-encode level_chunk with caching, block_network_ids_are_hashes = true', async () => {
+        await reEncodeLevelChunkWithCaching(true)
+      })
+    }
+
     if (registryForVersionCheck.version['>=']('1.18')) {
-      it('can re-encode subchunk packet without caching', async () => {
+      it('can re-encode subchunk packet without caching, block block_network_ids_are_hashes = false', async () => {
         await reEncodeSubChunkWithoutCaching(false)
       })
 
-      it('can re-encode subchunk packet with caching', async () => {
+      it('can re-encode subchunk packet with caching, block block_network_ids_are_hashes = false', async () => {
         await reEncodeSubChunkWithCaching(false)
       })
+
+      if (fs.existsSync(join(__dirname, version, getTestCaseName(false, true)))) {
+        it('can re-encode subchunk packet without caching, block_network_ids_are_hashes = true', async () => {
+          await reEncodeSubChunkWithoutCaching(true)
+        })
+      }
+
+      if (fs.existsSync(join(__dirname, version, getTestCaseName(true, true)))) {
+        it('can re-encode subchunk packet with caching, block_network_ids_are_hashes = true', async () => {
+          await reEncodeSubChunkWithCaching(true)
+        })
+      }
     }
 
     function setup ({ version, cachingEnabled, blockNetworkIdsAreHashes }) {
@@ -55,24 +79,6 @@ for (const version of versions) {
         level_chunk_missResponse: levelChunkCacheMiss ? require(levelChunkCacheMiss) : undefined,
         subchunks: subChunks.map(x => require(x)),
         subchunks_cache_miss: subChunksCacheMiss ? subChunksCacheMiss.map(x => require(x)) : undefined
-      }
-
-      function getTestCaseName (cachingEnabled, blockNetworkIdsAreHashes) {
-        let description = ''
-
-        if (cachingEnabled) {
-          description = 'cache'
-        } else {
-          description = 'no-cache'
-        }
-
-        if (blockNetworkIdsAreHashes) {
-          description += ' hash'
-        } else {
-          description += ' no-hash'
-        }
-
-        return description
       }
     }
 
@@ -263,4 +269,22 @@ const dbdiff = (last, now) => {
       break
     }
   }
+}
+
+function getTestCaseName (cachingEnabled, blockNetworkIdsAreHashes) {
+  let description = ''
+
+  if (cachingEnabled) {
+    description = 'cache'
+  } else {
+    description = 'no-cache'
+  }
+
+  if (blockNetworkIdsAreHashes) {
+    description += ' hash'
+  } else {
+    description += ' no-hash'
+  }
+
+  return description
 }
