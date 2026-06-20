@@ -209,12 +209,22 @@ for (const version of versions) {
   })
 
   describe('bedrock subchunk tests on ' + version, () => {
-    it('compaction works on ' + version, async () => {
+    it(`compaction works on ${version}, block block_network_ids_are_hashes = false`, async () => {
+      await compactChunkSectionWorks(false)
+    })
+
+    if (registryForVersionCheck.version['>=']('1.18')) {
+      it(`compaction works on ${version}, block_network_ids_are_hashes = true`, async () => {
+        await compactChunkSectionWorks(true)
+      })
+    }
+
+    async function compactChunkSectionWorks (blockNetworkIdsAreHashes) {
       const registry = require('prismarine-registry')(version)
-      registry.handleStartGame({ block_network_ids_are_hashes: false, itemstates: [] })
+      registry.handleStartGame({ block_network_ids_are_hashes: blockNetworkIdsAreHashes, itemstates: [] })
       const ChunkColumn = require('prismarine-chunk')(registry)
       const cc = new ChunkColumn({ x: 0, z: 0 })
-      const fakeBlocks = [1, 2, 3]
+      const fakeBlocks = [registry.blocksByName.dirt.defaultState, registry.blocksByName.acacia_door.defaultState, registry.blocksByName.stone.defaultState, registry.blocksByName.bamboo.defaultState]
       let i = 0
       for (let y = 0; y < 4; y++) {
         const section = await cc.newSection(y)
@@ -242,7 +252,7 @@ for (const version of versions) {
           assert.strictEqual(subChunk.palette[l].length, 2, 'After compaction, palette size should be 2 on y=' + cy + ' layer=' + l)
         }
       }
-    })
+    }
   })
 }
 
