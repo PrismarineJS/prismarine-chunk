@@ -4,3 +4,4 @@ benchmarks/results/
 package-lock.json
 .vscode
 .DS_Store
+tools/bedrock_servers/

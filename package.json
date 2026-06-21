@@ -36,7 +36,9 @@
   "homepage": "https://github.com/PrismarineJS/prismarine-chunk",
   "devDependencies": {
     "@types/node": "^24.1.0",
+    "bedrock-protocol": "^3.47.0",
     "expect": "^30.0.5",
+    "minecraft-bedrock-server": "^1.5.0",
     "mocha": "^11.0.1",
     "prismarine-chunk": "file:.",
     "standard": "^17.0.0-2",

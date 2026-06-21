@@ -275,17 +275,22 @@ class ByteStream {
   }
 
   // Varints
-
   writeVarInt (value) {
     this.resizeForWriteIfNeeded(9)
     let offset = 0
-    while (value >= 0x80) {
-      this.buffer[this.writeOffset + offset] = (value & 0x7f) | 0x80
-      value = value >>> 7
-      offset += 1
-    }
-    this.buffer[this.writeOffset + offset] = value
-    this.writeOffset += offset + 1
+
+    do {
+      let tempByte = value & 0x7f
+      value >>>= 7
+
+      if (value !== 0) {
+        tempByte |= 0x80
+      }
+
+      this.buffer[this.writeOffset + offset] = tempByte
+      offset++
+    } while (value !== 0)
+    this.writeOffset += offset
   }
 
   readVarInt () {
