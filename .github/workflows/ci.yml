@@ -22,4 +22,5 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm install
+    - run: cd node_modules && cd minecraft-data && mv minecraft-data minecraft-data-old && git clone -b pc_26_1 https://github.com/SuperGamerTron/minecraft-data --depth 1 && node bin/generate_data.js
     - run: npm test
