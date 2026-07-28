@@ -33,7 +33,6 @@ module.exports = Block => {
           noSizePrefix: this.noSizePrefix
         })
         this.solidBlockCount = value ? constants.BLOCK_SECTION_VOLUME : 0
-        // Fix comment 4: pass stateId `value` directly instead of this.data.get(value)
         this.fluidCount = (this.hasFluidCount && isFluid(value)) ? constants.BLOCK_SECTION_VOLUME : 0
       } else {
         this.solidBlockCount = options?.solidBlockCount ?? 0
@@ -53,7 +52,6 @@ module.exports = Block => {
       this.palette = this.data.palette
     }
 
-    // Fix comment 1: persist noSizePrefix and hasFluidCount in JSON
     toJson () {
       return JSON.stringify({
         noSizePrefix: this.noSizePrefix,
@@ -64,11 +62,10 @@ module.exports = Block => {
       })
     }
 
-    // Fix comment 1: restore noSizePrefix and hasFluidCount from JSON and apply to container
     static fromJson (j) {
       const parsed = JSON.parse(j)
       const data = paletteContainer.fromJson(parsed.data)
-      data.noSizePrefix = parsed.noSizePrefix
+      data.noSizePrefix = parsed.noSizePrefix // restore so write() uses the correct wire format
       return new ChunkSection({
         noSizePrefix: parsed.noSizePrefix,
         hasFluidCount: parsed.hasFluidCount,
@@ -91,7 +88,7 @@ module.exports = Block => {
       } else if (stateId !== 0 && oldBlock === 0) {
         this.solidBlockCount += 1
       }
-      // Fix comment 3: guard fluid count updates with hasFluidCount
+      // only track fluid count for versions that include it in the wire format (26.1+)
       if (this.hasFluidCount) {
         if (!isFluid(stateId) && isFluid(oldBlock)) {
           this.fluidCount -= 1
@@ -116,7 +113,6 @@ module.exports = Block => {
       this.data.write(smartBuffer)
     }
 
-    // Fix comment 2: use BLOCK_SECTION_VOLUME (4096) instead of BIOME_SECTION_VOLUME (64) for block sections
     static fromLocalPalette ({ data, palette, noSizePrefix, hasFluidCount }) {
       return new ChunkSection({
         noSizePrefix,
