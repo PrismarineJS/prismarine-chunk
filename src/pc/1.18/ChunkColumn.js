@@ -1,6 +1,5 @@
 const SmartBuffer = require('smart-buffer').SmartBuffer
 const BitArray = require('../common/BitArrayNoSpan')
-const ChunkSection = require('../common/PaletteChunkSection')
 const BiomeSection = require('../common/PaletteBiome')
 const CommonChunkColumn = require('../common/CommonChunkColumn')
 const constants = require('../common/constants')
@@ -13,6 +12,8 @@ const CAVES_UPDATE_WORLD_HEIGHT = 384
 module.exports = (Block, mcData) => {
   // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
   const noSizePrefix = mcData.version['>=']('1.21.5')
+  const hasFluidCount = mcData.version['>=']('26.1')
+  const ChunkSection = require('../common/PaletteChunkSection')(Block)
   return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor (options) {
@@ -24,7 +25,7 @@ module.exports = (Block, mcData) => {
       this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
 
       this.sections = options?.sections ?? Array.from(
-        { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, maxBitsPerBlock: this.maxBitsPerBlock })
+        { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, hasFluidCount, maxBitsPerBlock: this.maxBitsPerBlock })
       )
       this.biomes = options?.biomes ?? Array.from(
         { length: this.numSections }, _ => new BiomeSection({ noSizePrefix })
@@ -252,7 +253,7 @@ module.exports = (Block, mcData) => {
     load (data) {
       const reader = SmartBuffer.fromBuffer(data)
       for (let i = 0; i < this.numSections; ++i) {
-        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock, noSizePrefix)
+        this.sections[i] = ChunkSection.read(reader, this.maxBitsPerBlock, noSizePrefix, hasFluidCount)
         this.biomes[i] = BiomeSection.read(reader, this.maxBitsPerBiome, noSizePrefix)
       }
     }
@@ -317,6 +318,7 @@ module.exports = (Block, mcData) => {
       const raiseUnknownBiome = biome => { throw new Error(`Failed to map ${JSON.stringify(biome)} to a biome ID`) }
       this.sections[y + minCY] = ChunkSection.fromLocalPalette({
         noSizePrefix,
+        hasFluidCount,
         data: BitArray.fromLongArray(blockStates.data || {}, blockStates.bitsPerBlock),
         palette: blockStates.palette
           .map(e => Block.fromProperties(e.Name.replace('minecraft:', ''), e.Properties || {}) ?? raiseUnknownBlock(e))
