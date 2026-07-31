@@ -1,5 +1,8 @@
 ## History
 
+### 1.41.0
+* [PC 26.1 chunk section implementation (#328 continued) (#329)](https://github.com/PrismarineJS/prismarine-chunk/commit/7d9f6f3bd6aaaf30e52c207111bb1a98ee9202fc) (thanks @Copilot)
+
 ### 1.40.0
 * [Update CI to Node 24 (#322)](https://github.com/PrismarineJS/prismarine-chunk/commit/f6ccf52e9c5125c4f5f3aee211318e972fa42550) (thanks @rom1504)
 * [Fix setBiome() fails below Y = 0 (missing minY offset) (#279)](https://github.com/PrismarineJS/prismarine-chunk/commit/7e935d44d395fff264a69d6a01a93477dc8020d2) (thanks @kinkainosaba)
