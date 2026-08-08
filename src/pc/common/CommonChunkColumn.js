@@ -5,6 +5,7 @@ class CommonChunkColumn {
     this.registry = registry
     // Just a collection of deserialized NBTs
     this.blockEntities = {}
+    this.entities = {}
     this.minY = 0
   }
 
@@ -64,6 +65,26 @@ class CommonChunkColumn {
   loadBlockEntities (entities) {
     for (const entity of entities) {
       this.setBlockEntity({ x: entity.x.value >> 4, y: entity.y.value, z: entity.z.value >> 4 }, entity)
+    }
+  }
+
+  // Entities
+
+  getEntity (id) {
+    return this.entities[id]
+  }
+
+  setEntity (id, entity) {
+    this.entities[id] = entity
+  }
+
+  removeEntity (id) {
+    delete this.entities[id]
+  }
+
+  loadEntities (entities) {
+    for (const id in entities) {
+      this.addEntity(id, entities[id])
     }
   }
 }
