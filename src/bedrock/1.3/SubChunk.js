@@ -4,6 +4,7 @@ const { getChecksum } = require('../common/util')
 const neededBits = require('../../pc/common/neededBits')
 const Stream = require('../common/Stream')
 const nbt = require('prismarine-nbt')
+const legacyBlockIdMap = require('minecraft-data').legacy.bedrock.blocks
 
 class SubChunk {
   constructor (registry, Block, options = {}) {
@@ -12,6 +13,23 @@ class SubChunk {
       throw new Error('registry is required')
     }
     this.Block = Block
+    this.legacyBlockIdToNewStateId = Object.fromEntries(Object.entries(legacyBlockIdMap).map(([k, v]) => [k, ((str) => {
+      str = str.substring(10)
+      const name = str.split('[', 1)[0]
+      if (!registry.blocksByName[name]) {
+        return null
+      }
+      let propertiesArr = []
+      if (str.slice(name.length + 1, -1) !== '') {
+        propertiesArr = str.slice(name.length + 1, -1).split(',')
+      }
+      const properties = Object.fromEntries(propertiesArr.map(property => {
+        const [key, value] = property.split('=')
+        const intValue = parseInt(value)
+        return [key, isNaN(intValue) ? { true: 1, false: 0 }[value] ?? value : intValue]
+      }))
+      return this.Block.fromProperties(name, properties, 0)?.stateId
+    })(v)]))
     this.y = options.y
     this.palette = options.palette || []
     this.blocks = []
@@ -47,6 +65,27 @@ class SubChunk {
     let storageCount = 1
 
     switch (this.subChunkVersion) {
+      case 0: {
+        const blockIds = stream.readBuffer(4096)
+        const metas = stream.readBuffer(2048)
+
+        for (let x = 0; x < 16; x++) {
+          for (let y = 0; y < 16; y++) {
+            for (let z = 0; z < 16; z++) {
+              const index = (x << 8) + (z << 4) + y
+              const id = blockIds[index]
+              const meta = metas[index >> 1] >> (index & 1) * 4 & 15
+
+              const stateId = this.legacyBlockIdToNewStateId[id + ':' + meta] ??
+                this.legacyBlockIdToNewStateId[id + ':0'] ??
+                this.legacyBlockIdToNewStateId['248:0'] // minecraft:info_update
+              this.setBlockStateId(0, x, y, z, stateId)
+            }
+          }
+        }
+        this.subChunkVersion = 8
+        return
+      }
       case 1:
         // This is a old SubChunk format that only has one layer - no need to read storage count
         // But when re-encoding, we want to use v8 to not loose data
