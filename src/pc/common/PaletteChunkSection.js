@@ -140,7 +140,7 @@ module.exports = Block => {
         fluidCount = smartBuffer.readInt16BE()
       }
       const bitsPerBlock = smartBuffer.readUInt8()
-      if (bitsPerBlock > 16) throw new Error(`Bits per block is too big: ${bitsPerBlock}`)
+      if (bitsPerBlock > Math.max(16, maxBitsPerBlock)) throw new Error(`Bits per block is too big: ${bitsPerBlock}`)
       // Case 1: Single Value Container (all blocks in the section are the same)
       if (bitsPerBlock === 0) {
         const section = new ChunkSection({
