@@ -290,6 +290,20 @@ describe('special bedrock tests', () => {
     }
   })
 
+  it('counts the blocks of single state sub chunks', async () => {
+    const registry = require('prismarine-registry')('bedrock_1.21.60')
+    const ChunkColumn = require('prismarine-chunk')(registry)
+    const source = new ChunkColumn({ x: 0, z: 0 })
+    for (let i = 0; i < 4096; i++) source.setBlockStateId(new Vec3(i & 15, -64 + (i >> 8), (i >> 4) & 15), registry.blocksByName.stone.defaultState)
+    const buffer = await source.getSectionAtIndex(-4).encode(StorageType.Runtime, false, true)
+    assert.strictEqual(buffer[3] >> 1, 0, 'single state storage')
+
+    const column = new ChunkColumn({ x: 0, z: 0 })
+    await column.networkDecodeSubChunkNoCache(-4, buffer)
+    assert.deepStrictEqual(column.getBlocks().map(block => [block.name, block.count]), [['stone', 4096]])
+    assert.deepStrictEqual(await column.getSectionAtIndex(-4).encode(StorageType.Runtime, false, true), buffer)
+  })
+
   // a uniform sub chunk (all air, y=5) sent by a 1.17.30 server
   const singleStateSubChunks = {
     runtime: [StorageType.Runtime, Buffer.from('090105018c02', 'hex')],

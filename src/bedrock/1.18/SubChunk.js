@@ -1,6 +1,5 @@
 const SubChunk13 = require('../1.3/SubChunk')
 const { StorageType } = require('../common/constants')
-const PalettedStorage = require('../common/PalettedStorage')
 
 class SubChunk118 extends SubChunk13 {
   // Resolve a network runtime id (a state hash on hashed versions, a sequential id otherwise) to a palette entry. An
@@ -19,18 +18,6 @@ class SubChunk118 extends SubChunk13 {
     for (let i = 0; i < paletteSize; i++) {
       this.palette[storageLayer][i] = this.resolveRuntimeEntry(stream.readZigZagVarInt())
     }
-  }
-
-  loadPalettedBlocks (storageLayer, stream, bitsPerBlock, format) {
-    if ((format === StorageType.Runtime) && (bitsPerBlock === 0)) {
-      // Single-block (zero-bit) runtime section: one runtime id for the whole section. Resolve it the same way as the
-      // multi-entry palette above - including the unknown-id air fallback - rather than indexing blockStates (which
-      // throws on an unknown hash and bypasses the fallback).
-      this.palette[storageLayer] = [this.resolveRuntimeEntry(stream.readZigZagVarInt())]
-      this.blocks[storageLayer] = new PalettedStorage(1)
-      return
-    }
-    return super.loadPalettedBlocks(...arguments)
   }
 
   writeStorage (stream, storageLayer, format) {
