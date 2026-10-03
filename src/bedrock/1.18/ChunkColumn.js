@@ -137,10 +137,9 @@ class ChunkColumn180 extends ChunkColumn13 {
     if (sectionCount !== -1 && sectionCount !== -2) { // In 1.18+, with sectionCount as -1/-2 we only get the biomes here
       this.sections = []
       for (let i = 0; i < sectionCount; i++) {
-        // in 1.17.30+, chunk index is sent in payload
-        const section = new SubChunk(this.registry, this.Block, { y: i, subChunkVersion: this.subChunkVersion })
+        const section = new SubChunk(this.registry, this.Block, { y: this.minCY + i, subChunkVersion: this.subChunkVersion })
         section.decode(StorageType.Runtime, stream)
-        this.setSection(i, section)
+        this.setSection(section.y, section)
       }
     }
 

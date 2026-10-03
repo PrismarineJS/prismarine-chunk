@@ -4,6 +4,7 @@
 // storage width, a uniform section, a second storage layer, block entities and biomes.
 const assert = require('assert')
 const { Vec3 } = require('vec3')
+const { StorageType } = require('prismarine-chunk/src/bedrock/common/constants')
 const { Versions } = require('bedrock-protocol/src/options')
 const minecraftData = require('minecraft-data')
 
@@ -183,6 +184,16 @@ for (const version of versions) {
           const { blobs, payload } = await source.networkEncode(store)
           assert.deepStrictEqual(await column.networkDecode(blobs.map(b => b.hash), store, payload), [])
           assertSameColumn(column, source, sectionCount)
+        })
+
+        it('level_chunk with the sections inside (sub_chunk_count > 0, third party servers)', async () => {
+          const sections = []
+          for (let s = 0; s < sectionCount; s++) {
+            sections.push(await source.getSectionAtIndex(source.minCY + s).encode(StorageType.Runtime, false, false))
+          }
+          const column = fresh()
+          column.networkDecodeNoCache(Buffer.concat([...sections, await source.networkEncodeNoCache()]), sectionCount)
+          assertSameColumn(column, source, sectionCount, { blockEntities: false })
         })
       }
     })
