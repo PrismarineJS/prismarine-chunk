@@ -169,6 +169,21 @@ for (const version of versions) {
           assertSameColumn(column, source, sectionCount)
           assertBlockStates(registry, column, sectionCount)
         })
+
+        it('sub chunks with caching, then level_chunk biome blob', async () => {
+          // the client cache miss for the biome blob can be answered after the SubChunk packets
+          const store = new BlobStore()
+          const column = fresh()
+          for (let s = 0; s < sectionCount; s++) {
+            const y = source.minCY + s
+            source.getSectionAtIndex(y).updated = true
+            const [hash, payload] = await source.networkEncodeSubChunk(y, store)
+            assert.deepStrictEqual(await column.networkDecodeSubChunk([hash], store, payload), [])
+          }
+          const { blobs, payload } = await source.networkEncode(store)
+          assert.deepStrictEqual(await column.networkDecode(blobs.map(b => b.hash), store, payload), [])
+          assertSameColumn(column, source, sectionCount)
+        })
       }
     })
   }

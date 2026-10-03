@@ -190,8 +190,7 @@ class ChunkColumn180 extends ChunkColumn13 {
       return misses
     }
 
-    // Reset the sections & length, when we add a section, it will auto increment
-    this.sections = []
+    // Only the biomes are cached here, keep the sections received in SubChunk packets
     for (const blob of blobs) {
       const entry = blobStore.get(blob.toString())
       if (entry.type === BlobType.Biomes) {
