@@ -172,11 +172,14 @@ async function generateTestData (version, chunkX, chunkZ, cachingEnabled, blockN
 
   async function processLevelChunk (packet) {
     const cc = new ChunkColumn({ x: packet.x, z: packet.z })
+    const hashes = blobHashes(packet)
+    // since 1.26.40 sub chunks are requested when highest_subchunk_count is present
+    const requestSubChunks = packet.sub_chunk_count < 0 || (registry.version['>=']('1.26.40') && packet.highest_subchunk_count != null)
     if (!cachingEnabled) {
       await cc.networkDecodeNoCache(packet.payload, packet.sub_chunk_count)
     } else if (cachingEnabled) {
-      const misses = await cc.networkDecode(packet.blobs.hashes, blobStore, packet.payload)
-      if (!packet.blobs.hashes.length) { return }
+      const misses = await cc.networkDecode(hashes, blobStore, packet.payload)
+      if (!hashes.length) { return }
 
       client.queue('client_cache_blob_status', {
         misses: misses.length,
@@ -185,12 +188,12 @@ async function generateTestData (version, chunkX, chunkZ, cachingEnabled, blockN
         missing: misses
       })
 
-      if (packet.sub_chunk_count < 0) {
+      if (requestSubChunks) {
         for (const miss of misses) {
           blobStore.addPending(miss, new BlobEntry({ type: BlobType.Biomes, x: packet.x, z: packet.z }))
         }
       } else {
-        const lastBlob = packet.blobs.hashes[packet.blobs.hashes.length - 1]
+        const lastBlob = hashes[hashes.length - 1]
         for (const miss of misses) {
           blobStore.addPending(miss, new BlobEntry({
             type: miss === lastBlob
@@ -203,7 +206,7 @@ async function generateTestData (version, chunkX, chunkZ, cachingEnabled, blockN
       }
 
       blobStore.once(misses, async () => {
-        const now = await cc.networkDecode(packet.blobs.hashes, blobStore, packet.payload)
+        const now = await cc.networkDecode(hashes, blobStore, packet.payload)
 
         if (packet.x === chunkX && packet.z === chunkZ) {
           saveLevelChunkCacheMiss(packet, version, cachingEnabled, blockNetworkIdsAreHashes)
@@ -212,20 +215,20 @@ async function generateTestData (version, chunkX, chunkZ, cachingEnabled, blockN
         assert.strictEqual(now.length, 0)
         client.queue('client_cache_blob_status', {
           misses: 0,
-          haves: packet.blobs.hashes.length,
-          have: packet.blobs.hashes,
+          haves: hashes.length,
+          have: hashes,
           missing: []
         })
       })
     }
 
-    if (packet.sub_chunk_count < 0) {
+    if (requestSubChunks) {
       const maxSubChunkCount = packet.highest_subchunk_count || 5 // field is set if sub_chunk_count=-2 (1.18.10+)
 
       if (registry.version['>=']('1.18.11')) {
         const requests = []
         for (let i = 0; i <= maxSubChunkCount; i++) {
-          requests.push({ dx: 0, dz: 0, dy: cc.minCY + i })
+          requests.push(registry.version['>=']('1.26.30') ? { x: 0, y: cc.minCY + i, z: 0 } : { dx: 0, dz: 0, dy: cc.minCY + i })
         }
         client.queue('subchunk_request', { origin: { x: packet.x, z: packet.z, y: 0 }, requests, dimension: 0 })
       } else if (registry.version['>=']('1.18')) {
@@ -236,6 +239,10 @@ async function generateTestData (version, chunkX, chunkZ, cachingEnabled, blockN
     }
 
     ccs[packet.x + ',' + packet.z] = cc
+  }
+
+  function blobHashes (packet) {
+    return packet.blobs?.hashes ?? packet.blobs ?? []
   }
 
   function getTestCaseName (cachingEnabled, blockNetworkIdsAreHashes) {
@@ -355,7 +362,7 @@ async function generateTestData (version, chunkX, chunkZ, cachingEnabled, blockN
     if (packet.x !== chunkX || packet.z !== chunkZ) {
       return
     }
-    const data = { blobs: Object.fromEntries(packet.blobs.hashes.map(h => [h.toString(), blobStore.get(h).buffer])) }
+    const data = { blobs: Object.fromEntries(blobHashes(packet).map(h => [h.toString(), blobStore.get(h).buffer])) }
     const directory = path.resolve(__dirname, '..', 'test', `bedrock_${version}`, getTestCaseName(cachingEnabled, blockNetworkIdsAreHashes))
     const filename = `level_chunk CacheMissResponse ${packet.x},${packet.z}.json`.replace(/\s\s+/g, ' ')
     mkdirSync(directory, { recursive: true })
