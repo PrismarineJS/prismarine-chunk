@@ -19,7 +19,8 @@ describe('PalettedStorage works', function () {
   // check that resizing works (at least size 4 to hold #3)
   for (let size = 4; size < 16; size++) {
     const resized = storage.resize(size)
-    assert.strictEqual(resized.bitsPerBlock, size)
+    // bedrock storages only use 1, 2, 3, 4, 5, 6, 8 or 16 bits per block
+    assert.strictEqual(resized.bitsPerBlock, [4, 5, 6, 8, 16].find(bits => bits >= size))
     assert.strictEqual(resized.get(0, 0, 0), 0, 'Expected data at (0,0,0) to be 0 after resize to ' + size)
     assert.strictEqual(resized.get(0, 1, 0), 3, 'Expected data at (0,1,0) to be 3 after resize to ' + size)
     const palette2 = []
