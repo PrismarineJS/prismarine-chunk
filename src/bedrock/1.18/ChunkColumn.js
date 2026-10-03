@@ -260,9 +260,6 @@ class ChunkColumn180 extends ChunkColumn13 {
       return misses
     }
 
-    // Reset the sections & length, when we add a section, it will auto increment
-    this.sections = []
-    this.sectionsLen = 0
     for (const blob of blobs) {
       const entry = blobStore.get(blob.toString())
 
