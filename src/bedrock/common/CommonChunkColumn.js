@@ -30,7 +30,7 @@ class CommonChunkColumn {
 
   initialize (func) {
     const p = new Vec3()
-    for (p.y = 0; p.y < this.worldHeight; p.y++) {
+    for (p.y = this.minY; p.y < this.maxY; p.y++) {
       for (p.z = 0; p.z < 16; p.z++) {
         for (p.x = 0; p.x < 16; p.x++) {
           const block = func(p.x, p.y, p.z)
