@@ -56,6 +56,7 @@ class CommonChunkColumn {
   }
 
   setBlock (pos, block) {
+    if (pos.y < this.minY || pos.y >= this.maxY) return
     const Y = pos.y >> 4
     let sec = this.sections[this.co + Y]
     if (!sec) {
@@ -76,6 +77,7 @@ class CommonChunkColumn {
   }
 
   setBlockStateId (pos, stateId) {
+    if (pos.y < this.minY || pos.y >= this.maxY) return
     const Y = pos.y >> 4
     let sec = this.sections[this.co + Y]
     if (!sec) {
