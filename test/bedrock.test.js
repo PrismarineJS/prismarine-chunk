@@ -7,6 +7,7 @@ const assert = require('assert')
 
 const { BlobEntry, BlobType } = require('prismarine-chunk')
 const { StorageType } = require('prismarine-chunk/src/bedrock/common/constants')
+const Stream = require('prismarine-chunk/src/bedrock/common/Stream')
 
 const BlobStore = Map
 
@@ -272,6 +273,21 @@ describe('special bedrock tests', () => {
     assert(blocks.length > 0, 'No blocks in column')
     console.log('Unique blocks', blocks.map(e => e.name))
     // No error is OK
+  })
+
+  it('reads biomes of sections that repeat the previous section', () => {
+    const ChunkColumn = require('prismarine-chunk')('bedrock_1.21.60')
+    const source = new ChunkColumn({ x: 0, z: 0 })
+    for (let i = 0; i < 4096; i++) source.setBiomeId(new Vec3(i & 15, -64 + (i >> 8), (i >> 4) & 15), 1 + (i % 3))
+    const stream = new Stream()
+    source.biomes[0].export(StorageType.Runtime, stream)
+    const column = new ChunkColumn({ x: 0, z: 0 })
+    column.networkDecodeNoCache(Buffer.concat([stream.getBuffer(), Buffer.from([0xff, 0])]), -2)
+
+    for (let i = 0; i < 4096; i++) {
+      const [x, y, z] = [i & 15, i >> 8, (i >> 4) & 15]
+      assert.strictEqual(column.getBiomeId(new Vec3(x, -48 + y, z)), source.getBiomeId(new Vec3(x, -64 + y, z)), `biome at ${x},${-48 + y},${z}`)
+    }
   })
 
   // a uniform sub chunk (all air, y=5) sent by a 1.17.30 server
