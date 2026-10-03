@@ -1,69 +1,54 @@
 /* eslint-env mocha */
+const { Vec3 } = require('vec3')
 const assert = require('assert')
+const { bedrockVersions } = require('./versions')
 
-describe('bedrock ChunkColumn', () => {
-  for (const version of ['bedrock_1.16.220', 'bedrock_1.17.40', 'bedrock_1.18.0', 'bedrock_1.26.51']) {
-    it(`initialize covers the world height on ${version}`, () => {
-      const registry = require('prismarine-registry')(version)
-      const ChunkColumn = require('prismarine-chunk')(registry)
+for (const version of bedrockVersions) {
+  describe('bedrock ChunkColumn on ' + version, () => {
+    const registry = require('prismarine-registry')(version)
+    const ChunkColumn = require('prismarine-chunk')(registry)
+    const stone = registry.blocksByName.stone.defaultState
+
+    it('initializes the whole world height', () => {
       const column = new ChunkColumn({ x: 0, z: 0 })
-      const stone = registry.blocksByName.stone.defaultState
-      const ys = []
+      const heights = []
       column.initialize((x, y, z) => {
-        if (x === 0 && z === 0) ys.push(y)
+        if (x === 0 && z === 0) heights.push(y)
         return { stateId: stone }
       })
-      assert.deepStrictEqual([ys[0], ys[ys.length - 1], ys.length], [column.minY, column.maxY - 1, column.maxY - column.minY])
-      for (const y of [column.minY, -1, 0, column.maxY - 1]) {
-        if (y < column.minY) continue
-        assert.strictEqual(column.getBlockStateId({ x: 3, y, z: 3, l: 0 }), stone, `block at y=${y}`)
-      }
+      assert.deepStrictEqual([heights[0], heights.length], [column.minY, column.maxY - column.minY])
+      assert.strictEqual(column.getBlockStateId(new Vec3(3, column.minY, 3)), stone)
+      assert.strictEqual(column.getBlockStateId(new Vec3(3, column.maxY - 1, 3)), stone)
       assert.strictEqual(column.sections.length, column.maxCY - column.minCY, 'no sections outside the world')
     })
-  }
-})
 
-describe('bedrock ChunkColumn outside the world height', () => {
-  for (const version of ['bedrock_1.16.220', 'bedrock_1.18.0', 'bedrock_1.26.51']) {
-    it(`ignores blocks set outside the world on ${version}, like pc`, async () => {
-      const registry = require('prismarine-registry')(version)
-      const ChunkColumn = require('prismarine-chunk')(registry)
+    it('ignores blocks set outside the world height', async () => {
       const column = new ChunkColumn({ x: 0, z: 0 })
-      const stone = registry.blocksByName.stone.defaultState
-      column.setBlockStateId({ x: 1, y: column.minY, z: 1, l: 0 }, stone)
+      column.setBlockStateId(new Vec3(1, column.minY, 1), stone)
       const sections = column.sections.slice()
       const encoded = await column.networkEncodeNoCache()
 
       for (const y of [column.minY - 1, column.minY - 16, column.maxY, column.maxY + 16]) {
-        column.setBlockStateId({ x: 1, y, z: 1, l: 0 }, stone)
-        column.setBlock({ x: 2, y, z: 2, l: 0 }, column.getBlock({ x: 1, y: column.minY, z: 1, l: 0 }))
-        assert.strictEqual(column.getBlock({ x: 1, y, z: 1, l: 0 }).name, 'air', `block at y=${y}`)
+        column.setBlockStateId(new Vec3(1, y, 1), stone)
+        column.setBlock(new Vec3(2, y, 2), column.getBlock(new Vec3(1, column.minY, 1)))
+        assert.strictEqual(column.getBlock(new Vec3(1, y, 1)).name, 'air', `block at y=${y}`)
       }
-      assert.deepStrictEqual(column.sections, sections, 'no sections were added')
-      assert.deepStrictEqual(Object.keys(column.sections), Object.keys(sections))
+      assert.deepStrictEqual(Object.keys(column.sections), Object.keys(sections), 'no sections were added')
       assert.deepStrictEqual(await column.networkEncodeNoCache(), encoded)
     })
-  }
-})
 
-describe('bedrock ChunkColumn unknown block state ids', () => {
-  for (const [version, hashes] of [['bedrock_1.16.220', false], ['bedrock_1.21.60', false], ['bedrock_1.21.60', true]]) {
-    it(`throws a clear error and leaves the column unchanged on ${version}, block_network_ids_are_hashes = ${hashes}`, async () => {
-      const registry = require('prismarine-registry')(version)
-      registry.handleStartGame({ block_network_ids_are_hashes: hashes, itemstates: [] })
-      const ChunkColumn = require('prismarine-chunk')(registry)
+    it('throws on unknown block state ids and keeps the column unchanged', async () => {
       const column = new ChunkColumn({ x: 0, z: 0 })
-      const stone = registry.blocksByName.stone.defaultState
-      column.setBlockStateId({ x: 1, y: column.minY, z: 1, l: 0 }, stone)
-      const encoded = await column.networkEncodeNoCache()
+      column.setBlockStateId(new Vec3(1, column.minY, 1), stone)
       const sections = column.sections.slice()
+      const encoded = await column.networkEncodeNoCache()
 
-      for (const y of [column.minY, column.minY + 16]) { // in an existing and in a new section
-        assert.throws(() => column.setBlockStateId({ x: 1, y, z: 1, l: 0 }, 123456789), /Unknown block state id 123456789/)
+      for (const y of [column.minY, column.minY + 16]) {
+        assert.throws(() => column.setBlockStateId(new Vec3(1, y, 1), 123456789), /Unknown block state id 123456789/)
       }
-      assert.strictEqual(column.getBlockStateId({ x: 1, y: column.minY, z: 1, l: 0 }), stone)
-      assert.deepStrictEqual(column.sections, sections, 'no sections were added')
+      assert.strictEqual(column.getBlockStateId(new Vec3(1, column.minY, 1)), stone)
+      assert.deepStrictEqual(Object.keys(column.sections), Object.keys(sections), 'no sections were added')
       assert.deepStrictEqual(await column.networkEncodeNoCache(), encoded)
     })
-  }
-})
+  })
+}

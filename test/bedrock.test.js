@@ -1,10 +1,12 @@
 /* eslint-env mocha */
 const fs = require('fs')
 const { join } = require('path')
-const versions = ['bedrock_1.16.220', 'bedrock_1.17.10', 'bedrock_1.17.30', 'bedrock_1.17.40', 'bedrock_1.18.0', 'bedrock_1.19.1', 'bedrock_1.21.60']
+const { Vec3 } = require('vec3')
+const { bedrockVersions: versions } = require('./versions')
 const assert = require('assert')
 
 const { BlobEntry, BlobType } = require('prismarine-chunk')
+const { StorageType } = require('prismarine-chunk/src/bedrock/common/constants')
 
 const BlobStore = Map
 
@@ -271,6 +273,42 @@ describe('special bedrock tests', () => {
     console.log('Unique blocks', blocks.map(e => e.name))
     // No error is OK
   })
+
+  // a uniform sub chunk (all air, y=5) sent by a 1.17.30 server
+  const singleStateSubChunks = {
+    runtime: [StorageType.Runtime, Buffer.from('090105018c02', 'hex')],
+    nbt: [StorageType.NetworkPersistence, Buffer.from('090105000a0008046e616d650d6d696e6563726166743a6169720a0673746174657300030776657273696f6e86c8861100', 'hex')]
+  }
+  for (const [name, [format, buffer]] of Object.entries(singleStateSubChunks)) {
+    it(`can load and save single state (0 bit) ${name} sub chunks`, async () => {
+      const ChunkColumn = require('prismarine-chunk')('bedrock_1.17.30')
+      const column = new ChunkColumn({ x: 0, z: 0 })
+      const section = column.newSection(0, format, buffer)
+      assert.strictEqual(section.y, 5)
+      assert.strictEqual(column.getBlock(new Vec3(3, 7, 3)).name, 'air')
+      assert.deepStrictEqual(await section.encode(format, false, false), buffer)
+    })
+  }
+
+  for (const blockNetworkIdsAreHashes of [false, true]) {
+    it(`can save and load nbt palettes, block_network_ids_are_hashes = ${blockNetworkIdsAreHashes}`, async () => {
+      const registry = require('prismarine-registry')('bedrock_1.21.60')
+      registry.handleStartGame({ block_network_ids_are_hashes: blockNetworkIdsAreHashes, itemstates: [] })
+      const ChunkColumn = require('prismarine-chunk')(registry)
+      const column = new ChunkColumn({ x: 0, z: 0 })
+      const log = registry.blocksByName.oak_log
+      column.setBlockStateId(new Vec3(1, 1, 1), log.states[2])
+      const properties = column.getBlock(new Vec3(1, 1, 1)).getProperties()
+      assert.deepStrictEqual(properties, { pillar_axis: 'z' })
+
+      for (const format of [StorageType.NetworkPersistence, StorageType.LocalPersistence]) {
+        const decoded = new ChunkColumn({ x: 0, z: 0 })
+        decoded.newSection(0, format, await column.getSectionAtIndex(0).encode(format, false, false))
+        assert.strictEqual(decoded.getBlockStateId(new Vec3(1, 1, 1)), log.states[2])
+        assert.deepStrictEqual(decoded.getBlock(new Vec3(1, 1, 1)).getProperties(), properties)
+      }
+    })
+  }
 })
 
 describe('unknown runtime block hash falls back to air (#339)', () => {
