@@ -4,6 +4,7 @@
 // storage width, a uniform section, a second storage layer, block entities and biomes.
 const assert = require('assert')
 const { Vec3 } = require('vec3')
+const { BlobType, BlobEntry } = require('prismarine-chunk')
 const { StorageType } = require('prismarine-chunk/src/bedrock/common/constants')
 const { Versions } = require('bedrock-protocol/src/options')
 const minecraftData = require('minecraft-data')
@@ -193,6 +194,21 @@ for (const version of versions) {
           }
           const column = fresh()
           column.networkDecodeNoCache(Buffer.concat([...sections, await source.networkEncodeNoCache()]), sectionCount)
+          assertSameColumn(column, source, sectionCount, { blockEntities: false })
+        })
+
+        it('cached level_chunk with section blobs (sub_chunk_count > 0, third party servers)', async () => {
+          const store = new BlobStore()
+          const hashes = []
+          for (let s = 0; s < sectionCount; s++) {
+            const section = source.getSectionAtIndex(source.minCY + s)
+            const buffer = await section.encode(StorageType.Runtime, true, false)
+            store.set(section.hash, new BlobEntry({ type: BlobType.ChunkSection, buffer }))
+            hashes.push(section.hash)
+          }
+          const { blobs, payload } = await source.networkEncode(store)
+          const column = fresh()
+          assert.deepStrictEqual(await column.networkDecode([...hashes, ...blobs.map(b => b.hash)], store, payload), [])
           assertSameColumn(column, source, sectionCount, { blockEntities: false })
         })
       }

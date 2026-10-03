@@ -189,14 +189,18 @@ class ChunkColumn180 extends ChunkColumn13 {
       return misses
     }
 
-    // Only the biomes are cached here, keep the sections received in SubChunk packets
+    // section blobs only come with sub_chunk_count > 0, otherwise keep the sections from SubChunk packets
+    const sectionBlobs = blobs.filter(blob => blobStore.get(blob.toString()).type === BlobType.ChunkSection)
+    if (sectionBlobs.length) this.sections = []
     for (const blob of blobs) {
       const entry = blobStore.get(blob.toString())
       if (entry.type === BlobType.Biomes) {
         const stream = new Stream(entry.buffer)
         this.loadBiomes(stream, StorageType.NetworkPersistence, blob)
       } else if (entry.type === BlobType.ChunkSection) {
-        throw new Error("Can't accept chunk sections in networkDecode, these Blobs should be sent as individual sections")
+        const section = new SubChunk(this.registry, this.Block, { y: this.minCY + sectionBlobs.indexOf(blob), subChunkVersion: this.subChunkVersion })
+        section.decode(StorageType.Runtime, new Stream(entry.buffer))
+        this.setSection(section.y, section)
       } else {
         throw Error('Unknown blob type: ' + entry.type)
       }
