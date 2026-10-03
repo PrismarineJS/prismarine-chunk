@@ -45,3 +45,25 @@ describe('bedrock ChunkColumn outside the world height', () => {
     })
   }
 })
+
+describe('bedrock ChunkColumn unknown block state ids', () => {
+  for (const [version, hashes] of [['bedrock_1.16.220', false], ['bedrock_1.21.60', false], ['bedrock_1.21.60', true]]) {
+    it(`throws a clear error and leaves the column unchanged on ${version}, block_network_ids_are_hashes = ${hashes}`, async () => {
+      const registry = require('prismarine-registry')(version)
+      registry.handleStartGame({ block_network_ids_are_hashes: hashes, itemstates: [] })
+      const ChunkColumn = require('prismarine-chunk')(registry)
+      const column = new ChunkColumn({ x: 0, z: 0 })
+      const stone = registry.blocksByName.stone.defaultState
+      column.setBlockStateId({ x: 1, y: column.minY, z: 1, l: 0 }, stone)
+      const encoded = await column.networkEncodeNoCache()
+      const sections = column.sections.slice()
+
+      for (const y of [column.minY, column.minY + 16]) { // in an existing and in a new section
+        assert.throws(() => column.setBlockStateId({ x: 1, y, z: 1, l: 0 }, 123456789), /Unknown block state id 123456789/)
+      }
+      assert.strictEqual(column.getBlockStateId({ x: 1, y: column.minY, z: 1, l: 0 }), stone)
+      assert.deepStrictEqual(column.sections, sections, 'no sections were added')
+      assert.deepStrictEqual(await column.networkEncodeNoCache(), encoded)
+    })
+  }
+})

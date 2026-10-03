@@ -57,6 +57,7 @@ class CommonChunkColumn {
 
   setBlock (pos, block) {
     if (pos.y < this.minY || pos.y >= this.maxY) return
+    this.checkStateId(block.stateId)
     const Y = pos.y >> 4
     let sec = this.sections[this.co + Y]
     if (!sec) {
@@ -78,6 +79,7 @@ class CommonChunkColumn {
 
   setBlockStateId (pos, stateId) {
     if (pos.y < this.minY || pos.y >= this.maxY) return
+    this.checkStateId(stateId)
     const Y = pos.y >> 4
     let sec = this.sections[this.co + Y]
     if (!sec) {
@@ -85,6 +87,12 @@ class CommonChunkColumn {
       this.sections[this.co + Y] = sec
     }
     sec.setBlockStateId(pos.l, pos.x, pos.y & 0xf, pos.z, stateId)
+  }
+
+  checkStateId (stateId) {
+    if (!this.registry.blockStatesByStateId[stateId]) {
+      throw new Error(`Unknown block state id ${stateId} for bedrock ${this.registry.version.minecraftVersion}`)
+    }
   }
 
   getBiomeId (pos) {
