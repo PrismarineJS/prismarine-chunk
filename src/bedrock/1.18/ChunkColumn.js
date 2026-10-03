@@ -112,7 +112,7 @@ class ChunkColumn180 extends ChunkColumn13 {
         await this.updateBiomeHash(biomeBuf)
 
         this.biomesUpdated = false
-        blobStore.set(this.biomesHash.toString(), new BlobEntry({ x: this.x, z: this.z, type: BlobType.Biomes, buffer: this.biomes }))
+        blobStore.set(this.biomesHash.toString(), new BlobEntry({ x: this.x, z: this.z, type: BlobType.Biomes, buffer: biomeBuf }))
       }
       blobHashes.push({ hash: this.biomesHash, type: BlobType.Biomes })
     }

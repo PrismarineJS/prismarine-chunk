@@ -107,6 +107,12 @@ function assertValidStorageWidths (column, sectionCount) {
   }
 }
 
+class BlobStore extends Map {
+  set (k, v) { return super.set(k.toString(), v) }
+  get (k) { return super.get(k.toString()) }
+  has (k) { return super.has(k.toString()) }
+}
+
 for (const version of versions) {
   const supportsHashes = require('prismarine-registry')('bedrock_' + version).supportFeature('blockHashes')
   for (const hashes of supportsHashes ? [false, true] : [false]) {
@@ -127,6 +133,15 @@ for (const version of versions) {
           assertSameColumn(column, source, sectionCount)
           assertBlockStates(registry, column, sectionCount)
         })
+
+        it('level_chunk with caching (nbt palette blobs)', async () => {
+          const store = new BlobStore()
+          const { blobs, payload } = await source.networkEncode(store)
+          const column = fresh()
+          assert.deepStrictEqual(await column.networkDecode(blobs.map(b => b.hash), store, payload), [])
+          assertSameColumn(column, source, sectionCount)
+          assertBlockStates(registry, column, sectionCount)
+        })
       } else {
         it('sub chunks without caching, then level_chunk biomes', async () => {
           const column = fresh()
@@ -136,6 +151,21 @@ for (const version of versions) {
           }
           column.networkDecodeNoCache(await source.networkEncodeNoCache(), -2)
           assertValidStorageWidths(source, sectionCount)
+          assertSameColumn(column, source, sectionCount)
+          assertBlockStates(registry, column, sectionCount)
+        })
+
+        it('level_chunk biome blob, then sub chunks with caching', async () => {
+          const store = new BlobStore()
+          const column = fresh()
+          const { blobs, payload } = await source.networkEncode(store)
+          assert.deepStrictEqual(await column.networkDecode(blobs.map(b => b.hash), store, payload), [])
+          for (let s = 0; s < sectionCount; s++) {
+            const y = source.minCY + s
+            source.getSectionAtIndex(y).updated = true
+            const [hash, payload] = await source.networkEncodeSubChunk(y, store)
+            assert.deepStrictEqual(await column.networkDecodeSubChunk([hash], store, payload), [])
+          }
           assertSameColumn(column, source, sectionCount)
           assertBlockStates(registry, column, sectionCount)
         })
