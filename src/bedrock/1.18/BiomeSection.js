@@ -82,7 +82,7 @@ class BiomeSection {
   }
 
   export (type, stream) {
-    const bitsPerBlock = Math.ceil(Math.log2(this.palette.length))
+    const bitsPerBlock = this.palette.length === 1 ? 0 : this.biomes.bitsPerBlock
     const paletteType = (bitsPerBlock << 1) | (type === StorageType.Runtime)
     stream.writeUInt8(paletteType)
     if (bitsPerBlock === 0) {

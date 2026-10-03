@@ -304,6 +304,16 @@ describe('special bedrock tests', () => {
     assert.deepStrictEqual(await column.getSectionAtIndex(-4).encode(StorageType.Runtime, false, true), buffer)
   })
 
+  it('writes biome sections with the width of their storage', async () => {
+    const ChunkColumn = require('prismarine-chunk')('bedrock_1.21.60')
+    const column = new ChunkColumn({ x: 0, z: 0 })
+    for (let i = 0; i < 4096; i++) column.setBiomeId(new Vec3(i & 15, -64 + (i >> 8), (i >> 4) & 15), i % 66)
+    const stream = new Stream()
+    column.biomes[0].export(StorageType.Runtime, stream)
+    assert.strictEqual(stream.getBuffer()[0] >> 1, 8, 'bits per biome')
+    assert.strictEqual(column.biomes[0].biomes.bitsPerBlock, 8)
+  })
+
   // a uniform sub chunk (all air, y=5) sent by a 1.17.30 server
   const singleStateSubChunks = {
     runtime: [StorageType.Runtime, Buffer.from('090105018c02', 'hex')],
