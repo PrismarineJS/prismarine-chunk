@@ -190,6 +190,47 @@ describe('special bedrock tests', () => {
   })
 })
 
+describe('unknown runtime block hash falls back to air (#339)', () => {
+  const SubChunk = require('../src/bedrock/1.18/SubChunk')
+  const Stream = require('../src/bedrock/common/Stream')
+  const { StorageType } = require('../src/bedrock/common/constants')
+  const registry = require('prismarine-registry')('bedrock_1.19.1')
+  registry.handleStartGame({ block_network_ids_are_hashes: false, itemstates: [] }) // populate blocksByRuntimeId
+  const Block = require('prismarine-block')(registry)
+  const airName = registry.blocksByName.air.name
+  const UNKNOWN = 987654321 // a runtime id no block resolves to
+  const readStreamOf = (writeFn) => { const w = new Stream(); writeFn(w); return new Stream(w.buffer.slice(0, w.writeOffset)) }
+
+  it('a multi-entry runtime palette maps an unknown hash to air, keeping its runtimeId', () => {
+    const sc = new SubChunk(registry, Block, { y: 0 })
+    sc.loadRuntimePalette(0, readStreamOf(w => w.writeZigZagVarInt(UNKNOWN)), 1)
+    assert.strictEqual(sc.palette[0][0].name, airName)
+    assert.strictEqual(sc.palette[0][0].runtimeId, UNKNOWN)
+  })
+
+  it('a zero-bit runtime section maps an unknown hash to air instead of throwing', () => {
+    const sc = new SubChunk(registry, Block, { y: 0 })
+    // This path (loadPalettedBlocks with bitsPerBlock 0, Runtime) previously went through addToPalette and threw on an
+    // unknown hash; it must now use the same air fallback as the multi-entry palette.
+    assert.doesNotThrow(() => sc.loadPalettedBlocks(0, readStreamOf(w => w.writeZigZagVarInt(UNKNOWN)), 0, StorageType.Runtime))
+    assert.strictEqual(sc.palette[0].length, 1)
+    assert.strictEqual(sc.palette[0][0].name, airName)
+    assert.strictEqual(sc.palette[0][0].runtimeId, UNKNOWN)
+  })
+
+  it('a known runtime id still resolves to its block on both paths', () => {
+    const knownId = Number(Object.keys(registry.blocksByRuntimeId)[0])
+    const expected = registry.blocksByRuntimeId[knownId].name
+    const a = new SubChunk(registry, Block, { y: 0 })
+    a.loadRuntimePalette(0, readStreamOf(w => w.writeZigZagVarInt(knownId)), 1)
+    assert.strictEqual(a.palette[0][0].name, expected)
+    assert.strictEqual(a.palette[0][0].runtimeId, undefined) // a resolved entry carries no bare runtimeId
+    const b = new SubChunk(registry, Block, { y: 0 })
+    b.loadPalettedBlocks(0, readStreamOf(w => w.writeZigZagVarInt(knownId)), 0, StorageType.Runtime)
+    assert.strictEqual(b.palette[0][0].name, expected)
+  })
+})
+
 const dbdiff = (last, now) => {
   for (let i = 0; i < last.length; i++) {
     if (last[i] !== now[i]) {
