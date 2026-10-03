@@ -2,6 +2,7 @@
 // Regression tests for decoding bedrock chunk network packets
 const assert = require('assert')
 const { Vec3 } = require('vec3')
+const { StorageType } = require('prismarine-chunk/src/bedrock/common/constants')
 
 function setup (version, blockNetworkIdsAreHashes = false) {
   const registry = require('prismarine-registry')(version)
@@ -30,4 +31,21 @@ describe('bedrock 1.18+ network decoding', () => {
     assert.strictEqual(column.getBlock(pos(1, -64, 1)).name, 'stone')
     assert.strictEqual(column.getBlock(pos(1, -48, 1)).name, 'dirt')
   })
+})
+
+describe('bedrock v9 single state storage', () => {
+  // A uniform sub chunk (all air, y=5) as sent by a 1.17.30 server. Its block storage has 0 bits per block:
+  // no storage words and no palette size, only the single palette entry.
+  const runtime = Buffer.from('090105018c02', 'hex')
+  const persistence = Buffer.from('090105000a0008046e616d650d6d696e6563726166743a6169720a0673746174657300030776657273696f6e86c8861100', 'hex')
+
+  for (const [name, format, buffer] of [['runtime ids (level_chunk)', StorageType.Runtime, runtime], ['nbt palette (cached blob)', StorageType.NetworkPersistence, persistence]]) {
+    it(`decodes ${name}`, () => {
+      const { ChunkColumn } = setup('bedrock_1.17.30')
+      const column = new ChunkColumn({ x: 0, z: 0 })
+      const section = column.newSection(0, format, buffer)
+      assert.strictEqual(section.y, 5)
+      assert.strictEqual(column.getBlock(pos(3, 7, 3)).name, 'air')
+    })
+  }
 })

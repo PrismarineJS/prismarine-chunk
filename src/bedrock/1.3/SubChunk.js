@@ -83,6 +83,18 @@ class SubChunk {
   }
 
   loadPalettedBlocks (storageLayer, stream, bitsPerBlock, format) {
+    if (bitsPerBlock === 0 && format !== StorageType.LocalPersistence) {
+      // single state storage: no words and no palette size
+      this.blocks[storageLayer] = new PalettedStorage(1)
+      if (format === StorageType.Runtime) {
+        this.loadRuntimePalette(storageLayer, stream, 1)
+      } else {
+        this.loadLocalPalette(storageLayer, stream, 1, true)
+      }
+      this.blocks[storageLayer].incrementPalette(this.palette[storageLayer])
+      return
+    }
+
     const storage = new PalettedStorage(bitsPerBlock)
     storage.read(stream)
     this.blocks[storageLayer] = storage
