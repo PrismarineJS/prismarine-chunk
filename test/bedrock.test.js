@@ -211,6 +211,73 @@ describe('bedrock SubChunk persistence preserves non-default block properties', 
   }
 })
 
+describe('unknown runtime block hash falls back to air (#339)', () => {
+  const SubChunk = require('../src/bedrock/1.18/SubChunk')
+  const Stream = require('../src/bedrock/common/Stream')
+  const { StorageType } = require('../src/bedrock/common/constants')
+  const registry = require('prismarine-registry')('bedrock_1.19.1')
+  registry.handleStartGame({ block_network_ids_are_hashes: false, itemstates: [] }) // populate blocksByRuntimeId
+  const Block = require('prismarine-block')(registry)
+  const airName = registry.blocksByName.air.name
+  const UNKNOWN = 987654321 // a runtime id no block resolves to
+  const readStreamOf = (writeFn) => { const w = new Stream(); writeFn(w); return new Stream(w.buffer.slice(0, w.writeOffset)) }
+
+  it('a multi-entry runtime palette maps an unknown hash to air, keeping its runtimeId', () => {
+    const sc = new SubChunk(registry, Block, { y: 0 })
+    sc.loadRuntimePalette(0, readStreamOf(w => w.writeZigZagVarInt(UNKNOWN)), 1)
+    assert.strictEqual(sc.palette[0][0].name, airName)
+    assert.strictEqual(sc.palette[0][0].runtimeId, UNKNOWN)
+  })
+
+  it('a zero-bit runtime section maps an unknown hash to air instead of throwing', () => {
+    const sc = new SubChunk(registry, Block, { y: 0 })
+    // This path (loadPalettedBlocks with bitsPerBlock 0, Runtime) previously went through addToPalette and threw on an
+    // unknown hash; it must now use the same air fallback as the multi-entry palette.
+    assert.doesNotThrow(() => sc.loadPalettedBlocks(0, readStreamOf(w => w.writeZigZagVarInt(UNKNOWN)), 0, StorageType.Runtime))
+    assert.strictEqual(sc.palette[0].length, 1)
+    assert.strictEqual(sc.palette[0][0].name, airName)
+    assert.strictEqual(sc.palette[0][0].runtimeId, UNKNOWN)
+  })
+
+  it('a known runtime id still resolves to its block on both paths', () => {
+    const knownId = Number(Object.keys(registry.blocksByRuntimeId)[0])
+    const expected = registry.blocksByRuntimeId[knownId].name
+    const a = new SubChunk(registry, Block, { y: 0 })
+    a.loadRuntimePalette(0, readStreamOf(w => w.writeZigZagVarInt(knownId)), 1)
+    assert.strictEqual(a.palette[0][0].name, expected)
+    assert.strictEqual(a.palette[0][0].runtimeId, undefined) // a resolved entry carries no bare runtimeId
+    const b = new SubChunk(registry, Block, { y: 0 })
+    b.loadPalettedBlocks(0, readStreamOf(w => w.writeZigZagVarInt(knownId)), 0, StorageType.Runtime)
+    assert.strictEqual(b.palette[0][0].name, expected)
+  })
+})
+
+describe('hashed zero-bit runtime decode resolves the state hash to the internal state id', () => {
+  // With a hashed registry the wire carries a 32-bit state hash, not an internal state id. Decoding a zero-bit runtime
+  // section must resolve that hash through blocksByRuntimeId to the internal state id, so getBlockStateId/getBlock read
+  // the real block, not the raw hash (the state before the SubChunkV9 resolveRuntimeEntry path stored the hash and
+  // getBlock().name came back empty).
+  const SubChunk = require('../src/bedrock/1.18/SubChunk')
+  const Stream = require('../src/bedrock/common/Stream')
+  const { StorageType } = require('../src/bedrock/common/constants')
+  const registry = require('prismarine-registry')('bedrock_1.26.45')
+  registry.handleStartGame({ block_network_ids_are_hashes: true, itemstates: [] })
+  const Block = require('prismarine-block')(registry)
+
+  it('a known block hash resolves to its internal state id and block, not the hash', () => {
+    // oak_log with pillar_axis=x: a non-default multi-state block, so a dropped payload would be observable.
+    const hash = Number(Object.keys(registry.blocksByRuntimeId).find(id => registry.blocksByRuntimeId[id].name === 'oak_log'))
+    const internalId = registry.blocksByRuntimeId[hash].stateId
+    assert.notStrictEqual(hash, internalId) // the wire hash and the internal id must actually differ on a hashed registry
+    const w = new Stream(); w.writeVarInt(hash << 1) // zero-bit section: a single runtime id for the whole section
+    const sc = new SubChunk(registry, Block, { y: 0 })
+    sc.loadPalettedBlocks(0, new Stream(w.buffer.slice(0, w.writeOffset)), 0, StorageType.Runtime)
+    assert.strictEqual(sc.getBlockStateId(0, 0, 0, 0), internalId)
+    assert.strictEqual(sc.getBlock(0, 0, 0, 0).name, 'oak_log')
+    assert.strictEqual(sc.palette[0][0].runtimeId, undefined) // resolved entry keeps no bare wire id
+  })
+})
+
 const dbdiff = (last, now) => {
   for (let i = 0; i < last.length; i++) {
     if (last[i] !== now[i]) {
