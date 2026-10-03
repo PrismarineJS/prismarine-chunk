@@ -190,6 +190,27 @@ describe('special bedrock tests', () => {
   })
 })
 
+describe('bedrock SubChunk persistence preserves non-default block properties', () => {
+  const registry = require('prismarine-registry')('bedrock_1.26.45')
+  const Block = require('prismarine-block')(registry)
+  const SubChunk = require('../src/bedrock/1.3/SubChunk')
+  const { StorageType } = require('../src/bedrock/common/constants')
+  // state 1530 is oak_log with pillar_axis=x (a non-default property); 1529 is the y-axis default. A palette entry that
+  // drops the per-state `states` NBT re-resolves to the default on load, silently rewriting the axis.
+  const X_AXIS_OAK_LOG = 1530
+
+  for (const fmt of ['LocalPersistence', 'NetworkPersistence']) {
+    it('round-trips a non-default state id through ' + fmt, async () => {
+      const sc = SubChunk.create(registry, Block, 0)
+      sc.setBlockStateId(0, 0, 0, 0, X_AXIS_OAK_LOG)
+      const buffer = await sc.encode(StorageType[fmt])
+      const decoded = new SubChunk(registry, Block, { y: 0 })
+      decoded.decode(StorageType[fmt], buffer)
+      assert.strictEqual(decoded.getBlockStateId(0, 0, 0, 0), X_AXIS_OAK_LOG)
+    })
+  }
+})
+
 describe('unknown runtime block hash falls back to air (#339)', () => {
   const SubChunk = require('../src/bedrock/1.18/SubChunk')
   const Stream = require('../src/bedrock/common/Stream')
@@ -228,6 +249,32 @@ describe('unknown runtime block hash falls back to air (#339)', () => {
     const b = new SubChunk(registry, Block, { y: 0 })
     b.loadPalettedBlocks(0, readStreamOf(w => w.writeZigZagVarInt(knownId)), 0, StorageType.Runtime)
     assert.strictEqual(b.palette[0][0].name, expected)
+  })
+})
+
+describe('hashed zero-bit runtime decode resolves the state hash to the internal state id', () => {
+  // With a hashed registry the wire carries a 32-bit state hash, not an internal state id. Decoding a zero-bit runtime
+  // section must resolve that hash through blocksByRuntimeId to the internal state id, so getBlockStateId/getBlock read
+  // the real block, not the raw hash (the state before the SubChunkV9 resolveRuntimeEntry path stored the hash and
+  // getBlock().name came back empty).
+  const SubChunk = require('../src/bedrock/1.18/SubChunk')
+  const Stream = require('../src/bedrock/common/Stream')
+  const { StorageType } = require('../src/bedrock/common/constants')
+  const registry = require('prismarine-registry')('bedrock_1.26.45')
+  registry.handleStartGame({ block_network_ids_are_hashes: true, itemstates: [] })
+  const Block = require('prismarine-block')(registry)
+
+  it('a known block hash resolves to its internal state id and block, not the hash', () => {
+    // oak_log with pillar_axis=x: a non-default multi-state block, so a dropped payload would be observable.
+    const hash = Number(Object.keys(registry.blocksByRuntimeId).find(id => registry.blocksByRuntimeId[id].name === 'oak_log'))
+    const internalId = registry.blocksByRuntimeId[hash].stateId
+    assert.notStrictEqual(hash, internalId) // the wire hash and the internal id must actually differ on a hashed registry
+    const w = new Stream(); w.writeVarInt(hash << 1) // zero-bit section: a single runtime id for the whole section
+    const sc = new SubChunk(registry, Block, { y: 0 })
+    sc.loadPalettedBlocks(0, new Stream(w.buffer.slice(0, w.writeOffset)), 0, StorageType.Runtime)
+    assert.strictEqual(sc.getBlockStateId(0, 0, 0, 0), internalId)
+    assert.strictEqual(sc.getBlock(0, 0, 0, 0).name, 'oak_log')
+    assert.strictEqual(sc.palette[0][0].runtimeId, undefined) // resolved entry keeps no bare wire id
   })
 })
 
