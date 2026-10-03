@@ -181,18 +181,21 @@ class SubChunk {
   }
 
   writeStorage (stream, storageLayer, format) {
+    const singleState = this.subChunkVersion >= 9 && format !== StorageType.LocalPersistence && this.palette[storageLayer].length === 1
     const storage = this.blocks[storageLayer]
-    let paletteType = storage.bitsPerBlock << 1
+    let paletteType = singleState ? 0 : storage.bitsPerBlock << 1
     if (format === StorageType.Runtime) {
       paletteType |= 1
     }
     stream.writeUInt8(paletteType)
-    storage.write(stream)
 
-    if (format === StorageType.LocalPersistence) {
-      stream.writeUInt32LE(this.palette[storageLayer].length)
-    } else {
-      stream.writeZigZagVarInt(this.palette[storageLayer].length)
+    if (!singleState) {
+      storage.write(stream)
+      if (format === StorageType.LocalPersistence) {
+        stream.writeUInt32LE(this.palette[storageLayer].length)
+      } else {
+        stream.writeZigZagVarInt(this.palette[storageLayer].length)
+      }
     }
 
     if (format === StorageType.Runtime) {

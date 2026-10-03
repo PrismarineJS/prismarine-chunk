@@ -47,6 +47,12 @@ describe('bedrock v9 single state storage', () => {
       assert.strictEqual(section.y, 5)
       assert.strictEqual(column.getBlock(pos(3, 7, 3)).name, 'air')
     })
+
+    it(`re-encodes ${name} like the server`, async () => {
+      const { ChunkColumn } = setup('bedrock_1.17.30')
+      const section = new ChunkColumn({ x: 0, z: 0 }).newSection(0, format, buffer)
+      assert.deepStrictEqual(await section.encode(format, false, false), buffer)
+    })
   }
 })
 
