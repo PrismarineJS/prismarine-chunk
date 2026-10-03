@@ -1,6 +1,7 @@
 const { ChunkVersion } = require('../common/constants')
 const ChunkColumn = require('./ChunkColumn')
-const ModernSubChunk = require('../1.18/SubChunk')
+// The v9 subchunk (zero-bit runtime palettes, Bedrock 1.17.30+) is implemented under 1.18/; load it here for >= 1.17.30.
+const SubChunkV9 = require('../1.18/SubChunk')
 
 module.exports = (version) => {
   // Require once here to avoid requiring() on every new chunk instance
@@ -13,7 +14,7 @@ module.exports = (version) => {
       super(options, registry, Block, Biome)
       this.chunkVersion = this.chunkVersion || ChunkVersion.v1_16_0
       if (usesZeroBitRuntimePalettes) {
-        this.Section = ModernSubChunk
+        this.Section = SubChunkV9
         this.subChunkVersion = 9
       } else {
         this.subChunkVersion = 8
