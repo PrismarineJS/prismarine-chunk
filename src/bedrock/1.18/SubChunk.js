@@ -8,10 +8,10 @@ class SubChunk118 extends SubChunk13 {
   // resolving its block data from an older fallback) - falls back to air, keeping its runtimeId for diagnosis, so the
   // rest of the chunk still decodes instead of the layer going dark or the decode throwing.
   resolveRuntimeEntry (runtimeId) {
-    const block = this.registry.blocksByStateId[runtimeId]
-    if (block) return { ...block, stateId: runtimeId, count: 0 }
-    const air = this.registry.blocksByName && this.registry.blocksByName.air
-    return { stateId: air ? air.defaultState : 0, name: air ? air.name : 'air', runtimeId, count: 0 }
+    const blockState = this.registry.blockStatesByStateId[runtimeId]
+    if (blockState) return { ...blockState, stateId: runtimeId, count: 0 }
+    const air = this.registry.blocksByName.air.defaultState
+    return { ...this.registry.blockStatesByStateId[air], stateId: air, runtimeId, count: 0 }
   }
 
   loadRuntimePalette (storageLayer, stream, paletteSize) {

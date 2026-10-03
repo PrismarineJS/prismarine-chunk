@@ -49,3 +49,25 @@ describe('bedrock v9 single state storage', () => {
     })
   }
 })
+
+describe('bedrock nbt block palettes', () => {
+  for (const [version, hashes] of [['bedrock_1.16.220', false], ['bedrock_1.21.60', false], ['bedrock_1.21.60', true]]) {
+    it(`writes the block state into nbt palettes on ${version}, block_network_ids_are_hashes = ${hashes}`, async () => {
+      const { registry, ChunkColumn } = setup(version, hashes)
+      const log = registry.blocksByName.oak_log ?? registry.blocksByName.log
+      const stateId = log.states[log.states.length - 1]
+      const column = new ChunkColumn({ x: 0, z: 0 })
+      column.setBlockStateId(pos(1, 1, 1), stateId)
+      const expected = column.getBlock(pos(1, 1, 1)).getProperties()
+      assert(Object.keys(expected).length > 0)
+
+      for (const format of [StorageType.NetworkPersistence, StorageType.LocalPersistence]) {
+        const buffer = await column.getSectionAtIndex(0).encode(format, false, false)
+        const decoded = new ChunkColumn({ x: 0, z: 0 })
+        decoded.newSection(0, format, buffer)
+        assert.strictEqual(decoded.getBlockStateId(pos(1, 1, 1)), stateId)
+        assert.deepStrictEqual(decoded.getBlock(pos(1, 1, 1)).getProperties(), expected)
+      }
+    })
+  }
+})
