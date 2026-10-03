@@ -2,17 +2,13 @@ import { Biome } from "prismarine-biome"
 import { Block } from "prismarine-block"
 import { Vec3 } from "vec3"
 import { NBT } from "prismarine-nbt"
-import { Registry } from 'prismarine-registry'
-import Section from "./section"
+import { BlockState, Registry, RegistryBedrock, RegistryPc } from 'prismarine-registry'
+import Section = require("./section")
 
 declare class CommonChunk {
-  static fromJson(j: any): typeof this
   toJson(): string
 
-  initialize(iniFunc: (x: number, y: number, z: number) => Block): void
-
-  /** @deprecated This function only works on MCPE v0.14 */
-  setBiomeColor(pos: Vec3, r: number, g: number, b: number): void
+  initialize(iniFunc: (x: number, y: number, z: number) => Block | null): void
 }
 
 declare class PCChunk extends CommonChunk {
@@ -21,6 +17,11 @@ declare class PCChunk extends CommonChunk {
     minY?: number,
     worldHeight?: number
   } | null)
+
+  static fromJson(j: string): PCChunk
+
+  /** @deprecated This function only works on MCPE v0.14 */
+  setBiomeColor(pos: Vec3, r: number, g: number, b: number): void
 
   skyLightSent: boolean
   sections: Section[]
@@ -68,9 +69,9 @@ interface IVec4 {
 
 // This manages the chunk cache
 interface IBlobStore {
-  get(key: string | number | BigInt): object
-  set(key: string | number | BigInt, value: object): void
-  has(key: string | number | BigInt): boolean
+  get(key: bigint | string): loader.BlobEntry | undefined
+  set(key: bigint | string, value: loader.BlobEntry): void
+  has(key: bigint | string): boolean
 }
 
 declare const enum StorageType {
@@ -79,29 +80,34 @@ declare const enum StorageType {
   Runtime
 }
 
-type CCHash = { type: BlobType, hash: BigInt }
-type PaletteEntry = { name, stateId, states }
+type CCHash = { type: loader.BlobType, hash: bigint }
+type PaletteEntry = { stateId: number, name: string, states: BlockState['states'], version?: number, count: number }
 
 declare class SubChunk {
-  encode(storageType: StorageType): Promise<Buffer>
-  decode(storageType: StorageType, streamBuffer: Buffer): void
+  encode(storageType: StorageType, checksum?: boolean, compact?: boolean): Promise<Buffer>
+  decode(storageType: StorageType, streamBuffer: Buffer | Stream): void
 
   // Returns an array of currently stored blocks in this section
-  getPalette(): PaletteEntry[]
+  getPalette(layer?: number): PaletteEntry[]
 
   // Whether this section can be compacted (reduced in size)
-  isCompactable(): boolean
+  isCompactable(layer: number): boolean
   // Reduces the size of this section
-  compact(): void
+  compact(layer: number): void
 }
 
 type ExtendedBlock = Block & {
   light?: number
   skyLight?: number
+  superimposed?: Block
 }
 
-// A stub
 declare class Stream {
+  buffer: Buffer
+  readOffset: number
+  writeOffset: number
+  constructor(buffer?: Buffer)
+  getBuffer(): Buffer
 }
 
 declare class BedrockChunk extends CommonChunk {
@@ -118,54 +124,56 @@ declare class BedrockChunk extends CommonChunk {
   // Holds entities in the chunk, the string key is the entity ID
   entities: Record<string, NBT>
 
-  constructor(options: { x: number, z: number, chunkVersion?: number })
+  constructor(options?: { x?: number, z?: number, chunkVersion?: number })
+
+  static fromJson(j: string): BedrockChunk
 
   // Block management
   getBlock(pos: IVec4, full?: boolean): ExtendedBlock
   setBlock(pos: IVec4, block: ExtendedBlock): void
 
-  setBlockStateId(pos: IVec4, stateId: number): number
-  getBlockStateId(pos: IVec4): number
+  setBlockStateId(pos: IVec4, stateId: number): void
+  getBlockStateId(pos: IVec4): number | undefined
 
   // Returns list of unique blocks in this chunk column
   getBlocks(): PaletteEntry[]
 
   // Biomes
-  getBiome(pos: Vec3): Biome
-  setBiome(pos: Vec3, biome: Biome): void
-  getBiomeId(pos: Vec3): number
-  setBiomeId(pos: Vec3, biomeId: number): void
-  loadLegacyBiomes(buffer: Buffer): void
+  getBiome(pos: IVec4): Biome
+  setBiome(pos: IVec4, biome: Biome): void
+  getBiomeId(pos: IVec4): number
+  setBiomeId(pos: IVec4, biomeId: number): void
+  loadLegacyBiomes(buffer: Buffer | Stream): void
   // Only present on >= 1.18
   loadBiomes(buffer: Buffer | Stream, storageType: StorageType): void
   // Write 2D biome data to stream
-  writeLegacyBiomes(stream): void
+  writeLegacyBiomes(stream: Stream): void
   // Write 3D biome data to stream
-  writeBiomes(stream): void
+  writeBiomes(stream: Stream): void
 
   // Lighting
-  getBlockLight(pos: Vec3): number
-  setBlockLight(pos: Vec3, light: number): void
-  getSkyLight(pos: Vec3): number
-  setSkyLight(pos: Vec3, light: number): void
+  getBlockLight(pos: IVec4): number
+  setBlockLight(pos: IVec4, light: number): void
+  getSkyLight(pos: IVec4): number
+  setSkyLight(pos: IVec4, light: number): void
 
   // On versions <1.18: Encode this full chunk column without computing a checksum at the end
   // On version >=1.18: Encode the biome data for this chunk column and border blocks
   networkEncodeNoCache(): Promise<Buffer>
   // Compute checksums and put into blob store. Returns blob hashes maped to the blob store.
-  networkEncode(blobStore: IBlobStore): Promise<{ blobs: CCHash[] }>
+  networkEncode(blobStore: IBlobStore): Promise<{ blobs: CCHash[], payload: Buffer }>
 
   // On versions <=1.18: Decode this full chunk column without computing a checksum at the end
   // On version >=1.18: Decode the biome data for this chunk column and border blocks
-  networkDecodeNoCache(buffer: Buffer, sectionCount: number): Promise<void>
+  networkDecodeNoCache(buffer: Buffer | Stream, sectionCount: number): void
   /**
    * Decodes cached chunks sent over the network
    * @param blobs The blob hashes sent in the Chunk packet
    * @param blobStore Our blob store for cached data
    * @param {Buffer} payload The rest of the non-cached data
-   * @returns {CCHash[]} A list of hashes we don't have and need. If len > 0, decode failed.
+   * @returns A list of hashes we don't have and need. If len > 0, decode failed.
    */
-  networkDecode(blobs: BigInt[], blobStore: IBlobStore, payload: Buffer): Promise<CCHash[]>
+  networkDecode(blobs: bigint[], blobStore: IBlobStore, payload?: Buffer): Promise<bigint[]>
 
 
   // On version >=1.18: Encode/Decode block and entity NBT data for this chunk column
@@ -177,15 +185,16 @@ declare class BedrockChunk extends CommonChunk {
    * @param blobs The blob hashes sent in the SubChunk packet
    * @param blobStore The Blob Store holding the chunk data
    * @param payload The remaining data sent in the SubChunk packet, border blocks
+   * @returns A list of hashes we don't have and need. If len > 0, decode failed.
    */
-  networkDecodeSubChunk(blobs: BigInt[], blobStore: IBlobStore, payload: Buffer): Promise<void>
+  networkDecodeSubChunk(blobs: bigint[], blobStore: IBlobStore, payload?: Buffer): Promise<bigint[]>
   /**
    * Encodes a cached subchunk for the section at y
    * @param y The Y coordinate of the subchunk
    * @param blobStore The cache storage
    * @returns A hash of the encoded data (can be found in BlobStore) and a buffer containing block entities
    */
-  networkEncodeSubChunk(y: number, blobStore: IBlobStore): Promise<[BigInt, Buffer]>
+  networkEncodeSubChunk(y: number, blobStore: IBlobStore): Promise<[bigint, Buffer]>
 
   diskEncodeBlockEntities(): Buffer
   diskDecodeBlockEntities(buffer: Buffer): void
@@ -195,34 +204,48 @@ declare class BedrockChunk extends CommonChunk {
 
   // Heightmap
   loadHeights(map: Uint16Array): void
-  writeHeightMap(stream): void
+  writeHeightMap(stream: Stream): void
 
   //
   // Section management
-  getSection(pos): SubChunk
+  getSection(pos: { y: number }): SubChunk | null | undefined
   // Returns chunk at a Y index, adjusted for chunks at negative-Y
-  getSectionAtIndex(chunkY: number): SubChunk
+  getSectionAtIndex(chunkY: number): SubChunk | null | undefined
   // Creates a new air section
   newSection(y: number): SubChunk
   // Creates a new section with the given blocks
-  newSection(y: number, storageFormat: StorageType, buffer: Buffer): SubChunk
+  newSection(y: number, storageFormat: StorageType, buffer: Buffer | Stream): SubChunk
 
   // Block entities
   addBlockEntity(tag: NBT): void
 
   // Entities
-  loadEntities(entities: NBT[]): void
+  loadEntities(entities: Record<string, NBT>): void
 }
 
-export class BlobEntry {
-  // The time this blob was added to the blob store
-  created: number
-  constructor(object: any)
+declare function loader(registry: RegistryPc): typeof PCChunk
+declare function loader(registry: RegistryBedrock): typeof BedrockChunk
+declare function loader(mcVersionOrRegistry: string | Registry): typeof PCChunk | typeof BedrockChunk
+
+declare namespace loader {
+  export type { PCChunk, BedrockChunk, SubChunk, PaletteEntry, IBlobStore, CCHash, StorageType, ExtendedBlock, IVec4 }
+
+  export class BlobEntry {
+    // The time this blob was added to the blob store
+    created: number
+    type: BlobType
+    buffer?: Buffer
+    x?: number
+    y?: number
+    z?: number
+    constructor(args: { type: BlobType, buffer?: Buffer, x?: number, y?: number, z?: number })
+  }
+
+  export const BlobType: {
+    readonly ChunkSection: 0
+    readonly Biomes: 1
+  }
+  export type BlobType = typeof BlobType[keyof typeof BlobType]
 }
 
-export const enum BlobType {
-  ChunkSection = 0,
-  Biomes = 1,
-}
-
-export default function loader(mcVersionOrRegistry: string | Registry): typeof PCChunk | typeof BedrockChunk
+export = loader
