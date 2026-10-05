@@ -187,11 +187,11 @@ class ChunkSection {
     this.data.writeBuffer(smartBuffer)
 
     // write block light data
-    this.blockLight.writeBuffer(smartBuffer)
+    this.blockLight.writeNibbleBuffer(smartBuffer)
 
     if (this.skyLight !== null) {
       // write sky light data
-      this.skyLight.writeBuffer(smartBuffer)
+      this.skyLight.writeNibbleBuffer(smartBuffer)
     }
   }
 }

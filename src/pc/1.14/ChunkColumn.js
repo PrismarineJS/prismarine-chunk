@@ -299,7 +299,7 @@ module.exports = (Block, mcData) => {
         this.skyLightSections[y] = new BitArray({
           bitsPerValue: 4,
           capacity: 4096
-        }).readBuffer(reader)
+        }).readNibbleBuffer(reader)
       }
 
       // Read block light
@@ -312,7 +312,7 @@ module.exports = (Block, mcData) => {
         this.blockLightSections[y] = new BitArray({
           bitsPerValue: 4,
           capacity: 4096
-        }).readBuffer(reader)
+        }).readNibbleBuffer(reader)
       }
     }
 
@@ -331,14 +331,14 @@ module.exports = (Block, mcData) => {
       this.skyLightSections.forEach((section, i) => {
         if (section !== null) {
           varInt.write(smartBuffer, 2048)
-          section.writeBuffer(smartBuffer)
+          section.writeNibbleBuffer(smartBuffer)
         }
       })
 
       this.blockLightSections.forEach((section, i) => {
         if (section !== null) {
           varInt.write(smartBuffer, 2048)
-          section.writeBuffer(smartBuffer)
+          section.writeNibbleBuffer(smartBuffer)
         }
       })
 
