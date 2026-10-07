@@ -153,6 +153,22 @@ class BitArray {
     return this
   }
 
+  // Light arrays are not longs: they are plain bytes, two 4-bit values per byte with the
+  // lower index in the low nibble. In memory that is this array as little-endian words.
+  readNibbleBuffer (smartBuffer) {
+    for (let i = 0; i < this.data.length; i++) {
+      this.data[i] = smartBuffer.readUInt32LE()
+    }
+    return this
+  }
+
+  writeNibbleBuffer (smartBuffer) {
+    for (let i = 0; i < this.data.length; i++) {
+      smartBuffer.writeUInt32LE(this.data[i])
+    }
+    return this
+  }
+
   getBitsPerValue () {
     return this.bitsPerValue
   }

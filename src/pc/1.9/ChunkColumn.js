@@ -233,13 +233,13 @@ module.exports = (Block, mcData) => {
         const blockLight = new BitArray({
           bitsPerValue: 4,
           capacity: 4096
-        }).readBuffer(reader)
+        }).readNibbleBuffer(reader)
 
         if (skyLightSent) {
           skyLight = new BitArray({
             bitsPerValue: 4,
             capacity: 4096
-          }).readBuffer(reader)
+          }).readNibbleBuffer(reader)
         }
 
         const section = new ChunkSection({
