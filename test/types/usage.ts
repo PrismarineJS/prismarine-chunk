@@ -1,5 +1,5 @@
 import loader = require('prismarine-chunk')
-import defaultLoader from 'prismarine-chunk'
+import defaultLoader, { StorageType, BedrockChunk as BedrockChunkClass } from 'prismarine-chunk'
 import registryLoader = require('prismarine-registry')
 import { Vec3 } from 'vec3'
 
@@ -10,6 +10,8 @@ const stateId: number = pcChunk.getBlockStateId(new Vec3(0, 0, 0))
 const stateName: string = pcChunk.getBlockStateId(new Vec3(0, 0, 0))
 
 const BedrockChunk = loader(registryLoader('bedrock_1.21.60') as registryLoader.RegistryBedrock)
+// as bedrock-provider loads its chunk classes: an untyped registry gives either class
+const untyped = { 1.18: defaultLoader({ version: { type: 'bedrock', majorVersion: '1.18' } } as any) } as Record<string, typeof BedrockChunkClass>
 const bedrockChunk: loader.BedrockChunk = new BedrockChunk({ x: 0, z: 0 })
 // @ts-expect-error bedrock chunks need a blob store
 bedrockChunk.networkEncode()
@@ -40,12 +42,14 @@ async function bedrockNetwork (blobStore: loader.IBlobStore) {
   const misses: bigint[] = await bedrockChunk.networkDecode(blobs.map(blob => blob.hash), blobStore)
   const subChunkMisses: bigint[] = await bedrockChunk.networkDecodeSubChunk([1n], blobStore)
   const [hash, blockEntities] = await bedrockChunk.networkEncodeSubChunk(0, blobStore)
-  const runtime: loader.StorageType = 2
+  // a const enum, as bedrock-provider uses it: no runtime value needed
+  const runtime: loader.StorageType = StorageType.Runtime
+  const disk: number = loader.StorageType.LocalPersistence
   const sectionBuffer: Buffer = await newSection.encode(runtime, true, false)
   newSection.decode(runtime, sectionBuffer)
   // @ts-expect-error decoding without the cache is synchronous
   bedrockChunk.networkDecodeNoCache(payload, 1).then(() => {})
-  return [blobs, misses, subChunkMisses, hash + 1n, blockEntities]
+  return [blobs, misses, subChunkMisses, hash + 1n, blockEntities, disk]
 }
 
 const chunk: InstanceType<ReturnType<typeof defaultLoader>> = Math.random() > 0.5 ? pcChunk : bedrockChunk

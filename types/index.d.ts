@@ -74,18 +74,12 @@ interface IBlobStore {
   has(key: bigint | string): boolean
 }
 
-declare const enum StorageType {
-  LocalPersistence,
-  NetworkPersistence,
-  Runtime
-}
-
 type CCHash = { type: loader.BlobType, hash: bigint }
 type PaletteEntry = { stateId: number, name: string, states: BlockState['states'], version?: number, count: number }
 
 declare class SubChunk {
-  encode(storageType: StorageType, checksum?: boolean, compact?: boolean): Promise<Buffer>
-  decode(storageType: StorageType, streamBuffer: Buffer | Stream): void
+  encode(storageType: loader.StorageType, checksum?: boolean, compact?: boolean): Promise<Buffer>
+  decode(storageType: loader.StorageType, streamBuffer: Buffer | Stream): void
 
   // Returns an array of currently stored blocks in this section
   getPalette(layer?: number): PaletteEntry[]
@@ -145,7 +139,7 @@ declare class BedrockChunk extends CommonChunk {
   setBiomeId(pos: IVec4, biomeId: number): void
   loadLegacyBiomes(buffer: Buffer | Stream): void
   // Only present on >= 1.18
-  loadBiomes(buffer: Buffer | Stream, storageType: StorageType): void
+  loadBiomes(buffer: Buffer | Stream, storageType: loader.StorageType): void
   // Write 2D biome data to stream
   writeLegacyBiomes(stream: Stream): void
   // Write 3D biome data to stream
@@ -214,7 +208,7 @@ declare class BedrockChunk extends CommonChunk {
   // Creates a new air section
   newSection(y: number): SubChunk
   // Creates a new section with the given blocks
-  newSection(y: number, storageFormat: StorageType, buffer: Buffer | Stream): SubChunk
+  newSection(y: number, storageFormat: loader.StorageType, buffer: Buffer | Stream): SubChunk
 
   // Block entities
   addBlockEntity(tag: NBT): void
@@ -223,12 +217,20 @@ declare class BedrockChunk extends CommonChunk {
   loadEntities(entities: Record<string, NBT>): void
 }
 
-declare function loader(registry: RegistryPc): typeof PCChunk
-declare function loader(registry: RegistryBedrock): typeof BedrockChunk
-declare function loader(mcVersionOrRegistry: string | Registry): typeof PCChunk | typeof BedrockChunk
+// The chunk class of the registry's edition; either class for a version string or an untyped registry
+type ChunkOf<R> = R extends RegistryBedrock ? typeof BedrockChunk : R extends RegistryPc ? typeof PCChunk : typeof PCChunk | typeof BedrockChunk
+
+declare function loader<R extends string | Registry>(mcVersionOrRegistry: R): ChunkOf<R>
 
 declare namespace loader {
-  export type { PCChunk, BedrockChunk, SubChunk, PaletteEntry, IBlobStore, CCHash, StorageType, ExtendedBlock, IVec4 }
+  export type { PCChunk, BedrockChunk, SubChunk, PaletteEntry, IBlobStore, CCHash, ExtendedBlock, IVec4 }
+
+  // A const enum: its members are inlined where they are used, there is no runtime value
+  export const enum StorageType {
+    LocalPersistence,
+    NetworkPersistence,
+    Runtime
+  }
 
   export class BlobEntry {
     // The time this blob was added to the blob store
