@@ -22,8 +22,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm install
-    - name: TEMP use prismarine-registry#57 and prismarine-block#129
-      run: cd node_modules && rm -rf prismarine-registry prismarine-block && git clone -b bedrock --depth 1 https://github.com/mc-zuri/prismarine-registry && git clone -b fix/hashed-runtime-metadata --depth 1 https://github.com/Pix3lPirat3/prismarine-block
     - run: npm test
 
   # Stable branch-protection check; every required matrix job must pass.
