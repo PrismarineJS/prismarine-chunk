@@ -2,7 +2,6 @@
 const assert = require('assert')
 const { StorageType } = require('prismarine-chunk/src/bedrock/common/constants')
 
-// An end sub chunk all of end stone, as Bedrock Dedicated Server saved it: single state storage
 const saved = {
   'bedrock_1.17.30': '090101000a00000804006e616d6513006d696e6563726166743a656e645f73746f6e650a06007374617465730003070076657273696f6e03d2100100',
   'bedrock_1.21.0': '090101000a00000804006e616d6513006d696e6563726166743a656e645f73746f6e650a06007374617465730003070076657273696f6e0300150100'
