@@ -2,7 +2,9 @@ const SubChunk13 = require('../1.3/SubChunk')
 const { StorageType } = require('../common/constants')
 const PalettedStorage = require('../common/PalettedStorage')
 
-class SubChunk118 extends SubChunk13 {
+// SubChunkV9: the v9 subchunk format with zero-bit runtime palette support, introduced in Bedrock 1.17.30. It lives under
+// 1.18/ for historical reasons; 1.3/chunk.js selects it for registries >= 1.17.30 (see the import there).
+class SubChunkV9 extends SubChunk13 {
   // Resolve a network runtime id (a state hash on hashed versions, a sequential id otherwise) to a palette entry. An
   // unknown id - a block present in the server's version but missing from this data version (e.g. a newer release
   // resolving its block data from an older fallback) - falls back to air, keeping its runtimeId for diagnosis, so the
@@ -44,4 +46,4 @@ class SubChunk118 extends SubChunk13 {
   }
 }
 
-module.exports = SubChunk118
+module.exports = SubChunkV9
