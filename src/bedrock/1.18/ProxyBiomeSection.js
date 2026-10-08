@@ -25,8 +25,8 @@ class ProxyBiomeSection {
     return this.target.getBiome(pos)
   }
 
-  getBiomeId (pos) {
-    return this.target.getBiomeId(pos)
+  getBiomeId (x, y, z) {
+    return this.target.getBiomeId(x, y, z)
   }
 
   copy (other) {

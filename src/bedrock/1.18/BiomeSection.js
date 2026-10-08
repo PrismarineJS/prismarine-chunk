@@ -41,7 +41,7 @@ class BiomeSection {
     this.biomes.read(buf)
 
     // now read palette
-    if (type === StorageType.Runtime) {
+    if (type === StorageType.Runtime || type === StorageType.NetworkPersistence) {
       // Shift 1 bit to un-zigzag (we cannot be negative)
       const biomePaletteLength = buf.readVarInt() >> 1
       for (let i = 0; i < biomePaletteLength; i++) {
@@ -82,7 +82,7 @@ class BiomeSection {
   }
 
   export (type, stream) {
-    const bitsPerBlock = Math.ceil(Math.log2(this.palette.length))
+    const bitsPerBlock = this.palette.length === 1 ? 0 : this.biomes.bitsPerBlock
     const paletteType = (bitsPerBlock << 1) | (type === StorageType.Runtime)
     stream.writeUInt8(paletteType)
     if (bitsPerBlock === 0) {
