@@ -173,7 +173,8 @@ module.exports = (Block, mcData) => {
     dump () {
       const smartBuffer = new SmartBuffer()
       this.sections.forEach((section, i) => {
-        if (section !== null && !section.isEmpty()) {
+        // Empty allocated sections are still present in getMask().
+        if (section !== null) {
           section.write(smartBuffer)
         }
       })
