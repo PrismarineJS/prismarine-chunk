@@ -92,7 +92,7 @@ class BitArray {
   get (index) {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
 
-    const startLongIndex = Math.floor(index / this.valuesPerLong)
+    const startLongIndex = (index / this.valuesPerLong) | 0
     const indexInLong = (index - startLongIndex * this.valuesPerLong) * this.bitsPerValue
     if (indexInLong >= 32) {
       const indexInStartLong = indexInLong - 32
@@ -115,7 +115,7 @@ class BitArray {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
     // assert(value <= this.valueMask, 'value does not fit into bits per value')
 
-    const startLongIndex = Math.floor(index / this.valuesPerLong)
+    const startLongIndex = (index / this.valuesPerLong) | 0
     const indexInLong = (index - startLongIndex * this.valuesPerLong) * this.bitsPerValue
     if (indexInLong >= 32) {
       const indexInStartLong = indexInLong - 32
