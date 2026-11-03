@@ -138,10 +138,15 @@ class BitArray {
       return
     }
 
-    for (let i = 0; i < this.data.length; i += 2) {
-      this.data[i + 1] = smartBuffer.readUInt32BE()
-      this.data[i] = smartBuffer.readUInt32BE()
+    // read straight from the backing buffer, not via SmartBuffer's per-call readUInt32BE
+    const buf = smartBuffer.internalBuffer
+    let off = smartBuffer.readOffset
+    const data = this.data
+    for (let i = 0; i < data.length; i += 2) {
+      data[i + 1] = buf.readUInt32BE(off); off += 4
+      data[i] = buf.readUInt32BE(off); off += 4
     }
+    smartBuffer.readOffset = off
     return this
   }
 
