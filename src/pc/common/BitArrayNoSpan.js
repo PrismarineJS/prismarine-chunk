@@ -184,20 +184,17 @@ class BitArray {
       size = this.data.length
     }
 
-    if (size !== this.data.length) {
-      this.data = new Uint32Array(size)
-      // Read the actual data instead of just skipping
-      for (let i = 0; i < size; i += 2) {
-        this.data[i + 1] = smartBuffer.readUInt32BE()
-        this.data[i] = smartBuffer.readUInt32BE()
-      }
-      return
+    if (size !== this.data.length) this.data = new Uint32Array(size)
+    // Read the longs straight from the backing buffer instead of going through SmartBuffer's
+    // per-call readUInt32BE (bounds check + offset write on every one of ~size reads per section).
+    const buf = smartBuffer.internalBuffer
+    let off = smartBuffer.readOffset
+    const data = this.data
+    for (let i = 0; i < size; i += 2) {
+      data[i + 1] = buf.readUInt32BE(off); off += 4
+      data[i] = buf.readUInt32BE(off); off += 4
     }
-
-    for (let i = 0; i < this.data.length; i += 2) {
-      this.data[i + 1] = smartBuffer.readUInt32BE()
-      this.data[i] = smartBuffer.readUInt32BE()
-    }
+    smartBuffer.readOffset = off
     return this
   }
 
