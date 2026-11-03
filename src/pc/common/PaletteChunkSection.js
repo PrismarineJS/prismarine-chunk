@@ -12,15 +12,9 @@ function getBlockIndex (pos) {
 const fluids = ['water', 'lava']
 
 module.exports = Block => {
-  const fluidCache = new Map() // stateId -> isFluid; avoids a Block allocation on every set (26.1+)
   function isFluid (stateId) {
-    let v = fluidCache.get(stateId)
-    if (v === undefined) {
-      const block = Block.fromStateId(stateId)
-      v = fluids.includes(block.name) || block.isWaterlogged
-      fluidCache.set(stateId, v)
-    }
-    return v
+    const block = Block.fromStateId(stateId)
+    return fluids.includes(block.name) || block.isWaterlogged
   }
 
   return class ChunkSection {
