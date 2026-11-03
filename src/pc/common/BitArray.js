@@ -1,5 +1,6 @@
 // const assert = require('assert')
 const neededBits = require('./neededBits')
+const { readSectionLongs } = require('./util')
 
 class BitArray {
   constructor (options) {
@@ -138,15 +139,7 @@ class BitArray {
       return
     }
 
-    // read straight from the backing buffer, not via SmartBuffer's per-call readUInt32BE
-    const buf = smartBuffer.internalBuffer
-    let off = smartBuffer.readOffset
-    const data = this.data
-    for (let i = 0; i < data.length; i += 2) {
-      data[i + 1] = buf.readUInt32BE(off); off += 4
-      data[i] = buf.readUInt32BE(off); off += 4
-    }
-    smartBuffer.readOffset = off
+    readSectionLongs(smartBuffer, this.data, this.data.length)
     return this
   }
 
