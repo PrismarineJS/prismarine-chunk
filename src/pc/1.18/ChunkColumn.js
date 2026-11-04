@@ -13,6 +13,16 @@ module.exports = (Block, mcData) => {
   // 1.21.5+ writes no size prefix before chunk containers, it's computed dynamically to save 1 byte
   const noSizePrefix = mcData.version['>=']('1.21.5')
   const hasFluidCount = mcData.version['>=']('26.1')
+  // 26.3+ (protocol 777): the light-mask BIT_SET codec switched from a
+  // varint-count-of-longs encoding to a varint-count-of-raw-bytes encoding.
+  // Found live-testing against a 26.3 Realm: loadParsedLight threw
+  // "The first argument must be of type string or an instance of Buffer...
+  // Received undefined" because the sky/block light mask arrays minecraft-data
+  // decoded (now byte arrays, per the corresponding pc-26.3-support
+  // minecraft-data schema fix) were being fed through fromLongArray, which
+  // interpreted them as ~8x fewer/wrong bits than the real mask - confirmed
+  // by decompiling ByteBufCodecs.BIT_SET from the official 26.3 server jar.
+  const lightMasksAreByteArrays = mcData.version['>=']('26.3')
   const ChunkSection = require('../common/PaletteChunkSection')(Block)
   return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
@@ -261,8 +271,8 @@ module.exports = (Block, mcData) => {
     loadParsedLight (skyLight, blockLight, skyLightMask, blockLightMask, emptySkyLightMask, emptyBlockLightMask) {
       function readSection (sections, data, lightMask, pLightMask, emptyMask, pEmptyMask) {
         let currentSectionIndex = 0
-        const incomingLightMask = BitArray.fromLongArray(pLightMask, 1)
-        const incomingEmptyMask = BitArray.fromLongArray(pEmptyMask, 1)
+        const incomingLightMask = lightMasksAreByteArrays ? BitArray.fromByteArray(pLightMask, 1) : BitArray.fromLongArray(pLightMask, 1)
+        const incomingEmptyMask = lightMasksAreByteArrays ? BitArray.fromByteArray(pEmptyMask, 1) : BitArray.fromLongArray(pEmptyMask, 1)
 
         for (let y = 0; y < sections.length; y++) {
           const isEmpty = incomingEmptyMask.get(y)
@@ -360,10 +370,10 @@ module.exports = (Block, mcData) => {
       return {
         skyLight,
         blockLight,
-        skyLightMask: this.skyLightMask.toLongArray(),
-        blockLightMask: this.blockLightMask.toLongArray(),
-        emptySkyLightMask: this.emptySkyLightMask.toLongArray(),
-        emptyBlockLightMask: this.emptyBlockLightMask.toLongArray()
+        skyLightMask: lightMasksAreByteArrays ? this.skyLightMask.toByteArray() : this.skyLightMask.toLongArray(),
+        blockLightMask: lightMasksAreByteArrays ? this.blockLightMask.toByteArray() : this.blockLightMask.toLongArray(),
+        emptySkyLightMask: lightMasksAreByteArrays ? this.emptySkyLightMask.toByteArray() : this.emptySkyLightMask.toLongArray(),
+        emptyBlockLightMask: lightMasksAreByteArrays ? this.emptyBlockLightMask.toByteArray() : this.emptyBlockLightMask.toLongArray()
       }
     }
   }

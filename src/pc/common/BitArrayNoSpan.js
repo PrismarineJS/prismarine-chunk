@@ -62,6 +62,22 @@ class BitArray {
     return array
   }
 
+  // 26.3+ (protocol 777) light-mask wire format - see fromByteArray. Trims
+  // trailing all-zero bytes to match java.util.BitSet.toByteArray()/
+  // FriendlyByteBuf.writeByteArray semantics (the real server does the same).
+  toByteArray () {
+    const bytes = []
+    for (let i = 0; i < this.capacity; i++) {
+      const byteIndex = i >> 3
+      const bitIndex = i & 7
+      if (!bytes[byteIndex]) bytes[byteIndex] = 0
+      if (this.get(i)) bytes[byteIndex] |= (1 << bitIndex)
+    }
+    let end = bytes.length
+    while (end > 0 && !bytes[end - 1]) end--
+    return bytes.slice(0, end)
+  }
+
   static fromLongArray (array, bitsPerValue) {
     const bitArray = new BitArray({
       capacity: Math.floor(64 / bitsPerValue) * array.length,
@@ -71,6 +87,29 @@ class BitArray {
       const j = i * 2
       bitArray.data[j + 1] = array[i][0]
       bitArray.data[j] = array[i][1]
+    }
+    return bitArray
+  }
+
+  // 26.3+ (protocol 777): Mojang's light-mask BIT_SET codec switched from
+  // FriendlyByteBuf.writeLongArray (varint count of longs, java.util.BitSet
+  // valueOf(long[])) to FriendlyByteBuf.writeByteArray (varint count of raw
+  // bytes, java.util.BitSet.valueOf(byte[])) - confirmed by decompiling
+  // ByteBufCodecs.BIT_SET from the official 26.3 server jar. Java's
+  // BitSet.valueOf(byte[]) is little-endian within each byte: bit i comes
+  // from bit (i % 8) of bytes[i / 8].
+  static fromByteArray (bytes, bitsPerValue) {
+    const bitArray = new BitArray({
+      capacity: Math.floor(8 / bitsPerValue) * bytes.length,
+      bitsPerValue
+    })
+    for (let i = 0; i < bytes.length; i++) {
+      const byte = bytes[i]
+      for (let b = 0; b < 8; b++) {
+        if ((byte >> b) & 1) {
+          bitArray.set(i * 8 + b, 1)
+        }
+      }
     }
     return bitArray
   }
