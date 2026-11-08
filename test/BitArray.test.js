@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
+const { SmartBuffer } = require('smart-buffer')
 const BitArraySpan = require('../src/pc/common/BitArray')
 const BitArrayNoSpan = require('../src/pc/common/BitArrayNoSpan')
 const bitarrays = {
@@ -151,6 +152,34 @@ Object.entries(bitarrays).forEach(([name, BitArray]) => {
       for (let i = 0; i < 4096; i++) {
         assert.strictEqual(bitArr.get(i), array[i])
         assert.strictEqual(array[i], array2[i])
+      }
+    })
+
+    it('reads a Minecraft light nibble buffer without reordering', () => {
+      const buf = Buffer.alloc(2048)
+      const expected = new Array(4096)
+      for (let i = 0; i < 4096; i++) {
+        const v = (i * 3 + 5) & 15
+        expected[i] = v
+        if (i & 1) buf[i >> 1] |= v << 4
+        else buf[i >> 1] |= v
+      }
+      const bitArr = new BitArray({ bitsPerValue: 4, capacity: 4096 }).readLightBuffer(SmartBuffer.fromBuffer(buf))
+      for (let i = 0; i < 4096; i++) assert.strictEqual(bitArr.get(i), expected[i])
+    })
+
+    it('writes a Minecraft light nibble buffer that round-trips bytes exactly', () => {
+      const bitArr = new BitArray({ bitsPerValue: 4, capacity: 4096 })
+      for (let i = 0; i < 4096; i++) bitArr.set(i, (i * 7 + 1) & 15)
+      const out = new SmartBuffer()
+      bitArr.writeLightBuffer(out)
+      const buf = out.toBuffer()
+      assert.strictEqual(buf.length, 2048)
+      const reread = new BitArray({ bitsPerValue: 4, capacity: 4096 }).readLightBuffer(SmartBuffer.fromBuffer(buf))
+      for (let i = 0; i < 4096; i++) {
+        assert.strictEqual(reread.get(i), (i * 7 + 1) & 15)
+        const nibble = (i & 1) ? (buf[i >> 1] >> 4) : (buf[i >> 1] & 15)
+        assert.strictEqual(nibble, (i * 7 + 1) & 15)
       }
     })
 
