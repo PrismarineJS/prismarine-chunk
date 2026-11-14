@@ -139,16 +139,16 @@ class ChunkColumn13 extends CommonChunkColumn {
       blobHashes.push({ hash: section.hash, type: BlobType.ChunkSection })
     }
     if (this.biomesUpdated || !this.biomesHash || !blobStore.get(this.biomesHash)) {
+      let biomeBuf = Buffer.alloc(256)
       if (this.biomes[0]) {
         const stream = new Stream()
         this.biomes[0].exportLegacy2D(stream)
-        await this.updateBiomeHash(stream.getBuffer())
-      } else {
-        await this.updateBiomeHash(Buffer.alloc(256))
+        biomeBuf = stream.getBuffer()
       }
+      await this.updateBiomeHash(biomeBuf)
 
       this.biomesUpdated = false
-      blobStore.set(this.biomesHash, new BlobEntry({ x: this.x, z: this.z, type: BlobType.Biomes, buffer: this.biomes }))
+      blobStore.set(this.biomesHash, new BlobEntry({ x: this.x, z: this.z, type: BlobType.Biomes, buffer: biomeBuf }))
     }
     blobHashes.push({ hash: this.biomesHash, type: BlobType.Biomes })
     return blobHashes

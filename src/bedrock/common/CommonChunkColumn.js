@@ -30,7 +30,7 @@ class CommonChunkColumn {
 
   initialize (func) {
     const p = new Vec3()
-    for (p.y = 0; p.y < this.worldHeight; p.y++) {
+    for (p.y = this.minY; p.y < this.maxY; p.y++) {
       for (p.z = 0; p.z < 16; p.z++) {
         for (p.x = 0; p.x < 16; p.x++) {
           const block = func(p.x, p.y, p.z)
@@ -56,6 +56,8 @@ class CommonChunkColumn {
   }
 
   setBlock (pos, block) {
+    if (pos.y < this.minY || pos.y >= this.maxY) return
+    this.checkStateId(block.stateId)
     const Y = pos.y >> 4
     let sec = this.sections[this.co + Y]
     if (!sec) {
@@ -76,6 +78,8 @@ class CommonChunkColumn {
   }
 
   setBlockStateId (pos, stateId) {
+    if (pos.y < this.minY || pos.y >= this.maxY) return
+    this.checkStateId(stateId)
     const Y = pos.y >> 4
     let sec = this.sections[this.co + Y]
     if (!sec) {
@@ -83,6 +87,12 @@ class CommonChunkColumn {
       this.sections[this.co + Y] = sec
     }
     sec.setBlockStateId(pos.l, pos.x, pos.y & 0xf, pos.z, stateId)
+  }
+
+  checkStateId (stateId) {
+    if (!this.registry.blockStatesByStateId[stateId]) {
+      throw new Error(`Unknown block state id ${stateId} for bedrock ${this.registry.version.minecraftVersion}`)
+    }
   }
 
   getBiomeId (pos) {

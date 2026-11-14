@@ -112,7 +112,7 @@ class ChunkColumn180 extends ChunkColumn13 {
         await this.updateBiomeHash(biomeBuf)
 
         this.biomesUpdated = false
-        blobStore.set(this.biomesHash.toString(), new BlobEntry({ x: this.x, z: this.z, type: BlobType.Biomes, buffer: this.biomes }))
+        blobStore.set(this.biomesHash.toString(), new BlobEntry({ x: this.x, z: this.z, type: BlobType.Biomes, buffer: biomeBuf }))
       }
       blobHashes.push({ hash: this.biomesHash, type: BlobType.Biomes })
     }
@@ -137,10 +137,9 @@ class ChunkColumn180 extends ChunkColumn13 {
     if (sectionCount !== -1 && sectionCount !== -2) { // In 1.18+, with sectionCount as -1/-2 we only get the biomes here
       this.sections = []
       for (let i = 0; i < sectionCount; i++) {
-        // in 1.17.30+, chunk index is sent in payload
-        const section = new SubChunk(this.registry, this.Block, { y: i, subChunkVersion: this.subChunkVersion })
+        const section = new SubChunk(this.registry, this.Block, { y: this.minCY + i, subChunkVersion: this.subChunkVersion })
         section.decode(StorageType.Runtime, stream)
-        this.setSection(i, section)
+        this.setSection(section.y, section)
       }
     }
 
@@ -190,15 +189,18 @@ class ChunkColumn180 extends ChunkColumn13 {
       return misses
     }
 
-    // Reset the sections & length, when we add a section, it will auto increment
-    this.sections = []
+    // section blobs only come with sub_chunk_count > 0, otherwise keep the sections from SubChunk packets
+    const sectionBlobs = blobs.filter(blob => blobStore.get(blob.toString()).type === BlobType.ChunkSection)
+    if (sectionBlobs.length) this.sections = []
     for (const blob of blobs) {
       const entry = blobStore.get(blob.toString())
       if (entry.type === BlobType.Biomes) {
         const stream = new Stream(entry.buffer)
         this.loadBiomes(stream, StorageType.NetworkPersistence, blob)
       } else if (entry.type === BlobType.ChunkSection) {
-        throw new Error("Can't accept chunk sections in networkDecode, these Blobs should be sent as individual sections")
+        const section = new SubChunk(this.registry, this.Block, { y: this.minCY + sectionBlobs.indexOf(blob), subChunkVersion: this.subChunkVersion })
+        section.decode(StorageType.Runtime, new Stream(entry.buffer))
+        this.setSection(section.y, section)
       } else {
         throw Error('Unknown blob type: ' + entry.type)
       }
@@ -260,9 +262,6 @@ class ChunkColumn180 extends ChunkColumn13 {
       return misses
     }
 
-    // Reset the sections & length, when we add a section, it will auto increment
-    this.sections = []
-    this.sectionsLen = 0
     for (const blob of blobs) {
       const entry = blobStore.get(blob.toString())
 

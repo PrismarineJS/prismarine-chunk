@@ -1,6 +1,7 @@
 const wordByteSize = 4
 const wordBitSize = wordByteSize * 8
 const storageSize = 4096 // 4096 -> total # of entities (e.g. blocks) in storage, 16^3
+const validBitsPerBlock = [1, 2, 3, 4, 5, 6, 8, 16]
 
 class BetterUint32Array extends Uint32Array {
   toJSON () {
@@ -14,6 +15,7 @@ class BetterUint32Array extends Uint32Array {
 
 class PalettedStorage {
   constructor (bitsPerBlock) {
+    bitsPerBlock = validBitsPerBlock.find(bits => bits >= bitsPerBlock) ?? bitsPerBlock
     this.bitsPerBlock = bitsPerBlock
     this.blocksPerWord = Math.floor(wordBitSize / bitsPerBlock)
     this.wordsCount = Math.ceil(storageSize / this.blocksPerWord)
