@@ -1,5 +1,6 @@
 // const assert = require('assert')
 const neededBits = require('./neededBits')
+const { readSectionLongs } = require('./util')
 
 class BitArray {
   constructor (options) {
@@ -138,10 +139,7 @@ class BitArray {
       return
     }
 
-    for (let i = 0; i < this.data.length; i += 2) {
-      this.data[i + 1] = smartBuffer.readUInt32BE()
-      this.data[i] = smartBuffer.readUInt32BE()
-    }
+    readSectionLongs(smartBuffer, this.data, this.data.length)
     return this
   }
 

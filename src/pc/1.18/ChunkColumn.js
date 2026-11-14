@@ -153,7 +153,7 @@ module.exports = (Block, mcData) => {
 
     getBlockStateId (pos) {
       const section = this.sections[(pos.y - this.minY) >> 4]
-      return section ? section.get(toSectionPos(pos, this.minY)) : 0
+      return section ? section.getByIndex(getSectionBlockIndex(pos, this.minY)) : 0
     }
 
     getBlockLight (pos) {
@@ -181,7 +181,7 @@ module.exports = (Block, mcData) => {
 
     setBlockStateId (pos, stateId) {
       const section = this.sections[(pos.y - this.minY) >> 4]
-      if (section) { section.set(toSectionPos(pos, this.minY), stateId) }
+      if (section) { section.setByIndex(getSectionBlockIndex(pos, this.minY), stateId) }
     }
 
     setBlockLight (pos, light) {
@@ -375,10 +375,6 @@ function getLightSectionIndex (pos, minY) {
 
 function toBiomePos (pos, minY) {
   return { x: pos.x >> 2, y: ((pos.y - minY) & 0xF) >> 2, z: pos.z >> 2 }
-}
-
-function toSectionPos (pos, minY) {
-  return { x: pos.x, y: (pos.y - minY) & 0xF, z: pos.z }
 }
 
 function getSectionBlockIndex (pos, minY) {

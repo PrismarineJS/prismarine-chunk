@@ -82,19 +82,21 @@ class ChunkSection {
   }
 
   getBlock (pos) {
-    // index in palette or block id
-    // depending on if the global palette or the section palette is used
-    let stateId = this.data.get(getBlockIndex(pos))
+    return this.getBlockByIndex(getBlockIndex(pos))
+  }
 
-    if (this.palette !== null) {
-      stateId = this.palette[stateId]
-    }
-
+  // index-taking fast path (no pos allocation)
+  getBlockByIndex (index) {
+    let stateId = this.data.get(index)
+    if (this.palette !== null) stateId = this.palette[stateId]
     return stateId
   }
 
   setBlock (pos, stateId) {
-    const blockIndex = getBlockIndex(pos)
+    return this.setBlockByIndex(getBlockIndex(pos), stateId)
+  }
+
+  setBlockByIndex (blockIndex, stateId) {
     let palettedIndex
     if (this.palette !== null) {
       // if necessary, add the block to the palette
@@ -137,7 +139,7 @@ class ChunkSection {
       palettedIndex = stateId
     }
 
-    const oldBlock = this.getBlock(pos)
+    const oldBlock = this.getBlockByIndex(blockIndex)
     if (stateId === 0 && oldBlock !== 0) {
       this.solidBlockCount -= 1
     } else if (stateId !== 0 && oldBlock === 0) {

@@ -79,10 +79,18 @@ module.exports = Block => {
       return this.data.get(getBlockIndex(pos))
     }
 
-    set (pos, stateId) {
-      const blockIndex = getBlockIndex(pos)
+    // index-taking fast path (callers that already have the section-local index avoid allocating a pos)
+    getByIndex (index) {
+      return this.data.get(index)
+    }
 
-      const oldBlock = this.get(pos)
+    set (pos, stateId) {
+      return this.setByIndex(getBlockIndex(pos), stateId)
+    }
+
+    // index-taking fast path: no pos allocation, and reads the old value by index (no re-derive)
+    setByIndex (blockIndex, stateId) {
+      const oldBlock = this.data.get(blockIndex)
       if (stateId === 0 && oldBlock !== 0) {
         this.solidBlockCount -= 1
       } else if (stateId !== 0 && oldBlock === 0) {

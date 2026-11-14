@@ -63,6 +63,9 @@ class IndirectPaletteContainer {
     this.palette = options?.palette ?? [0]
     this.maxBits = options?.maxBits ?? constants.MAX_BITS_PER_BLOCK
     this.maxBitsPerBlock = options?.maxBitsPerBlock ?? constants.MAX_BITS_PER_BLOCK
+    // value -> palette index, kept in sync with `palette` (only set() grows it), so set() is O(1)
+    this.paletteMap = new Map()
+    for (let i = 0; i < this.palette.length; i++) this.paletteMap.set(this.palette[i], i)
   }
 
   get (index) {
@@ -70,10 +73,11 @@ class IndirectPaletteContainer {
   }
 
   set (index, value) {
-    let paletteIndex = this.palette.indexOf(value)
-    if (paletteIndex < 0) {
+    let paletteIndex = this.paletteMap.get(value)
+    if (paletteIndex === undefined) {
       paletteIndex = this.palette.length
       this.palette.push(value)
+      this.paletteMap.set(value, paletteIndex)
       const bitsPerValue = neededBits(paletteIndex)
       if (bitsPerValue > this.data.bitsPerValue) {
         if (bitsPerValue <= this.maxBits) {

@@ -1,5 +1,6 @@
 // const assert = require('assert')
 const neededBits = require('./neededBits')
+const { readSectionLongs } = require('./util')
 
 class BitArray {
   constructor (options) {
@@ -92,7 +93,7 @@ class BitArray {
   get (index) {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
 
-    const startLongIndex = Math.floor(index / this.valuesPerLong)
+    const startLongIndex = (index / this.valuesPerLong) | 0
     const indexInLong = (index - startLongIndex * this.valuesPerLong) * this.bitsPerValue
     if (indexInLong >= 32) {
       const indexInStartLong = indexInLong - 32
@@ -115,7 +116,7 @@ class BitArray {
     // assert(index >= 0 && index < this.capacity, 'index is out of bounds')
     // assert(value <= this.valueMask, 'value does not fit into bits per value')
 
-    const startLongIndex = Math.floor(index / this.valuesPerLong)
+    const startLongIndex = (index / this.valuesPerLong) | 0
     const indexInLong = (index - startLongIndex * this.valuesPerLong) * this.bitsPerValue
     if (indexInLong >= 32) {
       const indexInStartLong = indexInLong - 32
@@ -184,20 +185,8 @@ class BitArray {
       size = this.data.length
     }
 
-    if (size !== this.data.length) {
-      this.data = new Uint32Array(size)
-      // Read the actual data instead of just skipping
-      for (let i = 0; i < size; i += 2) {
-        this.data[i + 1] = smartBuffer.readUInt32BE()
-        this.data[i] = smartBuffer.readUInt32BE()
-      }
-      return
-    }
-
-    for (let i = 0; i < this.data.length; i += 2) {
-      this.data[i + 1] = smartBuffer.readUInt32BE()
-      this.data[i] = smartBuffer.readUInt32BE()
-    }
+    if (size !== this.data.length) this.data = new Uint32Array(size)
+    readSectionLongs(smartBuffer, this.data, size)
     return this
   }
 
