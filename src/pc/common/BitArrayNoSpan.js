@@ -209,6 +209,20 @@ class BitArray {
     return this
   }
 
+  readLightBuffer (smartBuffer) {
+    for (let i = 0; i < this.data.length; i++) {
+      this.data[i] = smartBuffer.readUInt32LE()
+    }
+    return this
+  }
+
+  writeLightBuffer (smartBuffer) {
+    for (let i = 0; i < this.data.length; i++) {
+      smartBuffer.writeUInt32LE(this.data[i])
+    }
+    return this
+  }
+
   getBitsPerValue () {
     return this.bitsPerValue
   }

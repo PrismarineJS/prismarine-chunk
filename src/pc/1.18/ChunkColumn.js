@@ -279,7 +279,7 @@ module.exports = (Block, mcData) => {
 
           if (!isEmpty) {
             const sectionReader = Buffer.from(data[currentSectionIndex++])
-            bitArray.readBuffer(SmartBuffer.fromBuffer(sectionReader))
+            bitArray.readLightBuffer(SmartBuffer.fromBuffer(sectionReader))
           }
         }
       }
@@ -344,7 +344,7 @@ module.exports = (Block, mcData) => {
       this.skyLightSections.forEach((section, index) => {
         if (section !== null && this.skyLightMask.get(index)) {
           const smartBuffer = new SmartBuffer()
-          section.writeBuffer(smartBuffer)
+          section.writeLightBuffer(smartBuffer)
           skyLight.push(Uint8Array.from(smartBuffer.toBuffer()))
         }
       })
@@ -352,7 +352,7 @@ module.exports = (Block, mcData) => {
       this.blockLightSections.forEach((section, index) => {
         if (section !== null && this.blockLightMask.get(index)) {
           const smartBuffer = new SmartBuffer()
-          section.writeBuffer(smartBuffer)
+          section.writeLightBuffer(smartBuffer)
           blockLight.push(Uint8Array.from(smartBuffer.toBuffer()))
         }
       })
