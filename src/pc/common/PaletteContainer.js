@@ -149,6 +149,13 @@ class SingleValueContainer {
     this.maxBitsPerBlock = options?.maxBitsPerBlock ?? constants.MAX_BITS_PER_BLOCK
   }
 
+  // Every block in the section is `value`, so the palette is just that one id. Exposing it lets
+  // callers (e.g. mineflayer's findBlocks) skip the whole section with a single compare instead of
+  // scanning all 4096 blocks, which matters because uniform sections (all air) are the common case.
+  get palette () {
+    return [this.value]
+  }
+
   get (index) {
     return this.value
   }

@@ -204,6 +204,18 @@ for (const version of allVersions) {
         column.setBiomeId(pos, biomeId)
         assert.strictEqual(biomeId, column.getBiomeId(pos))
       })
+
+      it('a uniform section exposes a single-entry palette so callers can skip it', () => {
+        const column = new ChunkColumn()
+        const air = registry.blocksByName.air.defaultState
+        const section = column.getSection(new Vec3(0, 0, 0))
+        // untouched section is all air -> palette is just [air], not undefined (which would force a full scan)
+        assert.deepStrictEqual(section.palette, [air])
+        // once a second block is introduced it must still list every id present
+        column.setBlockStateId(new Vec3(0, 0, 0), registry.blocksByName.stone.defaultState)
+        const stone = registry.blocksByName.stone.defaultState
+        assert.ok(section.palette.includes(air) && section.palette.includes(stone))
+      })
     }
   })
 }
