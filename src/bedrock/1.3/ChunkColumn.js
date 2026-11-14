@@ -181,7 +181,7 @@ class ChunkColumn13 extends CommonChunkColumn {
     this.sections = []
     for (let i = 0; i < sectionCount; i++) {
       // in 1.17.30+, chunk index is sent in payload
-      const section = new SubChunk(this.registry, this.Block, { y: i, subChunkVersion: this.subChunkVersion })
+      const section = new this.Section(this.registry, this.Block, { y: i, subChunkVersion: this.subChunkVersion })
       section.decode(StorageType.Runtime, stream)
       this.setSection(i, section)
     }
