@@ -4,10 +4,12 @@ const constants = require('../common/constants')
 const BitArray = require('../common/BitArray')
 const varInt = require('../common/varInt')
 const CommonChunkColumn = require('../common/CommonChunkColumn')
-const neededBits = require('../common/neededBits')
+const { neededBitsForBlocks } = require('../common/util')
 
 // wrap with func to provide version specific Block
 module.exports = (Block, mcData) => {
+  // Constant per version (mcData is bound to this class); compute once instead of per construction.
+  const maxBitsPerBlock = neededBitsForBlocks(mcData)
   return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor () {
@@ -18,7 +20,7 @@ module.exports = (Block, mcData) => {
       this.biomes = Array(
         constants.SECTION_WIDTH * constants.SECTION_WIDTH
       ).fill(1)
-      this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
+      this.maxBitsPerBlock = maxBitsPerBlock
     }
 
     toJson () {

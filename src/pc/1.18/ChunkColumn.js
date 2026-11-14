@@ -3,7 +3,7 @@ const BitArray = require('../common/BitArrayNoSpan')
 const BiomeSection = require('../common/PaletteBiome')
 const CommonChunkColumn = require('../common/CommonChunkColumn')
 const constants = require('../common/constants')
-const neededBits = require('../common/neededBits')
+const { neededBitsForBlocks, neededBitsForBiomes } = require('../common/util')
 
 const CAVES_UPDATE_MIN_Y = -64
 const CAVES_UPDATE_WORLD_HEIGHT = 384
@@ -14,6 +14,10 @@ module.exports = (Block, mcData) => {
   const noSizePrefix = mcData.version['>=']('1.21.5')
   const hasFluidCount = mcData.version['>=']('26.1')
   const ChunkSection = require('../common/PaletteChunkSection')(Block)
+  // Constant per version (mcData is bound to this class), so compute once here instead of scanning
+  // every block definition and allocating two arrays on every ChunkColumn construction.
+  const maxBitsPerBlock = neededBitsForBlocks(mcData)
+  const maxBitsPerBiome = neededBitsForBiomes(mcData)
   return class ChunkColumn extends CommonChunkColumn {
     static get section () { return ChunkSection }
     constructor (options) {
@@ -21,8 +25,8 @@ module.exports = (Block, mcData) => {
       this.minY = options?.minY ?? CAVES_UPDATE_MIN_Y
       this.worldHeight = options?.worldHeight ?? CAVES_UPDATE_WORLD_HEIGHT
       this.numSections = this.worldHeight >> 4
-      this.maxBitsPerBlock = neededBits(Object.values(mcData.blocks).reduce((high, block) => Math.max(high, block.maxStateId), 0))
-      this.maxBitsPerBiome = neededBits(Object.values(mcData.biomes).length)
+      this.maxBitsPerBlock = maxBitsPerBlock
+      this.maxBitsPerBiome = maxBitsPerBiome
 
       this.sections = options?.sections ?? Array.from(
         { length: this.numSections }, _ => new ChunkSection({ noSizePrefix, hasFluidCount, maxBitsPerBlock: this.maxBitsPerBlock })
