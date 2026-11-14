@@ -48,17 +48,38 @@ class CommonChunkColumn {
 
   // Block entities
 
+  // blockEntities is exposed as an accessor so the entry count stays in sync no matter how the map is
+  // populated: every wholesale assignment (fromJson, constructor options, future call sites) routes
+  // through the setter, while setBlockEntity/removeBlockEntity keep it current on incremental edits.
+  get blockEntities () {
+    return this._blockEntities
+  }
+
+  set blockEntities (entities) {
+    this._blockEntities = entities
+    this._blockEntityCount = entities ? Object.keys(entities).length : 0
+  }
+
   getBlockEntity (pos) {
-    return this.blockEntities[posKey(pos)]
+    // Fast path: getBlock() calls this for every block, but most columns are plain terrain with no
+    // block entities, so skip building the position key string when there are none.
+    if (this._blockEntityCount === 0) return undefined
+    return this._blockEntities[posKey(pos)]
   }
 
   setBlockEntity (pos, tag) {
     // Note: `pos` is relative to the chunk, not the world, tag's XYZ is
-    this.blockEntities[posKey(pos)] = tag
+    const key = posKey(pos)
+    if (!(key in this._blockEntities)) this._blockEntityCount++
+    this._blockEntities[key] = tag
   }
 
   removeBlockEntity (pos) {
-    delete this.blockEntities[posKey(pos)]
+    const key = posKey(pos)
+    if (key in this._blockEntities) {
+      delete this._blockEntities[key]
+      this._blockEntityCount--
+    }
   }
 
   loadBlockEntities (entities) {
